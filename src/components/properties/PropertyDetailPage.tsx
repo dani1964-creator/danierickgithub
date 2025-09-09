@@ -355,13 +355,16 @@ const PropertyDetailPage = () => {
   };
 
   const handleShare = () => {
-    if (!property) return;
+    if (!property || !brokerProfile) return;
+
+    // Use Edge Function URL for social sharing
+    const shareUrl = `${window.location.origin}/functions/v1/seo-handler?broker=${brokerProfile.website_slug}&path=/${property.slug}`;
 
     if (navigator.share) {
       navigator.share({
         title: property.title,
         text: `Confira este imóvel: ${property.title}`,
-        url: window.location.href,
+        url: shareUrl,
       });
     } else {
       navigator.clipboard.writeText(window.location.href);

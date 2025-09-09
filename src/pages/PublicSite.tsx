@@ -257,23 +257,26 @@ const PublicSite = () => {
   };
 
   const handleShare = (property: Property) => {
-    const propertyUrl = `${window.location.origin}/${slug}/${property.slug || property.id}`;
+    if (!brokerProfile) return;
+    
+    // Use Edge Function URL for social sharing
+    const shareUrl = `${window.location.origin}/functions/v1/seo-handler?broker=${brokerProfile.website_slug}&path=/${property.slug || property.id}`;
     
     if (navigator.share) {
       navigator.share({
         title: `${property.title} - ${brokerProfile?.business_name}`,
         text: `Confira este imóvel: ${property.title} por ${property.price?.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`,
-        url: propertyUrl
+        url: shareUrl
       });
     } else {
       // Para WhatsApp Web, incluir parâmetros que forcem atualização dos meta tags
-      const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(`Confira este imóvel: ${property.title} por ${property.price?.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}\n\n${propertyUrl}?t=${Date.now()}`)}`;
+      const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(`Confira este imóvel: ${property.title} por ${property.price?.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}\n\n${shareUrl}?t=${Date.now()}`)}`;
       
       // Tentar abrir WhatsApp diretamente
       if (navigator.userAgent.match(/(iPhone|iPod|iPad|Android|BlackBerry)/)) {
         window.open(whatsappUrl, '_blank');
       } else {
-        navigator.clipboard.writeText(propertyUrl);
+        navigator.clipboard.writeText(shareUrl);
         toast({
           title: "Link copiado!",
           description: "O link do imóvel foi copiado para a área de transferência."

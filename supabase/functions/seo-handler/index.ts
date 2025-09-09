@@ -82,7 +82,7 @@ async function getPropertyData(brokerSlug: string, propertySlug: string) {
 }
 
 function generateMetaTags(broker: any, property?: any) {
-  let title, description, image, url;
+  let title, description, image, url, favicon;
   
   if (property) {
     // Meta tags para página de imóvel específico
@@ -98,6 +98,9 @@ function generateMetaTags(broker: any, property?: any) {
     url = `https://${broker.custom_domain || `${broker.website_slug}.lovable.app`}`;
   }
   
+  // Use broker favicon if available
+  favicon = broker.site_favicon_url || '/favicon-placeholder.svg';
+  
   // Fallback image se nenhuma estiver definida
   if (!image) {
     image = 'https://demcjskpwcxqohzlyjxb.supabase.co/storage/v1/object/public/logos/placeholder-social-share.jpg';
@@ -108,6 +111,7 @@ function generateMetaTags(broker: any, property?: any) {
     description,
     image,
     url,
+    favicon,
     siteName: broker.business_name
   };
 }
@@ -124,7 +128,7 @@ function generateHTML(metaTags: any): string {
     <meta name="description" content="${metaTags.description}" />
     
     <!-- Favicon -->
-    <link rel="icon" href="/favicon-placeholder.svg" type="image/svg+xml" />
+    <link rel="icon" href="${metaTags.favicon}" type="image/svg+xml" />
     
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website" />
@@ -174,7 +178,11 @@ serve(async (req) => {
     const url = new URL(req.url);
     const pathname = url.pathname;
     
-    console.log(`Request: ${pathname}, User-Agent: ${userAgent}`);
+    // Check for query parameters (new sharing format)
+    const brokerParam = url.searchParams.get('broker');
+    const pathParam = url.searchParams.get('path');
+    
+    console.log(`Request: ${pathname}, User-Agent: ${userAgent}, Params: broker=${brokerParam}, path=${pathParam}`);
     
     // Verificar se é um crawler social
     if (!isSocialCrawler(userAgent)) {
@@ -187,8 +195,27 @@ serve(async (req) => {
     
     console.log('Social crawler detected!');
     
-    // Extrair slug da URL
-    const { brokerSlug, propertySlug } = extractSlugFromPath(pathname);
+    let brokerSlug: string | null = null;
+    let propertySlug: string | null = null;
+    let targetUrl: string;
+    
+    if (brokerParam && pathParam) {
+      // New format: using query parameters
+      brokerSlug = brokerParam;
+      if (pathParam !== '/') {
+        const pathParts = pathParam.substring(1).split('/');
+        if (pathParts.length > 0 && pathParts[0] !== '') {
+          propertySlug = pathParts[0];
+        }
+      }
+      targetUrl = `https://${brokerParam}.lovable.app${pathParam}`;
+    } else {
+      // Old format: extract from pathname
+      const extracted = extractSlugFromPath(pathname);
+      brokerSlug = extracted.brokerSlug;
+      propertySlug = extracted.propertySlug;
+      targetUrl = `https://${brokerSlug}.lovable.app${pathname}`;
+    }
     
     if (!brokerSlug) {
       console.log('No broker slug found');
@@ -221,6 +248,9 @@ serve(async (req) => {
     
     // Gerar meta tags
     const metaTags = generateMetaTags(broker, property);
+    // Override URL com o target correto
+    metaTags.url = targetUrl;
+    
     console.log('Generated meta tags:', metaTags);
     
     // Gerar HTML com meta tags

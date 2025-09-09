@@ -446,8 +446,8 @@ export default function SuperAdminPage() {
           </Dialog>
         </div>
 
-        {/* Brokers Table */}
-        <Card>
+        {/* Brokers Table - Desktop */}
+        <Card className="hidden md:block">
           <CardContent className="p-0">
             <div className="overflow-x-auto">
               <Table>
@@ -545,6 +545,122 @@ export default function SuperAdminPage() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Brokers Cards - Mobile */}
+        <div className="md:hidden space-y-4">
+          {brokers.map((broker) => (
+            <Card key={broker.id} className="p-4">
+              <div className="space-y-3">
+                {/* Header with company name and status */}
+                <div className="flex items-start justify-between">
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-medium text-sm truncate">{broker.business_name}</h3>
+                    <p className="text-xs text-muted-foreground truncate">{broker.display_name}</p>
+                  </div>
+                  <Badge variant={broker.is_active ? "default" : "secondary"} className="text-xs ml-2">
+                    {broker.is_active ? "Ativa" : "Inativa"}
+                  </Badge>
+                </div>
+
+                {/* Email */}
+                <div className="pt-1">
+                  <p className="text-xs text-muted-foreground">Email</p>
+                  <p className="text-sm break-all">{broker.email}</p>
+                </div>
+
+                {/* Info grid */}
+                <div className="grid grid-cols-2 gap-3 pt-1">
+                  <div>
+                    <p className="text-xs text-muted-foreground">Plano</p>
+                    <Badge variant="outline" className="text-xs mt-1">
+                      {broker.plan_type}
+                    </Badge>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Imóveis</p>
+                    <p className="text-sm font-medium">{broker.properties_count}</p>
+                  </div>
+                </div>
+
+                {/* Date and site */}
+                <div className="grid grid-cols-2 gap-3 pt-1">
+                  <div>
+                    <p className="text-xs text-muted-foreground">Criado em</p>
+                    <p className="text-xs">{format(new Date(broker.created_at), "dd/MM/yyyy", { locale: ptBR })}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Site</p>
+                    {broker.website_slug ? (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-6 px-2 text-xs"
+                        onClick={() => window.open(`/${broker.website_slug}`, '_blank')}
+                      >
+                        <ExternalLink className="h-3 w-3 mr-1" />
+                        Ver site
+                      </Button>
+                    ) : (
+                      <p className="text-xs text-muted-foreground">-</p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Actions */}
+                <div className="flex items-center justify-end gap-2 pt-2 border-t">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-8 px-3 text-xs"
+                    onClick={() => toggleBrokerStatus(broker.id, broker.is_active)}
+                  >
+                    {broker.is_active ? (
+                      <>
+                        <EyeOff className="h-3 w-3 mr-1" />
+                        Desativar
+                      </>
+                    ) : (
+                      <>
+                        <Eye className="h-3 w-3 mr-1" />
+                        Ativar
+                      </>
+                    )}
+                  </Button>
+                  
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-8 px-3 text-xs text-destructive border-destructive hover:bg-destructive hover:text-destructive-foreground"
+                      >
+                        <Trash2 className="h-3 w-3 mr-1" />
+                        Excluir
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent className="mx-2 w-[calc(100vw-1rem)] max-w-md">
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Excluir Imobiliária</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Tem certeza que deseja excluir "{broker.business_name}"? Esta ação não pode ser desfeita e todos os dados serão perdidos permanentemente.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter className="flex-col sm:flex-row gap-2">
+                        <AlertDialogCancel className="w-full sm:w-auto">Cancelar</AlertDialogCancel>
+                        <AlertDialogAction 
+                          onClick={() => deleteBroker(broker.id)}
+                          className="w-full sm:w-auto bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        >
+                          Excluir
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </div>
+              </div>
+            </Card>
+          ))}
+        </div>
       </div>
     </div>
   );

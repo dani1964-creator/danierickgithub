@@ -18,6 +18,7 @@ import PropertyDetailPage from '@/components/properties/PropertyDetailPage';
 import LeadModal from '@/components/leads/LeadModal';
 import { EnhancedSecurity } from '@/lib/enhanced-security';
 import { Separator } from '@/components/ui/separator';
+import { useDomainAware } from '@/hooks/useDomainAware';
 
 
 interface Property {
@@ -92,6 +93,7 @@ interface BrokerContact {
 const PublicSite = () => {
   const { slug, propertySlug } = useParams();
   const { toast } = useToast();
+  const { getBrokerByDomainOrSlug, getPropertiesByDomainOrSlug } = useDomainAware();
   const [properties, setProperties] = useState<Property[]>([]);
   const [brokerProfile, setBrokerProfile] = useState<BrokerProfile | null>(null);
   const [brokerContact, setBrokerContact] = useState<BrokerContact | null>(null);
@@ -153,19 +155,8 @@ const PublicSite = () => {
     try {
       console.log('Fetching broker data for slug:', slug);
       
-      // Get current domain
-      const currentDomain = window.location.hostname;
-      const isCustomDomain = !currentDomain.includes('lovable.app') && currentDomain !== 'localhost';
-      
-      console.log('Current domain:', currentDomain, 'Is custom domain:', isCustomDomain);
-      
-      // Fetch broker profile using the new domain-aware function
-      const { data: brokerData, error: brokerError } = await supabase
-        .rpc('get_broker_by_domain_or_slug', { 
-          domain_name: isCustomDomain ? currentDomain : null,
-          slug_name: !isCustomDomain ? slug : null
-        })
-        .maybeSingle();
+      // Fetch broker profile using the domain-aware hook
+      const { data: brokerData, error: brokerError } = await getBrokerByDomainOrSlug(slug);
 
       console.log('Broker RPC response:', { brokerData, brokerError });
 
@@ -184,14 +175,8 @@ const PublicSite = () => {
       console.log('Broker data from RPC:', brokerData);
       setBrokerProfile(brokerData as BrokerProfile);
 
-      // Fetch properties using the new domain-aware function
-      const { data: propertiesData, error: propertiesError } = await supabase
-        .rpc('get_properties_by_domain_or_slug', {
-          domain_name: isCustomDomain ? currentDomain : null,
-          slug_name: !isCustomDomain ? slug : null,
-          property_limit: 50,
-          property_offset: 0
-        });
+      // Fetch properties using the domain-aware hook
+      const { data: propertiesData, error: propertiesError } = await getPropertiesByDomainOrSlug(slug, 50, 0);
 
       if (propertiesError) {
         console.error('Properties error:', propertiesError);

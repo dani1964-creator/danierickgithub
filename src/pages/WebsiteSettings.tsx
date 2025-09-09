@@ -366,9 +366,23 @@ const WebsiteSettings = () => {
                       onChange={(e) => updateProfile('custom_domain', e.target.value.toLowerCase())}
                       placeholder="meusite.com.br"
                     />
-                    <p className="text-sm text-muted-foreground">
-                      Configure um domínio próprio. Se preenchido, será usado no lugar da URL padrão
-                    </p>
+                    <div className="space-y-2 text-sm text-muted-foreground">
+                      <p>
+                        Configure um domínio próprio. Se preenchido, será usado no lugar da URL padrão.
+                      </p>
+                      <div className="bg-muted/50 p-3 rounded-md">
+                        <p className="font-medium text-foreground mb-1">💡 Benefícios do domínio personalizado:</p>
+                        <ul className="list-disc list-inside space-y-1">
+                          <li>Branding profissional (ex: meusite.com.br em vez de lovable.app/meusite)</li>
+                          <li>Múltiplas imobiliárias podem usar o mesmo slug (ex: /home) em domínios diferentes</li>
+                          <li>Melhor credibilidade e confiança dos clientes</li>
+                          <li>SEO otimizado para o seu negócio</li>
+                        </ul>
+                        <p className="mt-2">
+                          <strong>Importante:</strong> Você precisará configurar o DNS do seu domínio para apontar para o Lovable.
+                        </p>
+                      </div>
+                    </div>
                   </div>
 
                   <div className="space-y-2">

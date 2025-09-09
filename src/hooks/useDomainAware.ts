@@ -1,50 +1,98 @@
-import { useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
-/**
- * Hook para facilitar queries que consideram domínios personalizados
- */
-export const useDomainAware = () => {
-  const getCurrentDomain = useCallback(() => {
-    const currentDomain = window.location.hostname;
-    const isCustomDomain = !currentDomain.includes('lovable.app') && currentDomain !== 'localhost';
-    return { currentDomain, isCustomDomain };
-  }, []);
+export function useDomainAware() {
+  const getCurrentDomain = () => {
+    // Get current domain from window.location
+    if (typeof window !== 'undefined') {
+      const hostname = window.location.hostname;
+      
+      // Skip localhost and Lovable staging domains
+      if (hostname === 'localhost' || hostname.includes('lovable.app')) {
+        return null;
+      }
+      
+      return hostname;
+    }
+    return null;
+  };
 
-  const getBrokerByDomainOrSlug = useCallback(async (slug?: string) => {
-    const { currentDomain, isCustomDomain } = getCurrentDomain();
+  const getBrokerByDomainOrSlug = async (slug?: string) => {
+    const currentDomain = getCurrentDomain();
     
-    const { data, error } = await supabase
-      .rpc('get_broker_by_domain_or_slug', { 
-        domain_name: isCustomDomain ? currentDomain : null,
-        slug_name: !isCustomDomain ? slug : null
-      })
-      .maybeSingle();
+    try {
+      const { data, error } = await supabase.rpc('get_broker_by_domain_or_slug', {
+        domain_name: currentDomain,
+        slug_name: currentDomain ? null : slug // Use slug only if no custom domain
+      });
 
-    return { data, error };
-  }, [getCurrentDomain]);
+      if (error) {
+        console.error('Error fetching broker:', error);
+        return null;
+      }
 
-  const getPropertiesByDomainOrSlug = useCallback(async (
+      return data && data.length > 0 ? data[0] : null;
+    } catch (error) {
+      console.error('Error in getBrokerByDomainOrSlug:', error);
+      return null;
+    }
+  };
+
+  const getPropertiesByDomainOrSlug = async (
     slug?: string, 
     limit: number = 50, 
     offset: number = 0
   ) => {
-    const { currentDomain, isCustomDomain } = getCurrentDomain();
+    const currentDomain = getCurrentDomain();
     
-    const { data, error } = await supabase
-      .rpc('get_properties_by_domain_or_slug', {
-        domain_name: isCustomDomain ? currentDomain : null,
-        slug_name: !isCustomDomain ? slug : null,
+    try {
+      const { data, error } = await supabase.rpc('get_properties_by_domain_or_slug', {
+        domain_name: currentDomain,
+        slug_name: currentDomain ? null : slug, // Use slug only if no custom domain
         property_limit: limit,
         property_offset: offset
       });
 
-    return { data, error };
-  }, [getCurrentDomain]);
+      if (error) {
+        console.error('Error fetching properties:', error);
+        return [];
+      }
+
+      return data || [];
+    } catch (error) {
+      console.error('Error in getPropertiesByDomainOrSlug:', error);
+      return [];
+    }
+  };
+
+  const getBrokerContactInfo = async (slug?: string) => {
+    const currentDomain = getCurrentDomain();
+    
+    try {
+      // First get the broker to find their slug if we have a domain
+      const broker = await getBrokerByDomainOrSlug(slug);
+      if (!broker) return null;
+
+      // Use the existing public contact function with the broker's slug
+      const { data, error } = await supabase.rpc('get_public_broker_contact', {
+        broker_website_slug: broker.website_slug
+      });
+
+      if (error) {
+        console.error('Error fetching broker contact:', error);
+        return null;
+      }
+
+      return data && data.length > 0 ? data[0] : null;
+    } catch (error) {
+      console.error('Error in getBrokerContactInfo:', error);
+      return null;
+    }
+  };
 
   return {
     getCurrentDomain,
     getBrokerByDomainOrSlug,
-    getPropertiesByDomainOrSlug
+    getPropertiesByDomainOrSlug,
+    getBrokerContactInfo
   };
-};
+}

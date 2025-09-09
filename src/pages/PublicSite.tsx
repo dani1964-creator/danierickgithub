@@ -156,14 +156,9 @@ const PublicSite = () => {
       console.log('Fetching broker data for slug:', slug);
       
       // Fetch broker profile using the domain-aware hook
-      const { data: brokerData, error: brokerError } = await getBrokerByDomainOrSlug(slug);
+      const brokerData = await getBrokerByDomainOrSlug(slug);
 
-      console.log('Broker RPC response:', { brokerData, brokerError });
-
-      if (brokerError) {
-        console.error('Broker RPC error:', brokerError);
-        throw brokerError;
-      }
+      console.log('Broker data from domain-aware hook:', brokerData);
 
       if (!brokerData) {
         console.log('No broker found for slug:', slug);
@@ -172,18 +167,13 @@ const PublicSite = () => {
         return;
       }
 
-      console.log('Broker data from RPC:', brokerData);
+      console.log('Setting broker profile:', brokerData);
       setBrokerProfile(brokerData as BrokerProfile);
 
       // Fetch properties using the domain-aware hook
-      const { data: propertiesData, error: propertiesError } = await getPropertiesByDomainOrSlug(slug, 50, 0);
+      const propertiesData = await getPropertiesByDomainOrSlug(slug, 50, 0);
 
-      if (propertiesError) {
-        console.error('Properties error:', propertiesError);
-        throw propertiesError;
-      }
-
-      console.log('Properties data:', propertiesData);
+      console.log('Properties data from domain-aware hook:', propertiesData);
       setProperties(propertiesData || []);
 
       // Fetch social links for this broker

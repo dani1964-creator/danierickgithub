@@ -358,7 +358,7 @@ const PropertyDetailPage = () => {
     if (!property || !brokerProfile) return;
 
     // Use Edge Function URL for social sharing
-    const shareUrl = `${window.location.origin}/functions/v1/seo-handler?broker=${brokerProfile.website_slug}&path=/${property.slug}`;
+    const shareUrl = `https://demcjskpwcxqohzlyjxb.supabase.co/functions/v1/seo-handler?broker=${brokerProfile.website_slug}&path=/${property.slug}`;
 
     if (navigator.share) {
       navigator.share({
@@ -367,7 +367,7 @@ const PropertyDetailPage = () => {
         url: shareUrl,
       });
     } else {
-      navigator.clipboard.writeText(window.location.href);
+      navigator.clipboard.writeText(shareUrl);
       toast({
         title: "Link copiado!",
         description: "O link do imóvel foi copiado para a área de transferência."

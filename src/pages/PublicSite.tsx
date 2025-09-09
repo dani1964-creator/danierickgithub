@@ -260,7 +260,7 @@ const PublicSite = () => {
     if (!brokerProfile) return;
     
     // Use Edge Function URL for social sharing
-    const shareUrl = `${window.location.origin}/functions/v1/seo-handler?broker=${brokerProfile.website_slug}&path=/${property.slug || property.id}`;
+    const shareUrl = `https://demcjskpwcxqohzlyjxb.supabase.co/functions/v1/seo-handler?broker=${brokerProfile.website_slug}&path=/${property.slug || property.id}`;
     
     if (navigator.share) {
       navigator.share({

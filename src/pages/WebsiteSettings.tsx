@@ -448,7 +448,7 @@ const WebsiteSettings = () => {
                     <div className="space-y-2">
                       <Label htmlFor="website_slug_config">URL do Site</Label>
                       <div className="flex items-center space-x-2">
-                        <span className="text-sm text-muted-foreground">lovable.app/</span>
+                        <span className="text-sm text-muted-foreground">meusite.com/</span>
                         <Input
                           id="website_slug_config"
                           value={profile.website_slug || ''}
@@ -458,7 +458,7 @@ const WebsiteSettings = () => {
                         />
                       </div>
                       <p className="text-sm text-muted-foreground">
-                        URL amigável para o seu site público. Ex: lovable.app/deps
+                        URL amigável para o seu site público. Ex: meusite.com/deps
                       </p>
                     </div>
 

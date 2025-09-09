@@ -1,1 +1,4 @@
 project_id = "demcjskpwcxqohzlyjxb"
+
+[functions.seo-handler]
+verify_jwt = false

@@ -19,18 +19,29 @@ export function useDomainAware() {
   const getBrokerByDomainOrSlug = async (slug?: string) => {
     const currentDomain = getCurrentDomain();
     
+    console.log('=== DEBUG useDomainAware ===');
+    console.log('currentDomain:', currentDomain);
+    console.log('slug parameter:', slug);
+    
     try {
       const { data, error } = await supabase.rpc('get_broker_by_domain_or_slug', {
         domain_name: currentDomain,
         slug_name: currentDomain ? null : slug // Use slug only if no custom domain
       });
 
+      console.log('RPC response data:', data);
+      console.log('RPC response error:', error);
+
       if (error) {
         console.error('Error fetching broker:', error);
         return null;
       }
 
-      return data && data.length > 0 ? data[0] : null;
+      const result = data && data.length > 0 ? data[0] : null;
+      console.log('Final broker result:', result);
+      console.log('=== END DEBUG useDomainAware ===');
+      
+      return result;
     } catch (error) {
       console.error('Error in getBrokerByDomainOrSlug:', error);
       return null;

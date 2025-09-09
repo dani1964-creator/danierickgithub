@@ -19,6 +19,7 @@ import LeadModal from '@/components/leads/LeadModal';
 import { EnhancedSecurity } from '@/lib/enhanced-security';
 import { Separator } from '@/components/ui/separator';
 import { useDomainAware } from '@/hooks/useDomainAware';
+import { SEODebugPanel } from '@/components/debug/SEODebugPanel';
 
 
 interface Property {
@@ -168,6 +169,17 @@ const PublicSite = () => {
       }
 
       console.log('Setting broker profile:', brokerData);
+      
+      // DEBUG: Verificar dados de SEO
+      console.log('=== DEBUG SEO FIELDS ===');
+      console.log('site_title:', brokerData.site_title);
+      console.log('site_description:', brokerData.site_description);
+      console.log('site_favicon_url:', brokerData.site_favicon_url);
+      console.log('site_share_image_url:', brokerData.site_share_image_url);
+      console.log('business_name:', brokerData.business_name);
+      console.log('logo_url:', brokerData.logo_url);
+      console.log('=== END DEBUG SEO ===');
+      
       setBrokerProfile(brokerData as BrokerProfile);
 
       // Fetch properties using the domain-aware hook
@@ -336,8 +348,23 @@ const PublicSite = () => {
 
   return (
     <>
+      {/* Debug Panel - remover em produção */}
+      <SEODebugPanel brokerProfile={brokerProfile} />
+      
       {/* Meta tags para o site da imobiliária */}
       <Helmet>
+        {/* DEBUG: Log dos valores das meta tags */}
+        <script>
+          {`
+            console.log('=== META TAGS RENDERING ===');
+            console.log('site_title disponível:', ${JSON.stringify(brokerProfile?.site_title)});
+            console.log('site_description disponível:', ${JSON.stringify(brokerProfile?.site_description)});
+            console.log('site_share_image_url disponível:', ${JSON.stringify(brokerProfile?.site_share_image_url)});
+            console.log('business_name:', ${JSON.stringify(brokerProfile?.business_name)});
+            console.log('=== FIM META TAGS RENDERING ===');
+          `}
+        </script>
+        
         <title>
           {brokerProfile?.site_title || `${brokerProfile?.business_name || 'Imobiliária'} - Imóveis para Venda e Locação`}
         </title>

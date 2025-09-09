@@ -342,33 +342,6 @@ const WebsiteSettings = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="website_slug">URL do Site</Label>
-                    <div className="flex items-center space-x-2">
-                      <span className="text-sm text-muted-foreground">lovable.app/</span>
-                      <Input
-                        id="website_slug"
-                        value={profile.website_slug || ''}
-                        onChange={(e) => updateProfile('website_slug', e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '-'))}
-                        placeholder="home"
-                        className="flex-1"
-                      />
-                    </div>
-                    <div className="space-y-2 text-sm text-muted-foreground">
-                      <p>
-                        URL amigável para o seu site público. Ex: lovable.app/home
-                      </p>
-                      <div className="bg-muted/50 p-3 rounded-md">
-                        <p className="font-medium text-foreground mb-1">💡 Sobre domínios personalizados:</p>
-                        <ul className="list-disc list-inside space-y-1">
-                          <li>Configure seu domínio próprio nas configurações do projeto Lovable</li>
-                          <li>Múltiplas imobiliárias podem usar o mesmo slug em domínios diferentes</li>
-                          <li>O sistema detecta automaticamente se você está usando um domínio personalizado</li>
-                        </ul>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
                     <Label htmlFor="address">Endereço</Label>
                     <Input
                       id="address"
@@ -473,21 +446,19 @@ const WebsiteSettings = () => {
                   
                   <div className="space-y-4">
                     <div className="space-y-2">
-                      <Label htmlFor="website_slug">URL do Site</Label>
-                      <div className="flex items-center">
-                        <span className="text-sm text-muted-foreground mr-2">
-                          https://meusite.com/
-                        </span>
+                      <Label htmlFor="website_slug_config">URL do Site</Label>
+                      <div className="flex items-center space-x-2">
+                        <span className="text-sm text-muted-foreground">lovable.app/</span>
                         <Input
-                          id="website_slug"
+                          id="website_slug_config"
                           value={profile.website_slug || ''}
-                          onChange={(e) => updateProfile('website_slug', e.target.value)}
-                          placeholder="minha-imobiliaria"
+                          onChange={(e) => updateProfile('website_slug', e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '-'))}
+                          placeholder="deps"
                           className="flex-1"
                         />
                       </div>
                       <p className="text-sm text-muted-foreground">
-                        URL amigável para o seu site público
+                        URL amigável para o seu site público. Ex: lovable.app/deps
                       </p>
                     </div>
 

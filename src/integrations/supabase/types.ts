@@ -107,6 +107,10 @@ export type Database = {
           sections_background_color_2: string | null
           sections_background_color_3: string | null
           sections_background_style: string | null
+          site_description: string | null
+          site_favicon_url: string | null
+          site_share_image_url: string | null
+          site_title: string | null
           terms_of_use_content: string | null
           tracking_scripts: Json | null
           updated_at: string
@@ -148,6 +152,10 @@ export type Database = {
           sections_background_color_2?: string | null
           sections_background_color_3?: string | null
           sections_background_style?: string | null
+          site_description?: string | null
+          site_favicon_url?: string | null
+          site_share_image_url?: string | null
+          site_title?: string | null
           terms_of_use_content?: string | null
           tracking_scripts?: Json | null
           updated_at?: string
@@ -189,6 +197,10 @@ export type Database = {
           sections_background_color_2?: string | null
           sections_background_color_3?: string | null
           sections_background_style?: string | null
+          site_description?: string | null
+          site_favicon_url?: string | null
+          site_share_image_url?: string | null
+          site_title?: string | null
           terms_of_use_content?: string | null
           tracking_scripts?: Json | null
           updated_at?: string

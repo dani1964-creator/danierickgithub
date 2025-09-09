@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Save, Globe, Palette, Code, Share2, FileText } from 'lucide-react';
+import { Save, Globe, Palette, Code, Share2, FileText, Search } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -14,6 +14,7 @@ import LogoUpload from '@/components/settings/LogoUpload';
 import BackgroundImageUpload from '@/components/settings/BackgroundImageUpload';
 import SocialLinksManager from '@/components/social/SocialLinksManager';
 import BackgroundStyleSelector from '@/components/backgrounds/BackgroundStyleSelector';
+import FaviconUpload from '@/components/settings/FaviconUpload';
 
 interface BrokerProfile {
   id: string;
@@ -45,6 +46,10 @@ interface BrokerProfile {
   sections_background_color_1: string | null;
   sections_background_color_2: string | null;
   sections_background_color_3: string | null;
+  site_title: string | null;
+  site_description: string | null;
+  site_favicon_url: string | null;
+  site_share_image_url: string | null;
 }
 
 const WebsiteSettings = () => {
@@ -65,7 +70,7 @@ const WebsiteSettings = () => {
     try {
       const { data, error } = await supabase
         .from('brokers')
-        .select('id, business_name, display_name, website_slug, address, about_text, footer_text, whatsapp_number, contact_email, creci, cnpj, hero_title, hero_subtitle, logo_url, primary_color, secondary_color, background_image_url, overlay_color, overlay_opacity, whatsapp_button_text, whatsapp_button_color, tracking_scripts, about_us_content, privacy_policy_content, terms_of_use_content, sections_background_style, sections_background_color_1, sections_background_color_2, sections_background_color_3')
+        .select('id, business_name, display_name, website_slug, address, about_text, footer_text, whatsapp_number, contact_email, creci, cnpj, hero_title, hero_subtitle, logo_url, primary_color, secondary_color, background_image_url, overlay_color, overlay_opacity, whatsapp_button_text, whatsapp_button_color, tracking_scripts, about_us_content, privacy_policy_content, terms_of_use_content, sections_background_style, sections_background_color_1, sections_background_color_2, sections_background_color_3, site_title, site_description, site_favicon_url, site_share_image_url')
         .eq('user_id', user?.id)
         .single();
 
@@ -77,7 +82,11 @@ const WebsiteSettings = () => {
         sections_background_style: data.sections_background_style || 'style1',
         sections_background_color_1: data.sections_background_color_1 || '#2563eb',
         sections_background_color_2: data.sections_background_color_2 || '#64748b',
-        sections_background_color_3: data.sections_background_color_3 || '#ffffff'
+        sections_background_color_3: data.sections_background_color_3 || '#ffffff',
+        site_title: data.site_title || '',
+        site_description: data.site_description || '', 
+        site_favicon_url: data.site_favicon_url || '',
+        site_share_image_url: data.site_share_image_url || ''
       });
     } catch (error: any) {
       toast({
@@ -126,6 +135,10 @@ const WebsiteSettings = () => {
           sections_background_color_1: profile.sections_background_color_1,
           sections_background_color_2: profile.sections_background_color_2,
           sections_background_color_3: profile.sections_background_color_3,
+          site_title: profile.site_title,
+          site_description: profile.site_description,
+          site_favicon_url: profile.site_favicon_url,
+          site_share_image_url: profile.site_share_image_url,
         })
         .eq('user_id', user?.id);
 
@@ -261,13 +274,20 @@ const WebsiteSettings = () => {
                 Redes Sociais
               </Button>
             </div>
-            <div className="w-full">
+            <div className="grid grid-cols-2 gap-2 w-full">
               <Button
                 variant={activeTab === 'tracking' ? 'default' : 'outline'}
                 onClick={() => setActiveTab('tracking')}
-                className="text-sm w-full"
+                className="text-sm"
               >
                 Rastreamento
+              </Button>
+              <Button
+                variant={activeTab === 'seo' ? 'default' : 'outline'}
+                onClick={() => setActiveTab('seo')}
+                className="text-sm"
+              >
+                SEO & Meta
               </Button>
             </div>
           </div>
@@ -277,6 +297,7 @@ const WebsiteSettings = () => {
             <TabsTrigger value="pages">Páginas</TabsTrigger>
             <TabsTrigger value="social">Redes Sociais</TabsTrigger>
             <TabsTrigger value="tracking">Rastreamento</TabsTrigger>
+            <TabsTrigger value="seo">SEO & Meta</TabsTrigger>
           </TabsList>
 
           <TabsContent value="general" className="space-y-6">
@@ -1088,6 +1109,73 @@ const WebsiteSettings = () => {
               </CardContent>
             </Card>
           </TabsContent>
+
+          <TabsContent value="seo" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Search className="h-5 w-5" />
+                  SEO & Meta Tags
+                </CardTitle>
+                <CardDescription>
+                  Configure título, descrição, favicon e imagem de compartilhamento do seu site
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="site_title">Título da Página</Label>
+                    <Input
+                      id="site_title"
+                      value={profile.site_title || ''}
+                      onChange={(e) => updateProfile('site_title', e.target.value)}
+                      placeholder="Imóveis em São Paulo - Minha Imobiliária"
+                    />
+                    <p className="text-sm text-muted-foreground">
+                      Aparece na aba do navegador e nos resultados de busca (máx. 60 caracteres)
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="site_description">Descrição Meta</Label>
+                    <Textarea
+                      id="site_description"
+                      value={profile.site_description || ''}
+                      onChange={(e) => updateProfile('site_description', e.target.value)}
+                      placeholder="Encontre os melhores imóveis para compra e venda em São Paulo. Apartamentos, casas e terrenos com as melhores condições."
+                      rows={3}
+                    />
+                    <p className="text-sm text-muted-foreground">
+                      Descrição que aparece nos resultados de busca e ao compartilhar o site (máx. 160 caracteres)
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Favicon</Label>
+                    <FaviconUpload
+                      faviconUrl={profile.site_favicon_url || ''}
+                      onFaviconChange={(url) => updateProfile('site_favicon_url', url)}
+                    />
+                    <p className="text-sm text-muted-foreground">
+                      Ícone que aparece na aba do navegador e nos favoritos
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Imagem de Compartilhamento</Label>
+                    <LogoUpload
+                      logoUrl={profile.site_share_image_url || ''}
+                      onLogoChange={(url) => updateProfile('site_share_image_url', url)}
+                    />
+                    <p className="text-sm text-muted-foreground">
+                      Imagem que aparece quando o site é compartilhado no WhatsApp, Facebook, etc. (recomendado: 1200x630px)
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
         </Tabs>
       </div>
     </DashboardLayout>

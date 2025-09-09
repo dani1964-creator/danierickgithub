@@ -21,6 +21,7 @@ interface BrokerProfile {
   business_name: string;
   display_name: string;
   website_slug: string;
+  custom_domain: string | null;
   address: string | null;
   about_text: string | null;
   footer_text: string | null;
@@ -70,7 +71,7 @@ const WebsiteSettings = () => {
     try {
       const { data, error } = await supabase
         .from('brokers')
-        .select('id, business_name, display_name, website_slug, address, about_text, footer_text, whatsapp_number, contact_email, creci, cnpj, hero_title, hero_subtitle, logo_url, primary_color, secondary_color, background_image_url, overlay_color, overlay_opacity, whatsapp_button_text, whatsapp_button_color, tracking_scripts, about_us_content, privacy_policy_content, terms_of_use_content, sections_background_style, sections_background_color_1, sections_background_color_2, sections_background_color_3, site_title, site_description, site_favicon_url, site_share_image_url')
+        .select('id, business_name, display_name, website_slug, custom_domain, address, about_text, footer_text, whatsapp_number, contact_email, creci, cnpj, hero_title, hero_subtitle, logo_url, primary_color, secondary_color, background_image_url, overlay_color, overlay_opacity, whatsapp_button_text, whatsapp_button_color, tracking_scripts, about_us_content, privacy_policy_content, terms_of_use_content, sections_background_style, sections_background_color_1, sections_background_color_2, sections_background_color_3, site_title, site_description, site_favicon_url, site_share_image_url')
         .eq('user_id', user?.id)
         .single();
 
@@ -110,6 +111,7 @@ const WebsiteSettings = () => {
           business_name: profile.business_name,
           display_name: profile.display_name,
           website_slug: profile.website_slug,
+          custom_domain: profile.custom_domain,
           address: profile.address,
           about_text: profile.about_text,
           footer_text: profile.footer_text,
@@ -336,6 +338,36 @@ const WebsiteSettings = () => {
                     />
                     <p className="text-sm text-muted-foreground">
                       Nome do corretor ou responsável que será exibido publicamente
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="website_slug">URL do Site</Label>
+                    <div className="flex items-center space-x-2">
+                      <span className="text-sm text-muted-foreground">lovable.app/</span>
+                      <Input
+                        id="website_slug"
+                        value={profile.website_slug || ''}
+                        onChange={(e) => updateProfile('website_slug', e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '-'))}
+                        placeholder="home"
+                        className="flex-1"
+                      />
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      URL amigável para o seu site público. Ex: lovable.app/home
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="custom_domain">Domínio Personalizado (Opcional)</Label>
+                    <Input
+                      id="custom_domain"
+                      value={profile.custom_domain || ''}
+                      onChange={(e) => updateProfile('custom_domain', e.target.value.toLowerCase())}
+                      placeholder="meusite.com.br"
+                    />
+                    <p className="text-sm text-muted-foreground">
+                      Configure um domínio próprio. Se preenchido, será usado no lugar da URL padrão
                     </p>
                   </div>
 

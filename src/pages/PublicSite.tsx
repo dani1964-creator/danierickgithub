@@ -50,6 +50,7 @@ interface BrokerProfile {
   business_name: string;
   display_name: string | null;
   website_slug: string;
+  custom_domain: string | null;
   about_text: string | null;
   logo_url: string | null;
   primary_color: string | null;
@@ -79,6 +80,7 @@ interface BrokerProfile {
   site_description?: string | null;
   site_favicon_url?: string | null;
   site_share_image_url?: string | null;
+  whatsapp_number?: string | null;
 }
 
 interface BrokerContact {
@@ -151,9 +153,18 @@ const PublicSite = () => {
     try {
       console.log('Fetching broker data for slug:', slug);
       
-      // Fetch broker profile using the secure function - usar maybeSingle() em vez de single()
+      // Get current domain
+      const currentDomain = window.location.hostname;
+      const isCustomDomain = !currentDomain.includes('lovable.app') && currentDomain !== 'localhost';
+      
+      console.log('Current domain:', currentDomain, 'Is custom domain:', isCustomDomain);
+      
+      // Fetch broker profile using the new domain-aware function
       const { data: brokerData, error: brokerError } = await supabase
-        .rpc('get_public_broker_branding', { broker_website_slug: slug })
+        .rpc('get_broker_by_domain_or_slug', { 
+          domain_name: isCustomDomain ? currentDomain : null,
+          slug_name: !isCustomDomain ? slug : null
+        })
         .maybeSingle();
 
       console.log('Broker RPC response:', { brokerData, brokerError });
@@ -173,15 +184,14 @@ const PublicSite = () => {
       console.log('Broker data from RPC:', brokerData);
       setBrokerProfile(brokerData as BrokerProfile);
 
-      // Fetch properties for this broker - only active status and active properties
+      // Fetch properties using the new domain-aware function
       const { data: propertiesData, error: propertiesError } = await supabase
-        .from('properties')
-        .select('*, slug')
-        .eq('broker_id', brokerData.id)
-        .eq('is_active', true)
-        .eq('status', 'active')
-        .order('is_featured', { ascending: false })
-        .order('created_at', { ascending: false });
+        .rpc('get_properties_by_domain_or_slug', {
+          domain_name: isCustomDomain ? currentDomain : null,
+          slug_name: !isCustomDomain ? slug : null,
+          property_limit: 50,
+          property_offset: 0
+        });
 
       if (propertiesError) {
         console.error('Properties error:', propertiesError);

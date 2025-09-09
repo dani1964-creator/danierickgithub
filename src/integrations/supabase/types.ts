@@ -85,6 +85,7 @@ export type Database = {
           contact_email: string | null
           created_at: string
           creci: string | null
+          custom_domain: string | null
           display_name: string | null
           domain_config: Json | null
           email: string
@@ -130,6 +131,7 @@ export type Database = {
           contact_email?: string | null
           created_at?: string
           creci?: string | null
+          custom_domain?: string | null
           display_name?: string | null
           domain_config?: Json | null
           email: string
@@ -175,6 +177,7 @@ export type Database = {
           contact_email?: string | null
           created_at?: string
           creci?: string | null
+          custom_domain?: string | null
           display_name?: string | null
           domain_config?: Json | null
           email?: string
@@ -597,6 +600,40 @@ export type Database = {
           whatsapp_number: string
         }[]
       }
+      get_broker_by_domain_or_slug: {
+        Args: { domain_name?: string; slug_name?: string }
+        Returns: {
+          about_text: string
+          about_us_content: string
+          background_image_url: string
+          business_name: string
+          created_at: string
+          custom_domain: string
+          display_name: string
+          footer_text: string
+          hero_subtitle: string
+          hero_title: string
+          id: string
+          is_active: boolean
+          logo_url: string
+          overlay_color: string
+          overlay_opacity: string
+          primary_color: string
+          privacy_policy_content: string
+          secondary_color: string
+          site_description: string
+          site_favicon_url: string
+          site_share_image_url: string
+          site_title: string
+          terms_of_use_content: string
+          tracking_scripts: Json
+          updated_at: string
+          website_slug: string
+          whatsapp_button_color: string
+          whatsapp_button_text: string
+          whatsapp_number: string
+        }[]
+      }
       get_broker_contact_info_with_logging: {
         Args: {
           broker_website_slug: string
@@ -618,6 +655,48 @@ export type Database = {
           contact_email: string
           creci: string
           whatsapp_number: string
+        }[]
+      }
+      get_properties_by_domain_or_slug: {
+        Args: {
+          domain_name?: string
+          property_limit?: number
+          property_offset?: number
+          slug_name?: string
+        }
+        Returns: {
+          address: string
+          area_m2: number
+          bathrooms: number
+          bedrooms: number
+          broker_business_name: string
+          broker_display_name: string
+          broker_website_slug: string
+          city: string
+          created_at: string
+          description: string
+          features: string[]
+          id: string
+          images: string[]
+          is_featured: boolean
+          main_image_url: string
+          neighborhood: string
+          parking_spaces: number
+          price: number
+          property_code: string
+          property_type: string
+          realtor_avatar_url: string
+          realtor_bio: string
+          realtor_creci: string
+          realtor_name: string
+          realtor_whatsapp_button_text: string
+          slug: string
+          status: string
+          title: string
+          transaction_type: string
+          uf: string
+          updated_at: string
+          views_count: number
         }[]
       }
       get_public_broker_branding: {

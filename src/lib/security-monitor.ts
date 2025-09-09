@@ -103,7 +103,7 @@ export class SecurityMonitor {
   static async checkContactFormRateLimit() {
     return this.checkRateLimit({
       action: 'contact_form',
-      max_requests: 3,
+      max_requests: 30,
       window_minutes: 10
     });
   }

@@ -6,9 +6,10 @@ export function useDomainAware() {
     if (typeof window !== 'undefined') {
       const hostname = window.location.hostname;
       
-      // Skip localhost and Lovable staging domains
-      if (hostname === 'localhost' || hostname.includes('lovable.app')) {
-        return null;
+      // Skip localhost and Lovable staging domains for domain-based lookup
+      // But still return the hostname for logging purposes
+      if (hostname === 'localhost' || hostname.includes('lovable.app') || hostname.includes('sandbox.lovable.dev')) {
+        return null; // This means we should use slug-based lookup
       }
       
       return hostname;

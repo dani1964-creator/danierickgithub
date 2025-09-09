@@ -24,9 +24,11 @@ export function useDomainAware() {
     console.log('slug parameter:', slug);
     
     try {
+      // If we're on localhost or Lovable staging, always use slug
+      // If we're on a custom domain, try domain first, then fallback to slug
       const { data, error } = await supabase.rpc('get_broker_by_domain_or_slug', {
         domain_name: currentDomain,
-        slug_name: currentDomain ? null : slug // Use slug only if no custom domain
+        slug_name: slug // Always pass the slug parameter
       });
 
       console.log('RPC response data:', data);
@@ -58,7 +60,7 @@ export function useDomainAware() {
     try {
       const { data, error } = await supabase.rpc('get_properties_by_domain_or_slug', {
         domain_name: currentDomain,
-        slug_name: currentDomain ? null : slug, // Use slug only if no custom domain
+        slug_name: slug, // Always pass the slug parameter
         property_limit: limit,
         property_offset: offset
       });

@@ -646,6 +646,10 @@ export type Database = {
           sections_background_color_2: string
           sections_background_color_3: string
           sections_background_style: string
+          site_description: string
+          site_favicon_url: string
+          site_share_image_url: string
+          site_title: string
           terms_of_use_content: string
           tracking_scripts: Json
           updated_at: string
@@ -674,6 +678,10 @@ export type Database = {
           primary_color: string
           privacy_policy_content: string
           secondary_color: string
+          site_description: string
+          site_favicon_url: string
+          site_share_image_url: string
+          site_title: string
           terms_of_use_content: string
           tracking_scripts: Json
           updated_at: string

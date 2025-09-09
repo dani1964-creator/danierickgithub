@@ -75,6 +75,10 @@ interface BrokerProfile {
   sections_background_color_1?: string | null;
   sections_background_color_2?: string | null;
   sections_background_color_3?: string | null;
+  site_title?: string | null;
+  site_description?: string | null;
+  site_favicon_url?: string | null;
+  site_share_image_url?: string | null;
 }
 
 interface BrokerContact {
@@ -349,26 +353,56 @@ const PublicSite = () => {
     <>
       {/* Meta tags para o site da imobiliária */}
       <Helmet>
-        <title>{brokerProfile?.business_name || 'Imobiliária'}</title>
+        <title>
+          {brokerProfile?.site_title || `${brokerProfile?.business_name || 'Imobiliária'} - Imóveis para Venda e Locação`}
+        </title>
         <meta 
           name="description" 
-          content={`Encontre imóveis com ${brokerProfile?.business_name || 'nossa imobiliária'}. ${properties.length} propriedades disponíveis para venda e locação.`} 
+          content={
+            brokerProfile?.site_description || 
+            `Encontre imóveis com ${brokerProfile?.business_name || 'nossa imobiliária'}. ${properties.length} propriedades disponíveis para venda e locação.`
+          } 
         />
+        
+        {/* Favicon */}
+        {brokerProfile?.site_favicon_url && (
+          <link 
+            rel="icon" 
+            href={brokerProfile.site_favicon_url.startsWith('http') ? 
+              brokerProfile.site_favicon_url : 
+              `${window.location.origin}${brokerProfile.site_favicon_url}`
+            } 
+            type="image/png" 
+          />
+        )}
         
         {/* Open Graph */}
         <meta 
           property="og:title" 
-          content={`${brokerProfile?.business_name || 'Imobiliária'} - Imóveis para Venda e Locação`} 
+          content={
+            brokerProfile?.site_title || 
+            `${brokerProfile?.business_name || 'Imobiliária'} - Imóveis para Venda e Locação`
+          } 
         />
         <meta 
           property="og:description" 
-          content={`Encontre seu imóvel dos sonhos com ${brokerProfile?.business_name || 'nossa imobiliária'}. ${properties.length} propriedades disponíveis.`} 
+          content={
+            brokerProfile?.site_description || 
+            `Encontre seu imóvel dos sonhos com ${brokerProfile?.business_name || 'nossa imobiliária'}. ${properties.length} propriedades disponíveis.`
+          } 
         />
         <meta 
           property="og:image" 
-          content={brokerProfile?.logo_url ? 
-            (brokerProfile.logo_url.startsWith('http') ? brokerProfile.logo_url : `${window.location.origin}${brokerProfile.logo_url}`) :
-            `${window.location.origin}/placeholder.svg`
+          content={
+            brokerProfile?.site_share_image_url ? 
+              (brokerProfile.site_share_image_url.startsWith('http') ? 
+                brokerProfile.site_share_image_url : 
+                `${window.location.origin}${brokerProfile.site_share_image_url}`) :
+              brokerProfile?.logo_url ? 
+                (brokerProfile.logo_url.startsWith('http') ? 
+                  brokerProfile.logo_url : 
+                  `${window.location.origin}${brokerProfile.logo_url}`) :
+                `${window.location.origin}/placeholder.svg`
           } 
         />
         <meta property="og:type" content="website" />
@@ -380,12 +414,37 @@ const PublicSite = () => {
         <meta name="twitter:card" content="summary_large_image" />
         <meta 
           name="twitter:title" 
-          content={`${brokerProfile?.business_name || 'Imobiliária'} - Imóveis para Venda e Locação`} 
+          content={
+            brokerProfile?.site_title || 
+            `${brokerProfile?.business_name || 'Imobiliária'} - Imóveis para Venda e Locação`
+          } 
+        />
+        <meta 
+          name="twitter:description" 
+          content={
+            brokerProfile?.site_description || 
+            `Encontre seu imóvel dos sonhos com ${brokerProfile?.business_name || 'nossa imobiliária'}. ${properties.length} propriedades disponíveis.`
+          } 
+        />
+        <meta 
+          name="twitter:image" 
+          content={
+            brokerProfile?.site_share_image_url ? 
+              (brokerProfile.site_share_image_url.startsWith('http') ? 
+                brokerProfile.site_share_image_url : 
+                `${window.location.origin}${brokerProfile.site_share_image_url}`) :
+              brokerProfile?.logo_url ? 
+                (brokerProfile.logo_url.startsWith('http') ? 
+                  brokerProfile.logo_url : 
+                  `${window.location.origin}${brokerProfile.logo_url}`) :
+                `${window.location.origin}/placeholder.svg`
+          } 
         />
         
         {/* Canonical URL */}
         <link rel="canonical" href={window.location.href} />
         <meta name="robots" content="index, follow" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       </Helmet>
       
       <div className="public-site-layout min-h-screen bg-white">

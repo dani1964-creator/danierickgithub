@@ -348,22 +348,8 @@ const PublicSite = () => {
 
   return (
     <>
-      {/* Debug Panel - remover em produção */}
-      <SEODebugPanel brokerProfile={brokerProfile} />
-      
-      {/* Meta tags para o site da imobiliária */}
+      {/* Meta tags dinâmicas para cada imobiliária */}
       <Helmet>
-        {/* DEBUG: Log dos valores das meta tags */}
-        <script>
-          {`
-            console.log('=== META TAGS RENDERING ===');
-            console.log('site_title disponível:', ${JSON.stringify(brokerProfile?.site_title)});
-            console.log('site_description disponível:', ${JSON.stringify(brokerProfile?.site_description)});
-            console.log('site_share_image_url disponível:', ${JSON.stringify(brokerProfile?.site_share_image_url)});
-            console.log('business_name:', ${JSON.stringify(brokerProfile?.business_name)});
-            console.log('=== FIM META TAGS RENDERING ===');
-          `}
-        </script>
         
         <title>
           {brokerProfile?.site_title || `${brokerProfile?.business_name || 'Imobiliária'} - Imóveis para Venda e Locação`}

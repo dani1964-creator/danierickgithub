@@ -72,11 +72,9 @@ const LeadModal = ({
         status: 'new'
       };
 
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('leads')
-        .insert([leadData])
-        .select()
-        .single();
+        .insert([leadData]);
 
       if (error) {
         console.error('Error creating lead:', error);
@@ -94,7 +92,7 @@ const LeadModal = ({
         variant: "default"
       });
 
-      onSuccess(data);
+      onSuccess(leadData);
       onClose();
       
       // Reset form

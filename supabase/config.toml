@@ -1,4 +1,1 @@
 project_id = "demcjskpwcxqohzlyjxb"
-
-[functions.admin-brokers]
-verify_jwt = false

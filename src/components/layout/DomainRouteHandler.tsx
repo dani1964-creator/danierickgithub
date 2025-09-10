@@ -51,14 +51,31 @@ export const DomainRouteHandler = () => {
       }
     }
     
+    // For authenticated users on custom domains, verify domain ownership
+    if (isAuthenticated) {
+      // Check if user owns this domain
+      if (!canAccessDashboard) {
+        // User is authenticated but doesn't own this domain
+        logSecurityEvent('unauthorized_domain_access', {
+          route: currentRoute,
+          domain: getCurrentDomain(),
+          reason: 'not_domain_owner'
+        });
+        
+        // Force logout and redirect to auth
+        navigate('/auth', { replace: true });
+        return null;
+      }
+    }
+    
     // Allowed routes for custom domains:
     
-    // Root path - public site (NO SLUG ALLOWED)
+    // Root path - public site with admin capabilities if authenticated
     if (currentRoute === '/') {
       return <PublicSite forceIgnoreSlug={true} />;
     }
     
-    // Auth path - but only for domain owner validation
+    // Auth path - for domain owner authentication
     if (currentRoute === '/auth') {
       return <AuthForm />;
     }

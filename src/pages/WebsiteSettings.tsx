@@ -79,6 +79,7 @@ const WebsiteSettings = () => {
       if (error) throw error;
       setProfile({
         ...data,
+        logo_size: data.logo_size || 80,
         overlay_color: data.overlay_color || '#000000',
         overlay_opacity: data.overlay_opacity || '50',
         sections_background_style: data.sections_background_style || 'style1',
@@ -508,7 +509,9 @@ const WebsiteSettings = () => {
               <CardContent className="space-y-6">
                 <LogoUpload
                   logoUrl={profile?.logo_url || ''}
+                  logoSize={profile?.logo_size || 80}
                   onLogoChange={(url) => updateProfile('logo_url', url)}
+                  onLogoSizeChange={(size) => updateProfile('logo_size', size)}
                 />
 
                 <div className="grid gap-4 md:grid-cols-2">

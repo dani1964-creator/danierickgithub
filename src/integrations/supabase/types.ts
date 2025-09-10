@@ -95,6 +95,7 @@ export type Database = {
           id: string
           is_active: boolean | null
           is_super_admin: boolean | null
+          logo_size: number | null
           logo_url: string | null
           max_properties: number | null
           overlay_color: string | null
@@ -141,6 +142,7 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           is_super_admin?: boolean | null
+          logo_size?: number | null
           logo_url?: string | null
           max_properties?: number | null
           overlay_color?: string | null
@@ -187,6 +189,7 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           is_super_admin?: boolean | null
+          logo_size?: number | null
           logo_url?: string | null
           max_properties?: number | null
           overlay_color?: string | null

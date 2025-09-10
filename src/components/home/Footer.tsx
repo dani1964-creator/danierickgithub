@@ -12,6 +12,7 @@ interface BrokerProfile {
   display_name: string | null;
   about_text: string | null;
   logo_url: string | null;
+  logo_size?: number | null;
   primary_color: string | null;
   secondary_color: string | null;
   footer_text: string | null;
@@ -122,7 +123,8 @@ const Footer = ({ brokerProfile, socialLinks = [], onContactRequest }: FooterPro
                   <img 
                     src={brokerProfile.logo_url} 
                     alt={brokerProfile.business_name} 
-                    className="h-10 w-auto mr-3" 
+                    className="w-auto mr-3" 
+                    style={{ height: `${Math.min(brokerProfile.logo_size || 80, 60)}px` }}
                   />
                 ) : (
                   <div 

@@ -6,6 +6,7 @@ interface BrokerProfile {
   business_name: string;
   display_name: string | null;
   logo_url: string | null;
+  logo_size?: number | null;
   primary_color: string | null;
   secondary_color: string | null;
   address: string | null;
@@ -58,16 +59,20 @@ const FixedHeader = ({ brokerProfile }: FixedHeaderProps) => {
             aria-label="Voltar ao início"
           >
             {brokerProfile.logo_url && (
-              <div className="flex-shrink-0">
-                <img
-                  src={brokerProfile.logo_url}
-                  alt={`Logo ${displayName}`}
-                  className="h-6 w-6 sm:h-8 sm:w-8 md:h-10 md:w-10 object-contain rounded-md"
-                  onError={(e) => {
-                    e.currentTarget.style.display = 'none';
-                  }}
-                />
-              </div>
+               <div className="flex-shrink-0">
+                 <img
+                   src={brokerProfile.logo_url}
+                   alt={`Logo ${displayName}`}
+                   className="object-contain rounded-md"
+                   style={{ 
+                     height: `${Math.min(brokerProfile.logo_size || 80, 60)}px`,
+                     width: 'auto'
+                   }}
+                   onError={(e) => {
+                     e.currentTarget.style.display = 'none';
+                   }}
+                 />
+               </div>
             )}
             
             <div className="flex flex-col min-w-0">

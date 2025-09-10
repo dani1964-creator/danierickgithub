@@ -770,7 +770,7 @@ const PropertyDetailPage = () => {
             <div className="lg:col-span-3">
               {/* Galeria de Imagens Mobile */}
               {propertyImages.length > 0 ? (
-                <div className="lg:hidden mb-8">
+                <div className="lg:hidden mb-8 relative">
                   <Carousel 
                     className="w-full" 
                     setApi={setCarouselApi}
@@ -790,26 +790,6 @@ const PropertyDetailPage = () => {
                                onClick={() => {setCurrentImageIndex(index); setIsImageModalOpen(true);}}
                                loading={index === 0 ? "eager" : "lazy"}
                              />
-                            
-                            <div className="absolute top-4 right-4 bg-black/70 text-white px-3 py-1 rounded text-sm font-medium">
-                              {index + 1} / {propertyImages.length}
-                            </div>
-                            
-                            <button
-                              onClick={() => {setCurrentImageIndex(index); setIsImageModalOpen(true);}}
-                              className="absolute bottom-4 right-4 bg-white/90 text-gray-800 p-2 rounded-lg hover:bg-white transition-colors"
-                            >
-                              <Maximize2 className="h-4 w-4" />
-                            </button>
-                            
-                            {index === 0 && (
-                              <div className="absolute top-4 left-4">
-                                <Badge className="bg-white text-gray-900 hover:bg-white px-3 py-1 text-sm">
-                                  <Eye className="h-3 w-3 mr-1" />
-                                  {viewsCount} visualizações
-                                </Badge>
-                              </div>
-                            )}
                           </div>
                         </CarouselItem>
                       ))}
@@ -817,11 +797,30 @@ const PropertyDetailPage = () => {
                     
                     {propertyImages.length > 1 && (
                       <>
-                        <CarouselPrevious className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/90 text-gray-800 border-0 hover:bg-white" />
-                        <CarouselNext className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/90 text-gray-800 border-0 hover:bg-white" />
+                        <CarouselPrevious className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/90 text-gray-800 border-0 hover:bg-white z-20" />
+                        <CarouselNext className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/90 text-gray-800 border-0 hover:bg-white z-20" />
                       </>
                     )}
                   </Carousel>
+                  
+                  {/* Fixed UI elements for mobile */}
+                  <div className="absolute top-4 right-4 bg-black/70 text-white px-3 py-1 rounded text-sm font-medium z-30">
+                    {currentImageIndex + 1} / {propertyImages.length}
+                  </div>
+                  
+                  <button
+                    onClick={() => setIsImageModalOpen(true)}
+                    className="absolute bottom-4 right-4 bg-white/90 text-gray-800 p-2 rounded-lg hover:bg-white transition-colors z-30"
+                  >
+                    <Maximize2 className="h-4 w-4" />
+                  </button>
+                  
+                  <div className="absolute top-4 left-4 z-30">
+                    <Badge className="bg-white text-gray-900 hover:bg-white px-3 py-1 text-sm">
+                      <Eye className="h-3 w-3 mr-1" />
+                      {viewsCount} visualizações
+                    </Badge>
+                  </div>
                 </div>
               ) : (
                 <div className="h-80 sm:h-96 bg-gray-200 flex items-center justify-center lg:hidden mb-8">

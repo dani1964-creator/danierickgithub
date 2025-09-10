@@ -572,6 +572,10 @@ export type Database = {
         Args: { client_ip?: unknown }
         Returns: boolean
       }
+      check_lead_rate_limit_enhanced: {
+        Args: { client_ip?: unknown; user_email?: string }
+        Returns: boolean
+      }
       delete_broker_admin: {
         Args: { broker_id: string }
         Returns: boolean
@@ -900,6 +904,10 @@ export type Database = {
           p_user_ip?: unknown
         }
         Returns: boolean
+      }
+      log_lead_access: {
+        Args: { p_broker_id?: string; p_lead_id: string; p_operation: string }
+        Returns: undefined
       }
       toggle_broker_status: {
         Args: { broker_id: string; new_status: boolean }

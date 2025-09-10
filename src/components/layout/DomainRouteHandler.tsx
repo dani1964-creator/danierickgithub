@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useDomainAware } from '@/hooks/useDomainAware';
 import { useAuth } from '@/hooks/useAuth';
+import { useDomainSecurity } from '@/hooks/useDomainSecurity';
 import PublicSite from '@/pages/PublicSite';
 import Dashboard from '@/pages/Dashboard';
 import AuthForm from '@/components/auth/AuthForm';
@@ -9,7 +10,9 @@ import AuthForm from '@/components/auth/AuthForm';
 export const DomainRouteHandler = () => {
   const { getCurrentDomain } = useDomainAware();
   const { isAuthenticated, loading } = useAuth();
+  const { validateRouteAccess, canAccessDashboard, shouldRedirectToPublic, logSecurityEvent } = useDomainSecurity();
   const location = useLocation();
+  const navigate = useNavigate();
   const [isCustomDomain, setIsCustomDomain] = useState(false);
   
   useEffect(() => {
@@ -29,24 +32,49 @@ export const DomainRouteHandler = () => {
     );
   }
 
-  // For custom domains
+  // For custom domains - STRICT ISOLATION
   if (isCustomDomain) {
-    // Root path shows public site
-    if (location.pathname === '/') {
-      return <PublicSite />;
+    const currentRoute = location.pathname;
+    
+    // Security check: validate route access
+    if (!validateRouteAccess(currentRoute)) {
+      // Log blocked access attempt
+      logSecurityEvent('blocked_route_access', { 
+        route: currentRoute, 
+        reason: 'custom_domain_restriction' 
+      });
+      
+      // Redirect to public site root
+      if (currentRoute !== '/') {
+        navigate('/', { replace: true });
+        return null;
+      }
     }
     
-    // Auth path for admin login
-    if (location.pathname === '/auth') {
+    // Allowed routes for custom domains:
+    
+    // Root path - public site (NO SLUG ALLOWED)
+    if (currentRoute === '/') {
+      return <PublicSite forceIgnoreSlug={true} />;
+    }
+    
+    // Auth path - but only for domain owner validation
+    if (currentRoute === '/auth') {
       return <AuthForm />;
     }
     
-    // Property detail pages (without broker slug) or other pages
-    if (location.pathname.match(/^\/[^\/]+$/)) {
-      return <PublicSite />;
+    // Static pages
+    if (['/sobre-nos', '/politica-de-privacidade', '/termos-de-uso'].includes(currentRoute)) {
+      return null; // Let router handle these
     }
-
-    // Let the router handle static pages (sobre-nos, politica-de-privacidade, termos-de-uso) normally
+    
+    // Property detail pages (single slug only, no broker slug)
+    if (currentRoute.match(/^\/[^\/]+$/) && !currentRoute.startsWith('/dashboard') && !currentRoute.startsWith('/admin')) {
+      return <PublicSite forceIgnoreSlug={true} />;
+    }
+    
+    // Block everything else and redirect to public site
+    navigate('/', { replace: true });
     return null;
   }
 
@@ -56,6 +84,13 @@ export const DomainRouteHandler = () => {
     if (!isAuthenticated) {
       return <AuthForm />;
     }
+    
+    // Additional security: if user is authenticated but can't access dashboard, redirect
+    if (isAuthenticated && !canAccessDashboard && shouldRedirectToPublic) {
+      navigate('/', { replace: true });
+      return <PublicSite />;
+    }
+    
     return <Dashboard />;
   }
 

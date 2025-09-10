@@ -94,7 +94,7 @@ interface BrokerContact {
 const PublicSite = () => {
   const { slug, propertySlug } = useParams();
   const { toast } = useToast();
-  const { getBrokerByDomainOrSlug, getPropertiesByDomainOrSlug } = useDomainAware();
+  const { getBrokerByDomainOrSlug, getPropertiesByDomainOrSlug, isCustomDomain } = useDomainAware();
   const [properties, setProperties] = useState<Property[]>([]);
   const [brokerProfile, setBrokerProfile] = useState<BrokerProfile | null>(null);
   const [brokerContact, setBrokerContact] = useState<BrokerContact | null>(null);
@@ -126,9 +126,11 @@ const PublicSite = () => {
     }
 
     // Check if it's first visit and user hasn't submitted a lead yet
-    if (slug) {
-      const visitKey = `first-visit-${slug}`;
-      const leadSubmittedKey = `lead-submitted-${slug}`;
+    // Use current domain or slug for the visit key
+    const visitIdentifier = isCustomDomain() ? window.location.hostname : slug;
+    if (visitIdentifier) {
+      const visitKey = `first-visit-${visitIdentifier}`;
+      const leadSubmittedKey = `lead-submitted-${visitIdentifier}`;
       
       const hasVisited = localStorage.getItem(visitKey);
       const hasSubmittedLead = localStorage.getItem(leadSubmittedKey);
@@ -154,15 +156,19 @@ const PublicSite = () => {
 
   const fetchBrokerData = async () => {
     try {
-      console.log('Fetching broker data for slug:', slug);
+      // For custom domains, automatically detect broker without slug
+      // For Lovable domains, use the slug parameter
+      const effectiveSlug = isCustomDomain() ? undefined : slug;
+      
+      console.log('Fetching broker data - Custom domain:', isCustomDomain(), 'Slug:', effectiveSlug);
       
       // Fetch broker profile using the domain-aware hook
-      const brokerData = await getBrokerByDomainOrSlug(slug);
+      const brokerData = await getBrokerByDomainOrSlug(effectiveSlug);
 
       console.log('Broker data from domain-aware hook:', brokerData);
 
       if (!brokerData) {
-        console.log('No broker found for slug:', slug);
+        console.log('No broker found for slug/domain:', effectiveSlug);
         setBrokerProfile(null);
         setLoading(false);
         return;
@@ -183,7 +189,7 @@ const PublicSite = () => {
       setBrokerProfile(brokerData as BrokerProfile);
 
       // Fetch properties using the domain-aware hook
-      const propertiesData = await getPropertiesByDomainOrSlug(slug, 50, 0);
+      const propertiesData = await getPropertiesByDomainOrSlug(effectiveSlug, 50, 0);
 
       console.log('Properties data from domain-aware hook:', propertiesData);
       setProperties(propertiesData || []);
@@ -259,8 +265,16 @@ const PublicSite = () => {
   const handleShare = (property: Property) => {
     if (!brokerProfile) return;
     
-    // Use Edge Function URL for social sharing
-    const shareUrl = `https://demcjskpwcxqohzlyjxb.supabase.co/functions/v1/seo-handler?broker=${brokerProfile.website_slug}&path=/${property.slug || property.id}`;
+    // Generate clean URL based on domain type
+    let shareUrl: string;
+    
+    if (isCustomDomain()) {
+      // For custom domains, use clean URLs
+      shareUrl = `${window.location.origin}/${property.slug || property.id}`;
+    } else {
+      // For Lovable domains, use Edge Function URL for social sharing
+      shareUrl = `https://demcjskpwcxqohzlyjxb.supabase.co/functions/v1/seo-handler?broker=${brokerProfile.website_slug}&path=/${property.slug || property.id}`;
+    }
     
     if (navigator.share) {
       navigator.share({

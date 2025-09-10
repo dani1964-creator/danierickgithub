@@ -312,10 +312,22 @@ const PropertyDetailPage = () => {
     console.log('Contact info:', contactInfo);
 
     if (contactInfo?.whatsapp_number && property) {
-      // Use Edge Function URL for WhatsApp sharing with proper redirect
+      // Generate clean URL based on domain type
+      let shareUrl: string;
       const currentOrigin = window.location.origin;
       const currentPath = window.location.pathname;
-      const shareUrl = `https://demcjskpwcxqohzlyjxb.supabase.co/functions/v1/seo-handler?broker=${brokerProfile?.website_slug}&path=/${property.slug}&origin=${encodeURIComponent(currentOrigin + currentPath)}`;
+      
+      // Check if we're on a custom domain (not containing lovable.app)
+      const isCustomDomain = !window.location.hostname.includes('lovable.app') && 
+                            !window.location.hostname.includes('localhost');
+      
+      if (isCustomDomain) {
+        // For custom domains, use clean URLs
+        shareUrl = `${currentOrigin}/${property.slug}`;
+      } else {
+        // For Lovable domains, use Edge Function URL for WhatsApp sharing
+        shareUrl = `https://demcjskpwcxqohzlyjxb.supabase.co/functions/v1/seo-handler?broker=${brokerProfile?.website_slug}&path=/${property.slug}&origin=${encodeURIComponent(currentOrigin + currentPath)}`;
+      }
       
       const message = encodeURIComponent(
         `Olá! Tenho interesse no imóvel "${property.title}" - Código: ${property.property_code || property.id.slice(-8)}. Valor: ${formatPrice(property.price)}. Gostaria de mais informações. Link: ${shareUrl}`

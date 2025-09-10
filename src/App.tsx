@@ -7,6 +7,7 @@ import { createBrowserRouter, RouterProvider, ScrollRestoration } from "react-ro
 import { PersistentLayout } from "@/components/layout/PersistentLayout";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { HelmetProvider } from 'react-helmet-async';
+import { DomainRouteHandler } from "@/components/layout/DomainRouteHandler";
 import Dashboard from "./pages/Dashboard";
 import Auth from "./pages/Auth";
 import Properties from "./pages/Properties";
@@ -61,7 +62,7 @@ const router = createBrowserRouter([
     children: [
       {
         index: true,
-        element: <Dashboard />
+        element: <DomainRouteHandler />
       },
       {
         path: "dashboard",
@@ -69,7 +70,7 @@ const router = createBrowserRouter([
       },
       {
         path: "auth",
-        element: <Auth />
+        element: <DomainRouteHandler />
       },
       {
         path: "dashboard/home",
@@ -99,6 +100,7 @@ const router = createBrowserRouter([
         path: "admin",
         element: <SuperAdminPage />
       },
+      // Routes for Lovable domains (with slug)
       {
         path: ":slug",
         element: <PublicSite />
@@ -119,13 +121,26 @@ const router = createBrowserRouter([
         path: ":slug/termos-de-uso",
         element: <TermsOfUse />
       },
+      // Catch-all routes for custom domains (property slugs without broker slug)
+      {
+        path: "sobre-nos",
+        element: <AboutUs />
+      },
+      {
+        path: "politica-de-privacidade", 
+        element: <PrivacyPolicy />
+      },
+      {
+        path: "termos-de-uso",
+        element: <TermsOfUse />
+      },
       {
         path: "404",
         element: <NotFound />
       },
       {
         path: "*",
-        element: <NotFound />
+        element: <DomainRouteHandler />
       }
     ]
   }

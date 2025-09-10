@@ -17,6 +17,10 @@ export function useDomainAware() {
     return null;
   };
 
+  const isCustomDomain = () => {
+    return getCurrentDomain() !== null;
+  };
+
   const getBrokerByDomainOrSlug = async (slug?: string) => {
     const currentDomain = getCurrentDomain();
     
@@ -105,6 +109,7 @@ export function useDomainAware() {
 
   return {
     getCurrentDomain,
+    isCustomDomain,
     getBrokerByDomainOrSlug,
     getPropertiesByDomainOrSlug,
     getBrokerContactInfo

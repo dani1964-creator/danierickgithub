@@ -573,7 +573,9 @@ export type Database = {
         Returns: boolean
       }
       check_lead_rate_limit_enhanced: {
-        Args: { client_ip?: unknown; user_email?: string }
+        Args:
+          | { client_ip?: unknown; user_email?: string }
+          | { user_email?: string }
         Returns: boolean
       }
       delete_broker_admin: {

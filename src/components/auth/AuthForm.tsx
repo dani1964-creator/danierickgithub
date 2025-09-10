@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,7 +7,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Building2, KeyRound, Mail } from "lucide-react";
 import { SecurityMonitor } from "@/lib/security-monitor";
-import { useDomainAware } from "@/hooks/useDomainAware";
 
 const AuthForm = () => {
   const [loading, setLoading] = useState(false);
@@ -17,8 +15,6 @@ const AuthForm = () => {
     password: ""
   });
   const { toast } = useToast();
-  const navigate = useNavigate();
-  const { isCustomDomain } = useDomainAware();
 
 
   const handleSignIn = async (e: React.FormEvent) => {
@@ -58,15 +54,6 @@ const AuthForm = () => {
         title: "Login realizado!",
         description: "Redirecionando para o painel...",
       });
-
-      // Redirect based on domain type
-      if (isCustomDomain()) {
-        // For custom domains, redirect to root (public site with admin access)
-        navigate('/', { replace: true });
-      } else {
-        // For Lovable domains, redirect to dashboard
-        navigate('/dashboard', { replace: true });
-      }
 
     } catch (error: any) {
       await SecurityMonitor.logAuthAttempt(false, signInData.email);

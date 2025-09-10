@@ -10,7 +10,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Building2, Users, Globe, Trash2, Plus, Eye, EyeOff, ExternalLink, Settings, LogOut } from "lucide-react";
+import { Building2, Users, Globe, Trash2, Plus, Eye, EyeOff, ExternalLink, Settings } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Helmet } from 'react-helmet-async';
@@ -31,7 +31,6 @@ interface BrokerData {
   created_at: string;
   updated_at: string;
   properties_count: number;
-  custom_domain?: string;
 }
 
 export default function SuperAdminPage() {
@@ -263,11 +262,6 @@ export default function SuperAdminPage() {
     }
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem(SUPER_ADMIN_TOKEN_KEY);
-    window.location.reload();
-  };
-
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -350,17 +344,11 @@ export default function SuperAdminPage() {
         <meta name="robots" content="noindex, nofollow" />
       </Helmet>
       <div className="container mx-auto p-3 sm:p-6">
-        <div className="mb-6 sm:mb-8 flex justify-between items-start">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Painel Super Admin</h1>
-            <p className="text-sm sm:text-base text-muted-foreground">
-              Gerencie todas as imobiliárias e seus acessos no sistema
-            </p>
-          </div>
-          <Button variant="outline" onClick={handleLogout} className="flex items-center gap-2">
-            <LogOut className="h-4 w-4" />
-            Sair
-          </Button>
+        <div className="mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Painel Super Admin</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">
+            Gerencie todas as imobiliárias e seus acessos no sistema
+          </p>
         </div>
 
         {/* Stats Cards */}
@@ -450,21 +438,6 @@ export default function SuperAdminPage() {
                     placeholder="Senha forte"
                   />
                 </div>
-                <div className="bg-muted/50 p-4 rounded-lg">
-                  <Label className="text-sm font-medium">📋 Importante - Configuração de Domínio</Label>
-                  <p className="text-sm text-muted-foreground mt-2">
-                    Após criar a imobiliária, o usuário deve:
-                  </p>
-                  <ol className="text-sm text-muted-foreground mt-2 list-decimal list-inside space-y-1">
-                    <li>Fazer login em <strong>{newBrokerEmail}</strong></li>
-                    <li>Ir em Configurações → Geral</li>
-                    <li>Configurar o domínio personalizado (ex: minhasite.com)</li>
-                    <li>Seguir as instruções de DNS na Vercel</li>
-                  </ol>
-                  <p className="text-xs text-muted-foreground mt-2 font-medium">
-                    ⚠️ Cada imobiliária terá acesso exclusivo ao seu domínio personalizado
-                  </p>
-                </div>
                 <Button onClick={createNewBroker} className="w-full">
                   Criar Imobiliária
                 </Button>
@@ -485,7 +458,6 @@ export default function SuperAdminPage() {
                     <TableHead className="min-w-[80px]">Status</TableHead>
                     <TableHead className="min-w-[80px]">Plano</TableHead>
                     <TableHead className="min-w-[80px]">Imóveis</TableHead>
-                    <TableHead className="min-w-[150px]">Domínio</TableHead>
                     <TableHead className="min-w-[60px]">Site</TableHead>
                     <TableHead className="min-w-[100px]">Criado em</TableHead>
                     <TableHead className="text-right min-w-[100px]">Ações</TableHead>
@@ -510,16 +482,6 @@ export default function SuperAdminPage() {
                         <Badge variant="outline" className="text-xs">{broker.plan_type}</Badge>
                       </TableCell>
                       <TableCell className="min-w-[80px] text-sm">{broker.properties_count}</TableCell>
-                      <TableCell className="min-w-[150px]">
-                        {broker.custom_domain ? (
-                          <div className="flex items-center gap-1">
-                            <Globe className="h-3 w-3 text-primary" />
-                            <span className="text-xs font-mono">{broker.custom_domain}</span>
-                          </div>
-                        ) : (
-                          <span className="text-xs text-muted-foreground">Não configurado</span>
-                        )}
-                      </TableCell>
                       <TableCell className="min-w-[60px]">
                         {broker.website_slug && (
                           <Button

@@ -92,11 +92,7 @@ interface BrokerContact {
   creci: string | null;
 }
 
-interface PublicSiteProps {
-  forceIgnoreSlug?: boolean;
-}
-
-const PublicSite = ({ forceIgnoreSlug = false }: PublicSiteProps) => {
+const PublicSite = () => {
   const { slug, propertySlug } = useParams();
   const { toast } = useToast();
   const { getBrokerByDomainOrSlug, getPropertiesByDomainOrSlug, isCustomDomain } = useDomainAware();
@@ -161,14 +157,14 @@ const PublicSite = ({ forceIgnoreSlug = false }: PublicSiteProps) => {
 
   const fetchBrokerData = async () => {
     try {
-      // SECURITY: For custom domains or when forced, ignore slug completely
-      const shouldIgnoreSlug = forceIgnoreSlug || isCustomDomain();
-      const effectiveSlug = shouldIgnoreSlug ? undefined : slug;
+      // For custom domains, automatically detect broker without slug
+      // For Lovable domains, use the slug parameter
+      const effectiveSlug = isCustomDomain() ? undefined : slug;
       
-      console.log('Fetching broker data - Custom domain:', isCustomDomain(), 'Force ignore slug:', forceIgnoreSlug, 'Effective slug:', effectiveSlug);
+      console.log('Fetching broker data - Custom domain:', isCustomDomain(), 'Slug:', effectiveSlug);
       
-      // Fetch broker profile using the domain-aware hook with security controls
-      const brokerData = await getBrokerByDomainOrSlug(effectiveSlug, shouldIgnoreSlug);
+      // Fetch broker profile using the domain-aware hook
+      const brokerData = await getBrokerByDomainOrSlug(effectiveSlug);
 
       console.log('Broker data from domain-aware hook:', brokerData);
 
@@ -193,8 +189,8 @@ const PublicSite = ({ forceIgnoreSlug = false }: PublicSiteProps) => {
       
       setBrokerProfile(brokerData as BrokerProfile);
 
-      // Fetch properties using the domain-aware hook with security controls
-      const propertiesData = await getPropertiesByDomainOrSlug(effectiveSlug, 50, 0, shouldIgnoreSlug);
+      // Fetch properties using the domain-aware hook
+      const propertiesData = await getPropertiesByDomainOrSlug(effectiveSlug, 50, 0);
 
       console.log('Properties data from domain-aware hook:', propertiesData);
       setProperties(propertiesData || []);

@@ -466,24 +466,6 @@ const WebsiteSettings = () => {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="custom_domain">Domínio Personalizado</Label>
-                      <Input
-                        id="custom_domain"
-                        value={profile.custom_domain || ''}
-                        onChange={(e) => updateProfile('custom_domain', e.target.value.toLowerCase())}
-                        placeholder="meusite.com"
-                      />
-                      <p className="text-sm text-muted-foreground">
-                        <strong>🚀 Configuração de Domínio Personalizado:</strong><br />
-                        1. No Vercel: Settings → Domains → Add Domain<br />
-                        2. DNS no seu provedor: A record @ → 76.76.19.61<br />
-                        3. DNS CNAME www → cname.vercel-dns.com<br />
-                        4. Digite apenas o domínio (ex: meusite.com)<br />
-                        ⚠️ <strong>IMPORTANTE:</strong> Aguarde até 48h para propagação DNS
-                      </p>
-                    </div>
-
-                    <div className="space-y-2">
                       <Label htmlFor="hero_title">Frase Principal do Site</Label>
                       <Input
                         id="hero_title"

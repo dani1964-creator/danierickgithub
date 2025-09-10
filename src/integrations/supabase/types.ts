@@ -644,42 +644,6 @@ export type Database = {
           whatsapp_number: string
         }[]
       }
-      get_broker_by_domain_secure: {
-        Args: { p_domain: string }
-        Returns: {
-          about_text: string
-          about_us_content: string
-          background_image_url: string
-          business_name: string
-          created_at: string
-          custom_domain: string
-          display_name: string
-          footer_text: string
-          hero_subtitle: string
-          hero_title: string
-          id: string
-          is_active: boolean
-          logo_size: number
-          logo_url: string
-          overlay_color: string
-          overlay_opacity: string
-          primary_color: string
-          privacy_policy_content: string
-          secondary_color: string
-          site_description: string
-          site_favicon_url: string
-          site_share_image_url: string
-          site_title: string
-          terms_of_use_content: string
-          tracking_scripts: Json
-          updated_at: string
-          user_id: string
-          website_slug: string
-          whatsapp_button_color: string
-          whatsapp_button_text: string
-          whatsapp_number: string
-        }[]
-      }
       get_broker_contact_info_with_logging: {
         Args: {
           broker_website_slug: string
@@ -963,10 +927,6 @@ export type Database = {
       }
       user_owns_broker: {
         Args: { p_broker_slug: string; p_user_id: string }
-        Returns: boolean
-      }
-      validate_domain_ownership: {
-        Args: { p_domain: string; p_user_id: string }
         Returns: boolean
       }
     }

@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import { useDomainAware } from '@/hooks/useDomainAware';
 import { useAuth } from '@/hooks/useAuth';
-import { useDomainSecurity } from '@/hooks/useDomainSecurity';
 import PublicSite from '@/pages/PublicSite';
 import Dashboard from '@/pages/Dashboard';
 import AuthForm from '@/components/auth/AuthForm';
@@ -10,9 +9,7 @@ import AuthForm from '@/components/auth/AuthForm';
 export const DomainRouteHandler = () => {
   const { getCurrentDomain } = useDomainAware();
   const { isAuthenticated, loading } = useAuth();
-  const { validateRouteAccess, canAccessDashboard, shouldRedirectToPublic, logSecurityEvent } = useDomainSecurity();
   const location = useLocation();
-  const navigate = useNavigate();
   const [isCustomDomain, setIsCustomDomain] = useState(false);
   
   useEffect(() => {
@@ -32,67 +29,22 @@ export const DomainRouteHandler = () => {
     );
   }
 
-  // For custom domains - STRICT ISOLATION
+  // For custom domains
   if (isCustomDomain) {
-    const currentRoute = location.pathname;
-    
-    // Security check: validate route access
-    if (!validateRouteAccess(currentRoute)) {
-      // Log blocked access attempt
-      logSecurityEvent('blocked_route_access', { 
-        route: currentRoute, 
-        reason: 'custom_domain_restriction' 
-      });
-      
-      // Redirect to public site root
-      if (currentRoute !== '/') {
-        navigate('/', { replace: true });
-        return null;
-      }
+    // Root path shows public site
+    if (location.pathname === '/') {
+      return <PublicSite />;
     }
     
-    // For authenticated users on custom domains, verify domain ownership
-    if (isAuthenticated) {
-      // Check if user owns this domain
-      if (!canAccessDashboard) {
-        // User is authenticated but doesn't own this domain
-        logSecurityEvent('unauthorized_domain_access', {
-          route: currentRoute,
-          domain: getCurrentDomain(),
-          reason: 'not_domain_owner'
-        });
-        
-        // Force logout and redirect to auth
-        navigate('/auth', { replace: true });
-        return null;
-      }
-    }
-    
-    // Allowed routes for custom domains:
-    
-    // Root path - public site with admin capabilities if authenticated
-    if (currentRoute === '/') {
-      return <PublicSite forceIgnoreSlug={true} />;
-    }
-    
-    // Auth path - for domain owner authentication
-    if (currentRoute === '/auth') {
+    // Auth path for admin login
+    if (location.pathname === '/auth') {
       return <AuthForm />;
     }
     
-    // Static pages
-    if (['/sobre-nos', '/politica-de-privacidade', '/termos-de-uso'].includes(currentRoute)) {
-      return null; // Let router handle these
+    // Property detail pages (without broker slug)
+    if (location.pathname.match(/^\/[^\/]+$/)) {
+      return <PublicSite />;
     }
-    
-    // Property detail pages (single slug only, no broker slug)
-    if (currentRoute.match(/^\/[^\/]+$/) && !currentRoute.startsWith('/dashboard') && !currentRoute.startsWith('/admin')) {
-      return <PublicSite forceIgnoreSlug={true} />;
-    }
-    
-    // Block everything else and redirect to public site
-    navigate('/', { replace: true });
-    return null;
   }
 
   // For Lovable domains - traditional behavior
@@ -101,13 +53,6 @@ export const DomainRouteHandler = () => {
     if (!isAuthenticated) {
       return <AuthForm />;
     }
-    
-    // Additional security: if user is authenticated but can't access dashboard, redirect
-    if (isAuthenticated && !canAccessDashboard && shouldRedirectToPublic) {
-      navigate('/', { replace: true });
-      return <PublicSite />;
-    }
-    
     return <Dashboard />;
   }
 

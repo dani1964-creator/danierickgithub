@@ -25,7 +25,7 @@ async function listBrokers() {
   // Fetch all brokers
   const { data: brokers, error: brokersError } = await supabase
     .from('brokers')
-    .select('id, user_id, business_name, display_name, email, website_slug, phone, whatsapp_number, contact_email, is_active, plan_type, max_properties, created_at, updated_at, custom_domain')
+    .select('id, user_id, business_name, display_name, email, website_slug, phone, whatsapp_number, contact_email, is_active, plan_type, max_properties, created_at, updated_at')
     .order('created_at', { ascending: false });
 
   if (brokersError) throw brokersError;

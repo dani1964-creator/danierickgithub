@@ -5,14 +5,17 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Slider } from '@/components/ui/slider';
 import { useToast } from '@/hooks/use-toast';
 
 interface LogoUploadProps {
   logoUrl: string;
+  logoSize?: number;
   onLogoChange: (url: string) => void;
+  onLogoSizeChange?: (size: number) => void;
 }
 
-const LogoUpload = ({ logoUrl, onLogoChange }: LogoUploadProps) => {
+const LogoUpload = ({ logoUrl, logoSize = 80, onLogoChange, onLogoSizeChange }: LogoUploadProps) => {
   const { toast } = useToast();
   const [uploading, setUploading] = useState(false);
 
@@ -67,7 +70,8 @@ const LogoUpload = ({ logoUrl, onLogoChange }: LogoUploadProps) => {
           <img
             src={logoUrl}
             alt="Logo da imobiliária"
-            className="h-20 w-auto rounded-lg border"
+            className="w-auto rounded-lg border"
+            style={{ height: `${logoSize}px` }}
           />
           <Button
             type="button"
@@ -84,6 +88,27 @@ const LogoUpload = ({ logoUrl, onLogoChange }: LogoUploadProps) => {
           <div className="text-center">
             <ImageIcon className="mx-auto h-8 w-8 text-muted-foreground" />
             <p className="mt-2 text-sm text-muted-foreground">Nenhuma logo</p>
+          </div>
+        </div>
+      )}
+
+      {logoUrl && onLogoSizeChange && (
+        <div className="space-y-2">
+          <Label className="text-sm font-medium">Tamanho da Logo</Label>
+          <div className="space-y-2">
+            <Slider
+              value={[logoSize]}
+              onValueChange={(value) => onLogoSizeChange(value[0])}
+              max={200}
+              min={40}
+              step={5}
+              className="w-full"
+            />
+            <div className="flex justify-between text-xs text-muted-foreground">
+              <span>40px</span>
+              <span className="font-medium">{logoSize}px</span>
+              <span>200px</span>
+            </div>
           </div>
         </div>
       )}

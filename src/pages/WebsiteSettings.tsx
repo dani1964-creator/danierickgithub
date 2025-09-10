@@ -32,6 +32,7 @@ interface BrokerProfile {
   hero_title: string | null;
   hero_subtitle: string | null;
   logo_url: string | null;
+  logo_size: number | null;
   primary_color: string | null;
   secondary_color: string | null;
   background_image_url: string | null;
@@ -71,7 +72,7 @@ const WebsiteSettings = () => {
     try {
       const { data, error } = await supabase
         .from('brokers')
-        .select('id, business_name, display_name, website_slug, custom_domain, address, about_text, footer_text, whatsapp_number, contact_email, creci, cnpj, hero_title, hero_subtitle, logo_url, primary_color, secondary_color, background_image_url, overlay_color, overlay_opacity, whatsapp_button_text, whatsapp_button_color, tracking_scripts, about_us_content, privacy_policy_content, terms_of_use_content, sections_background_style, sections_background_color_1, sections_background_color_2, sections_background_color_3, site_title, site_description, site_favicon_url, site_share_image_url')
+        .select('id, business_name, display_name, website_slug, custom_domain, address, about_text, footer_text, whatsapp_number, contact_email, creci, cnpj, hero_title, hero_subtitle, logo_url, logo_size, primary_color, secondary_color, background_image_url, overlay_color, overlay_opacity, whatsapp_button_text, whatsapp_button_color, tracking_scripts, about_us_content, privacy_policy_content, terms_of_use_content, sections_background_style, sections_background_color_1, sections_background_color_2, sections_background_color_3, site_title, site_description, site_favicon_url, site_share_image_url')
         .eq('user_id', user?.id)
         .single();
 

@@ -74,6 +74,33 @@ const EditPropertyDialog = ({ property, onPropertyUpdated }: EditPropertyDialogP
     }
   }, [user]);
 
+  // Sync with latest property data whenever the dialog opens
+  useEffect(() => {
+    if (open) {
+      setCurrentImages(property.images || []);
+      setFormData({
+        title: property.title,
+        description: property.description || '',
+        price: property.price.toString(),
+        property_type: property.property_type,
+        transaction_type: property.transaction_type,
+        address: property.address,
+        neighborhood: property.neighborhood || '',
+        uf: property.uf || '',
+        bedrooms: property.bedrooms?.toString() || '',
+        bathrooms: property.bathrooms?.toString() || '',
+        area_m2: property.area_m2?.toString() || '',
+        parking_spaces: property.parking_spaces?.toString() || '',
+        is_featured: property.is_featured,
+        status: property.status || 'active',
+        features: property.features || [],
+        property_code: property.property_code || '',
+        realtor_id: (property as any).realtor_id || '',
+      });
+      setSelectedImages([]);
+    }
+  }, [open, property]);
+
   const fetchRealtors = async () => {
     try {
       const { data: brokerData } = await supabase

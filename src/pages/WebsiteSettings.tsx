@@ -475,10 +475,11 @@ const WebsiteSettings = () => {
                       />
                       <p className="text-sm text-muted-foreground">
                         <strong>🚀 Configuração de Domínio Personalizado:</strong><br />
-                        1. Configure este domínio no Vercel<br />
-                        2. Adicione o DNS: A record → 185.158.133.1<br />
-                        3. Digite apenas o domínio (ex: meusite.com)<br />
-                        ⚠️ <strong>IMPORTANTE:</strong> Cada domínio serve exclusivamente sua imobiliária
+                        1. No Vercel: Settings → Domains → Add Domain<br />
+                        2. DNS no seu provedor: A record @ → 76.76.19.61<br />
+                        3. DNS CNAME www → cname.vercel-dns.com<br />
+                        4. Digite apenas o domínio (ex: meusite.com)<br />
+                        ⚠️ <strong>IMPORTANTE:</strong> Aguarde até 48h para propagação DNS
                       </p>
                     </div>
 

@@ -1,9 +1,4 @@
 {
-  "functions": {
-    "supabase/functions/seo-handler/index.ts": {
-      "runtime": "edge"
-    }
-  },
   "rewrites": [
     {
       "source": "/(.*)",

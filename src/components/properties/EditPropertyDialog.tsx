@@ -1,52 +1,54 @@
 import { useState, useEffect } from 'react';
-import { Edit, Upload, X } from 'lucide-react';
+import { X, Upload } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/hooks/useAuth';
 
 interface Property {
   id: string;
   title: string;
-  description: string;
+  description: string | null;
   price: number;
   property_type: string;
   transaction_type: string;
   address: string;
-  neighborhood: string;
-  uf: string;
-  bedrooms: number;
-  bathrooms: number;
-  area_m2: number;
-  parking_spaces: number;
+  neighborhood: string | null;
+  uf: string | null;
+  bedrooms: number | null;
+  bathrooms: number | null;
+  area_m2: number | null;
+  parking_spaces: number | null;
   is_featured: boolean;
-  status: string;
-  features: string[];
-  images: string[];
-  main_image_url: string;
-  property_code: string;
-  realtor_id?: string;
+  features: string[] | null;
+  images: string[] | null;
+  property_code: string | null;
+  status: string | null;
+  realtor_id?: string | null;
 }
 
 interface EditPropertyDialogProps {
   property: Property;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
   onPropertyUpdated: () => void;
 }
 
-const EditPropertyDialog = ({ property, onPropertyUpdated }: EditPropertyDialogProps) => {
-  const { toast } = useToast();
+const EditPropertyDialog = ({ property, open, onOpenChange, onPropertyUpdated }: EditPropertyDialogProps) => {
   const { user } = useAuth();
-  const [open, setOpen] = useState(false);
+  const { toast } = useToast();
   const [loading, setSaving] = useState(false);
   const [selectedImages, setSelectedImages] = useState<File[]>([]);
-  const [currentImages, setCurrentImages] = useState<string[]>(property.images || []);
+  const [currentImages, setCurrentImages] = useState<string[]>([]);
+  const [imageUrls, setImageUrls] = useState<string[]>([]);
+  const [currentImageUrl, setCurrentImageUrl] = useState('');
   const [realtors, setRealtors] = useState<any[]>([]);
   const [formData, setFormData] = useState({
     title: property.title,
@@ -98,6 +100,8 @@ const EditPropertyDialog = ({ property, onPropertyUpdated }: EditPropertyDialogP
         realtor_id: (property as any).realtor_id || '',
       });
       setSelectedImages([]);
+      setImageUrls([]);
+      setCurrentImageUrl('');
     }
   }, [open, property]);
 
@@ -138,9 +142,9 @@ const EditPropertyDialog = ({ property, onPropertyUpdated }: EditPropertyDialogP
 
   const statusOptions = [
     { value: 'active', label: 'Ativo' },
-    { value: 'inactive', label: 'Inativo' },
-    { value: 'sold', label: 'Vendido' },
     { value: 'rented', label: 'Alugado' },
+    { value: 'sold', label: 'Vendido' },
+    { value: 'inactive', label: 'Inativo' },
   ];
 
   const commonFeatures = [
@@ -174,6 +178,17 @@ const EditPropertyDialog = ({ property, onPropertyUpdated }: EditPropertyDialogP
     setCurrentImages(prev => prev.filter((_, i) => i !== index));
   };
 
+  const addImageUrl = () => {
+    if (currentImageUrl.trim()) {
+      setImageUrls(prev => [...prev, currentImageUrl.trim()]);
+      setCurrentImageUrl('');
+    }
+  };
+
+  const removeImageUrl = (index: number) => {
+    setImageUrls(prev => prev.filter((_, i) => i !== index));
+  };
+
   const uploadImages = async () => {
     const uploadedUrls: string[] = [];
     
@@ -203,11 +218,11 @@ const EditPropertyDialog = ({ property, onPropertyUpdated }: EditPropertyDialogP
     setSaving(true);
 
     try {
-      // Upload new images if any
-      const newImageUrls = await uploadImages();
+      // Upload new images
+      const uploadedUrls = await uploadImages();
       
-      // Combine current images with new ones
-      const allImages = [...currentImages, ...newImageUrls];
+      // Combine existing images, new uploads, and URLs
+      const allImages = [...currentImages, ...uploadedUrls, ...imageUrls];
 
       // Update property
       const { error } = await supabase
@@ -232,17 +247,18 @@ const EditPropertyDialog = ({ property, onPropertyUpdated }: EditPropertyDialogP
           main_image_url: allImages[0] || null,
           property_code: formData.property_code,
           realtor_id: formData.realtor_id || null,
-        })
+          updated_at: new Date().toISOString()
+        } as any)
         .eq('id', property.id);
 
       if (error) throw error;
 
       toast({
-        title: "Sucesso!",
-        description: "Imóvel atualizado com sucesso.",
+        title: "Imóvel atualizado",
+        description: "As informações do imóvel foram atualizadas com sucesso!"
       });
-      setSelectedImages([]);
-      setOpen(false);
+
+      onOpenChange(false);
       onPropertyUpdated();
 
     } catch (error: any) {
@@ -257,12 +273,7 @@ const EditPropertyDialog = ({ property, onPropertyUpdated }: EditPropertyDialogP
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button size="sm" variant="outline">
-          <Edit className="h-4 w-4" />
-        </Button>
-      </DialogTrigger>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Editar Imóvel</DialogTitle>
@@ -367,10 +378,11 @@ const EditPropertyDialog = ({ property, onPropertyUpdated }: EditPropertyDialogP
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>Status</Label>
+              <Label>Status *</Label>
               <Select
                 value={formData.status}
                 onValueChange={(value) => handleInputChange('status', value)}
+                required
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Status do imóvel" />
@@ -524,8 +536,10 @@ const EditPropertyDialog = ({ property, onPropertyUpdated }: EditPropertyDialogP
           )}
 
           {/* Add More Images */}
-          <div className="space-y-2">
+          <div className="space-y-4">
             <Label>Adicionar Mais Imagens</Label>
+            
+            {/* Upload de arquivos */}
             <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6">
               <div className="text-center">
                 <Upload className="mx-auto h-12 w-12 text-muted-foreground" />
@@ -546,27 +560,83 @@ const EditPropertyDialog = ({ property, onPropertyUpdated }: EditPropertyDialogP
                 </div>
               </div>
             </div>
+
+            {/* Adicionar por URL */}
+            <div className="space-y-3">
+              <Label>Ou adicione imagens por URL</Label>
+              <div className="flex gap-2">
+                <Input
+                  value={currentImageUrl}
+                  onChange={(e) => setCurrentImageUrl(e.target.value)}
+                  placeholder="https://exemplo.com/imagem.jpg"
+                  className="flex-1"
+                />
+                <Button 
+                  type="button" 
+                  onClick={addImageUrl}
+                  disabled={!currentImageUrl.trim()}
+                  variant="outline"
+                >
+                  Adicionar
+                </Button>
+              </div>
+            </div>
             
+            {/* Preview de novos arquivos */}
             {selectedImages.length > 0 && (
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
-                {selectedImages.map((file, index) => (
-                  <div key={index} className="relative">
-                    <img
-                      src={URL.createObjectURL(file)}
-                      alt={`Preview ${index + 1}`}
-                      className="w-full h-24 object-cover rounded-lg"
-                    />
-                    <Button
-                      type="button"
-                      variant="destructive"
-                      size="sm"
-                      className="absolute -top-2 -right-2 h-6 w-6 rounded-full p-0"
-                      onClick={() => removeImage(index)}
-                    >
-                      <X className="h-3 w-3" />
-                    </Button>
-                  </div>
-                ))}
+              <div className="space-y-2">
+                <Label>Novos arquivos</Label>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {selectedImages.map((file, index) => (
+                    <div key={index} className="relative">
+                      <img
+                        src={URL.createObjectURL(file)}
+                        alt={`Preview ${index + 1}`}
+                        className="w-full h-24 object-cover rounded-lg"
+                      />
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="sm"
+                        className="absolute -top-2 -right-2 h-6 w-6 rounded-full p-0"
+                        onClick={() => removeImage(index)}
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Preview de URLs */}
+            {imageUrls.length > 0 && (
+              <div className="space-y-2">
+                <Label>Imagens por URL</Label>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {imageUrls.map((url, index) => (
+                    <div key={index} className="relative">
+                      <img
+                        src={url}
+                        alt={`URL ${index + 1}`}
+                        className="w-full h-24 object-cover rounded-lg"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).style.border = '2px solid red';
+                          (e.target as HTMLImageElement).title = 'Erro ao carregar imagem';
+                        }}
+                      />
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="sm"
+                        className="absolute -top-2 -right-2 h-6 w-6 rounded-full p-0"
+                        onClick={() => removeImageUrl(index)}
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
           </div>
@@ -583,11 +653,11 @@ const EditPropertyDialog = ({ property, onPropertyUpdated }: EditPropertyDialogP
 
           {/* Submit Buttons */}
           <div className="flex justify-end space-x-2">
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancelar
             </Button>
             <Button type="submit" disabled={loading}>
-              {loading ? 'Salvando...' : 'Atualizar Imóvel'}
+              {loading ? 'Atualizando...' : 'Atualizar Imóvel'}
             </Button>
           </div>
         </form>

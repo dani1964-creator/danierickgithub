@@ -12,7 +12,7 @@ import { useToast } from '@/hooks/use-toast';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import AddPropertyDialog from '@/components/properties/AddPropertyDialog';
 import PropertyViewToggle from '@/components/properties/PropertyViewToggle';
-import EditPropertyDialog from '@/components/properties/EditPropertyDialog';
+import EditPropertyButton from '@/components/properties/EditPropertyButton';
 import { sanitizeInput } from '@/lib/security';
 
 interface Property {
@@ -407,8 +407,8 @@ const Properties = () => {
                       <span>{property.views_count}</span>
                     </div>
                     
-                    <div className="flex items-center gap-1">
-                      <EditPropertyDialog property={property} onPropertyUpdated={fetchProperties} />
+                     <div className="flex items-center gap-1">
+                       <EditPropertyButton property={property} onPropertyUpdated={fetchProperties} />
                       <Button 
                         size="sm" 
                         variant="outline"
@@ -520,8 +520,8 @@ const Properties = () => {
                         <span>{property.views_count} visualizações</span>
                       </div>
                       
-                      <div className="flex items-center gap-2">
-                        <EditPropertyDialog property={property} onPropertyUpdated={fetchProperties} />
+                       <div className="flex items-center gap-2">
+                         <EditPropertyButton property={property} onPropertyUpdated={fetchProperties} />
                         <Button 
                           size="sm" 
                           variant="outline"

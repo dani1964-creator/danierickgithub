@@ -466,6 +466,23 @@ const WebsiteSettings = () => {
                     </div>
 
                     <div className="space-y-2">
+                      <Label htmlFor="custom_domain">Domínio Personalizado</Label>
+                      <Input
+                        id="custom_domain"
+                        value={profile.custom_domain || ''}
+                        onChange={(e) => updateProfile('custom_domain', e.target.value.toLowerCase())}
+                        placeholder="meusite.com"
+                      />
+                      <p className="text-sm text-muted-foreground">
+                        <strong>🚀 Configuração de Domínio Personalizado:</strong><br />
+                        1. Configure este domínio no Vercel<br />
+                        2. Adicione o DNS: A record → 185.158.133.1<br />
+                        3. Digite apenas o domínio (ex: meusite.com)<br />
+                        ⚠️ <strong>IMPORTANTE:</strong> Cada domínio serve exclusivamente sua imobiliária
+                      </p>
+                    </div>
+
+                    <div className="space-y-2">
                       <Label htmlFor="hero_title">Frase Principal do Site</Label>
                       <Input
                         id="hero_title"

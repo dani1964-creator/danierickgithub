@@ -55,6 +55,7 @@ interface BrokerProfile {
   custom_domain: string | null;
   about_text: string | null;
   logo_url: string | null;
+  logo_size?: number | null;
   primary_color: string | null;
   secondary_color: string | null;
   footer_text: string | null;

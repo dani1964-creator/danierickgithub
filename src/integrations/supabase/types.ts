@@ -624,6 +624,7 @@ export type Database = {
           hero_title: string
           id: string
           is_active: boolean
+          logo_size: number
           logo_url: string
           overlay_color: string
           overlay_opacity: string
@@ -724,6 +725,7 @@ export type Database = {
           hero_title: string
           id: string
           is_active: boolean
+          logo_size: number
           logo_url: string
           overlay_color: string
           overlay_opacity: string
@@ -760,6 +762,7 @@ export type Database = {
           hero_title: string
           id: string
           is_active: boolean
+          logo_size: number
           logo_url: string
           overlay_color: string
           overlay_opacity: string

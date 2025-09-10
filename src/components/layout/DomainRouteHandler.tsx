@@ -41,10 +41,13 @@ export const DomainRouteHandler = () => {
       return <AuthForm />;
     }
     
-    // Property detail pages (without broker slug)
+    // Property detail pages (without broker slug) or other pages
     if (location.pathname.match(/^\/[^\/]+$/)) {
       return <PublicSite />;
     }
+
+    // Let the router handle static pages (sobre-nos, politica-de-privacidade, termos-de-uso) normally
+    return null;
   }
 
   // For Lovable domains - traditional behavior

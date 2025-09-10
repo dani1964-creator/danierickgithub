@@ -124,6 +124,7 @@ const WebsiteSettings = () => {
           hero_title: profile.hero_title,
           hero_subtitle: profile.hero_subtitle,
           logo_url: profile.logo_url,
+          logo_size: profile.logo_size,
           primary_color: profile.primary_color,
           secondary_color: profile.secondary_color,
           background_image_url: profile.background_image_url,

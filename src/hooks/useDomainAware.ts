@@ -41,9 +41,22 @@ export function useDomainAware() {
         console.log('Secure RPC response data:', data);
         console.log('Secure RPC response error:', error);
 
-        if (error) {
-          console.error('Error fetching broker securely:', error);
-          return null;
+        // If secure function fails or returns empty, gracefully fallback to domain-based public RPC
+        if (error || !data || data.length === 0) {
+          console.warn('Secure RPC failed or returned empty. Falling back to public domain lookup. Error:', error);
+          const { data: fbData, error: fbError } = await supabase.rpc('get_broker_by_domain_or_slug', {
+            domain_name: currentDomain,
+            slug_name: null
+          });
+          console.log('Fallback RPC data:', fbData, 'Fallback RPC error:', fbError);
+          if (fbError) {
+            console.error('Fallback RPC also failed:', fbError);
+            return null;
+          }
+          const fbResult = fbData && fbData.length > 0 ? fbData[0] : null;
+          console.log('Final broker result after fallback:', fbResult);
+          console.log('=== END DEBUG useDomainAware (FALLBACK) ===');
+          return fbResult;
         }
 
         const result = data && data.length > 0 ? data[0] : null;

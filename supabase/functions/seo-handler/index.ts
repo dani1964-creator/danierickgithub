@@ -184,12 +184,44 @@ serve(async (req) => {
     
     console.log(`Request: ${pathname}, User-Agent: ${userAgent}, Params: broker=${brokerParam}, path=${pathParam}`);
     
+    // Get origin parameter for redirection
+    const origin = url.searchParams.get('origin');
+    
     // Verificar se é um crawler social
     if (!isSocialCrawler(userAgent)) {
-      console.log('Not a social crawler, passing through');
-      return new Response(null, {
-        status: 404,
-        headers: corsHeaders
+      console.log('Not a social crawler, checking for redirect');
+      
+      // If we have origin parameter, redirect there
+      if (origin) {
+        console.log('Redirecting to origin:', origin);
+        return new Response(null, {
+          status: 302,
+          headers: {
+            ...corsHeaders,
+            'Location': origin
+          }
+        });
+      }
+      
+      // Default: construct public URL and redirect
+      if (brokerParam) {
+        const publicUrl = pathParam && pathParam !== '/' 
+          ? `https://lovable.dev/${brokerParam}${pathParam}`
+          : `https://lovable.dev/${brokerParam}`;
+        
+        console.log('Redirecting to public URL:', publicUrl);
+        return new Response(null, {
+          status: 302,
+          headers: {
+            ...corsHeaders,
+            'Location': publicUrl
+          }
+        });
+      }
+      
+      return new Response('Not Found', { 
+        status: 404, 
+        headers: corsHeaders 
       });
     }
     

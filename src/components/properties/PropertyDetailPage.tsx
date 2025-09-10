@@ -312,9 +312,13 @@ const PropertyDetailPage = () => {
     console.log('Contact info:', contactInfo);
 
     if (contactInfo?.whatsapp_number && property) {
-      const pageUrl = window.location.href;
+      // Use Edge Function URL for WhatsApp sharing with proper redirect
+      const currentOrigin = window.location.origin;
+      const currentPath = window.location.pathname;
+      const shareUrl = `https://demcjskpwcxqohzlyjxb.supabase.co/functions/v1/seo-handler?broker=${brokerProfile?.website_slug}&path=/${property.slug}&origin=${encodeURIComponent(currentOrigin + currentPath)}`;
+      
       const message = encodeURIComponent(
-        `Olá! Tenho interesse no imóvel "${property.title}" - Código: ${property.property_code || property.id.slice(-8)}. Valor: ${formatPrice(property.price)}. Gostaria de mais informações. Link: ${pageUrl}`
+        `Olá! Tenho interesse no imóvel "${property.title}" - Código: ${property.property_code || property.id.slice(-8)}. Valor: ${formatPrice(property.price)}. Gostaria de mais informações. Link: ${shareUrl}`
       );
       
       console.log('Abrindo WhatsApp e registrando lead...');

@@ -113,6 +113,13 @@ export type Database = {
           site_favicon_url: string | null
           site_share_image_url: string | null
           site_title: string | null
+          robots_index: boolean | null
+          robots_follow: boolean | null
+          canonical_prefer_custom_domain: boolean | null
+          home_title_template: string | null
+          home_description_template: string | null
+          property_title_template: string | null
+          property_description_template: string | null
           terms_of_use_content: string | null
           tracking_scripts: Json | null
           updated_at: string
@@ -121,6 +128,14 @@ export type Database = {
           whatsapp_button_color: string | null
           whatsapp_button_text: string | null
           whatsapp_number: string | null
+          // Branding optional fields (may be absent in DB until migration)
+          brand_primary?: string | null
+          brand_secondary?: string | null
+          brand_accent?: string | null
+          brand_surface?: string | null
+          brand_surface_fg?: string | null
+          brand_radius?: number | null
+          brand_card_elevation?: number | null
         }
         Insert: {
           about_text?: string | null
@@ -160,6 +175,13 @@ export type Database = {
           site_favicon_url?: string | null
           site_share_image_url?: string | null
           site_title?: string | null
+          robots_index?: boolean | null
+          robots_follow?: boolean | null
+          canonical_prefer_custom_domain?: boolean | null
+          home_title_template?: string | null
+          home_description_template?: string | null
+          property_title_template?: string | null
+          property_description_template?: string | null
           terms_of_use_content?: string | null
           tracking_scripts?: Json | null
           updated_at?: string
@@ -168,6 +190,14 @@ export type Database = {
           whatsapp_button_color?: string | null
           whatsapp_button_text?: string | null
           whatsapp_number?: string | null
+          // Branding optional fields
+          brand_primary?: string | null
+          brand_secondary?: string | null
+          brand_accent?: string | null
+          brand_surface?: string | null
+          brand_surface_fg?: string | null
+          brand_radius?: number | null
+          brand_card_elevation?: number | null
         }
         Update: {
           about_text?: string | null
@@ -207,6 +237,13 @@ export type Database = {
           site_favicon_url?: string | null
           site_share_image_url?: string | null
           site_title?: string | null
+          robots_index?: boolean | null
+          robots_follow?: boolean | null
+          canonical_prefer_custom_domain?: boolean | null
+          home_title_template?: string | null
+          home_description_template?: string | null
+          property_title_template?: string | null
+          property_description_template?: string | null
           terms_of_use_content?: string | null
           tracking_scripts?: Json | null
           updated_at?: string
@@ -215,8 +252,48 @@ export type Database = {
           whatsapp_button_color?: string | null
           whatsapp_button_text?: string | null
           whatsapp_number?: string | null
+          // Branding optional fields
+          brand_primary?: string | null
+          brand_secondary?: string | null
+          brand_accent?: string | null
+          brand_surface?: string | null
+          brand_surface_fg?: string | null
+          brand_radius?: number | null
+          brand_card_elevation?: number | null
         }
         Relationships: []
+      }
+      broker_domains: {
+        Row: {
+          id: string
+          broker_id: string
+          domain: string
+          is_active: boolean
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          broker_id: string
+          domain: string
+          is_active?: boolean
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          broker_id?: string
+          domain?: string
+          is_active?: boolean
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "broker_domains_broker_id_fkey"
+            columns: ["broker_id"]
+            isOneToOne: false
+            referencedRelation: "brokers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       contact_access_logs: {
         Row: {
@@ -342,6 +419,7 @@ export type Database = {
           main_image_url: string | null
           neighborhood: string | null
           parking_spaces: number | null
+          property_type_id: string | null
           price: number
           property_code: string | null
           property_type: string
@@ -371,6 +449,7 @@ export type Database = {
           main_image_url?: string | null
           neighborhood?: string | null
           parking_spaces?: number | null
+          property_type_id?: string | null
           price: number
           property_code?: string | null
           property_type: string
@@ -400,6 +479,7 @@ export type Database = {
           main_image_url?: string | null
           neighborhood?: string | null
           parking_spaces?: number | null
+          property_type_id?: string | null
           price?: number
           property_code?: string | null
           property_type?: string
@@ -425,6 +505,52 @@ export type Database = {
             columns: ["realtor_id"]
             isOneToOne: false
             referencedRelation: "realtors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "properties_property_type_id_fkey"
+            columns: ["property_type_id"]
+            isOneToOne: false
+            referencedRelation: "property_types"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ,
+      property_types: {
+        Row: {
+          id: string
+          broker_id: string | null
+          value: string
+          label: string
+          group_label: string
+          is_active: boolean
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          broker_id?: string | null
+          value: string
+          label: string
+          group_label: string
+          is_active?: boolean
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          broker_id?: string | null
+          value?: string
+          label?: string
+          group_label?: string
+          is_active?: boolean
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "property_types_broker_id_fkey"
+            columns: ["broker_id"]
+            isOneToOne: false
+            referencedRelation: "brokers"
             referencedColumns: ["id"]
           },
         ]
@@ -635,6 +761,13 @@ export type Database = {
           site_favicon_url: string
           site_share_image_url: string
           site_title: string
+          robots_index: boolean
+          robots_follow: boolean
+          canonical_prefer_custom_domain: boolean
+          home_title_template: string
+          home_description_template: string
+          property_title_template: string
+          property_description_template: string
           terms_of_use_content: string
           tracking_scripts: Json
           updated_at: string
@@ -670,6 +803,13 @@ export type Database = {
           site_favicon_url: string
           site_share_image_url: string
           site_title: string
+          robots_index: boolean
+          robots_follow: boolean
+          canonical_prefer_custom_domain: boolean
+          home_title_template: string
+          home_description_template: string
+          property_title_template: string
+          property_description_template: string
           terms_of_use_content: string
           tracking_scripts: Json
           updated_at: string

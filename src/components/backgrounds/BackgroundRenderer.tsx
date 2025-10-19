@@ -21,22 +21,22 @@ const BackgroundRenderer = ({
   const renderStyle1 = () => (
     // Gradiente Suave (atual "Destaque")
     <>
-      <div className="absolute inset-0 bg-gradient-to-br from-gray-50 to-gray-100"></div>
+  <div className="absolute inset-0 bg-gradient-to-br from-white to-gray-50"></div>
       <div 
-        className="absolute inset-0 opacity-10"
+  className="absolute inset-0 opacity-[0.06]"
         style={{ 
           background: `linear-gradient(135deg, ${color1}, ${color2})` 
         }}
       ></div>
       
       {/* Formas geométricas decorativas */}
-      <div className="absolute top-0 right-0 w-96 h-96 opacity-5">
+  <div className="absolute top-0 right-0 w-96 h-96 opacity-[0.04]">
         <div 
           className="w-full h-full rounded-full blur-3xl"
           style={{ backgroundColor: color1 }}
         ></div>
       </div>
-      <div className="absolute bottom-0 left-0 w-64 h-64 opacity-5">
+  <div className="absolute bottom-0 left-0 w-64 h-64 opacity-[0.04]">
         <div 
           className="w-full h-full rounded-full blur-2xl"
           style={{ backgroundColor: color2 }}
@@ -51,7 +51,7 @@ const BackgroundRenderer = ({
       <div className="absolute inset-0">
         <div className="absolute inset-0 bg-white"></div>
         <div 
-          className="absolute inset-0 opacity-5"
+          className="absolute inset-0 opacity-[0.05]"
           style={{ 
             background: `linear-gradient(45deg, ${color1}, transparent 50%, ${color2})`,
             clipPath: 'polygon(0 0, 100% 0, 85% 100%, 0% 100%)'
@@ -80,9 +80,9 @@ const BackgroundRenderer = ({
   const renderStyle3 = () => (
     // Ondas Modernas
     <>
-      <div className="absolute inset-0 bg-gradient-to-br from-gray-50 to-white"></div>
+  <div className="absolute inset-0 bg-gradient-to-br from-white to-gray-50"></div>
       <div 
-        className="absolute inset-0 opacity-8"
+  className="absolute inset-0 opacity-[0.08]"
         style={{
           background: `radial-gradient(ellipse at top left, ${color1}15, transparent 50%), radial-gradient(ellipse at bottom right, ${color2}15, transparent 50%)`
         }}
@@ -91,7 +91,7 @@ const BackgroundRenderer = ({
       {/* Ondas CSS */}
       <div className="absolute inset-0 overflow-hidden">
         <div 
-          className="absolute -top-10 -left-10 w-96 h-96 opacity-6"
+          className="absolute -top-10 -left-10 w-96 h-96 opacity-[0.06]"
           style={{
             background: `conic-gradient(from 0deg, ${color1}, ${color2}, ${color1})`,
             borderRadius: '50% 30% 70% 40%',
@@ -100,7 +100,7 @@ const BackgroundRenderer = ({
           }}
         ></div>
         <div 
-          className="absolute -bottom-10 -right-10 w-80 h-80 opacity-6"
+          className="absolute -bottom-10 -right-10 w-80 h-80 opacity-[0.06]"
           style={{
             background: `conic-gradient(from 180deg, ${color2}, ${color1}, ${color2})`,
             borderRadius: '40% 70% 30% 50%',
@@ -117,11 +117,11 @@ const BackgroundRenderer = ({
     <>
       <div 
         className="absolute inset-0"
-        style={{ backgroundColor: `${color3}f8` }}
+  style={{ backgroundColor: `${color3}f2` }}
       ></div>
       
       {/* Texturas sutis */}
-      <div className="absolute inset-0 opacity-3">
+  <div className="absolute inset-0 opacity-[0.03]">
         <div 
           className="absolute top-1/4 left-1/4 w-2 h-2 rounded-full"
           style={{ backgroundColor: color1 }}
@@ -141,7 +141,7 @@ const BackgroundRenderer = ({
       </div>
       
       {/* Linhas minimalistas */}
-      <div className="absolute inset-0 opacity-4">
+  <div className="absolute inset-0 opacity-[0.04]">
         <div 
           className="absolute top-0 left-1/4 w-px h-full"
           style={{ 
@@ -164,13 +164,13 @@ const BackgroundRenderer = ({
       <div 
         className="absolute inset-0"
         style={{ 
-          background: `linear-gradient(135deg, ${color3}, ${color3}e0)` 
+          background: `linear-gradient(135deg, ${color3}, ${color3}e6)` 
         }}
       ></div>
       
       {/* Padrão hexagonal */}
       <div 
-        className="absolute inset-0 opacity-6"
+  className="absolute inset-0 opacity-[0.06]"
         style={{
           backgroundImage: `
             radial-gradient(circle at 25% 25%, ${color1}20 0%, transparent 50%),
@@ -204,8 +204,27 @@ const BackgroundRenderer = ({
     </>
   );
 
-  const renderBackground = () => {
+  // Mapear presets "pro" para estilos base existentes (fallback visual)
+  const normalizedStyle = (() => {
     switch (style) {
+      case 'pro-minimal':
+        return 'style4'; // Minimalista
+      case 'pro-soft-gradient':
+        return 'style1'; // Gradiente Suave
+      case 'pro-mesh':
+        return 'style3'; // Ondas/mesh suave
+      case 'pro-glass':
+        return 'style2'; // Diagonal com sobreposição (simula vidro)
+      case 'pro-grid':
+      case 'pro-dots':
+        return 'style5'; // Padrão discreto
+      default:
+        return style;
+    }
+  })();
+
+  const renderBackground = () => {
+    switch (normalizedStyle) {
       case 'style1':
         return renderStyle1();
       case 'style2':

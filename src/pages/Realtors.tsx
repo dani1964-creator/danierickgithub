@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { User, Mail, Phone, Plus, Edit, Trash2, Check, X, UserCheck, UserX, Award } from 'lucide-react';
+import { User, Mail, Phone, Plus, Edit, Trash2, Check, X, UserCheck, UserX, Award, LayoutGrid, List } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -13,6 +13,7 @@ import { Label } from '@/components/ui/label';
 import { AvatarUpload } from '@/components/ui/avatar-upload';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 
 interface Realtor {
   id: string;
@@ -38,6 +39,7 @@ const Realtors = () => {
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [editingRealtor, setEditingRealtor] = useState<string | null>(null);
   const [brokerInfo, setBrokerInfo] = useState<any>(null);
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>(() => (localStorage.getItem('realtors_view_mode') as 'grid' | 'list') || 'grid');
 
   // Form states
   const [formData, setFormData] = useState({
@@ -307,14 +309,24 @@ const Realtors = () => {
             </p>
           </div>
           
-          <Button onClick={handleAddNew} className="self-start sm:self-auto">
-            <Plus className="h-4 w-4 mr-2" />
-            <span className="hidden sm:inline">Adicionar</span> Corretor
-          </Button>
+          <div className="flex items-center gap-2 self-start sm:self-auto">
+            <ToggleGroup type="single" value={viewMode} onValueChange={(v) => { if (v) { localStorage.setItem('realtors_view_mode', v); setViewMode(v as 'grid' | 'list'); } }}>
+              <ToggleGroupItem value="grid" aria-label="Visualizar em grade">
+                <LayoutGrid className="h-4 w-4" />
+              </ToggleGroupItem>
+              <ToggleGroupItem value="list" aria-label="Visualizar em lista">
+                <List className="h-4 w-4" />
+              </ToggleGroupItem>
+            </ToggleGroup>
+            <Button onClick={handleAddNew}>
+              <Plus className="h-4 w-4 mr-2" />
+              <span className="hidden sm:inline">Adicionar</span> Corretor
+            </Button>
+          </div>
         </div>
 
         {/* Stats Cards */}
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className="grid gap-4 grid-cols-1 md:grid-cols-3">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total de Corretores</CardTitle>
@@ -351,117 +363,176 @@ const Realtors = () => {
         </div>
 
         {/* Realtors List */}
-        <div className="space-y-4">
-          {realtors.length === 0 ? (
-            <Card>
-              <CardContent className="flex flex-col items-center justify-center p-12">
-                <User className="h-12 w-12 text-muted-foreground mb-4" />
-                <h3 className="text-lg font-semibold mb-2">Nenhum corretor cadastrado</h3>
-                <p className="text-muted-foreground text-center mb-4">
-                  Adicione corretores à sua equipe para começar a gerenciar leads e vendas.
-                </p>
-                <Button onClick={handleAddNew}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Adicionar Primeiro Corretor
-                </Button>
-              </CardContent>
-            </Card>
-          ) : (
-            realtors.map((realtor) => (
-              <Card key={realtor.id}>
-                 <CardContent className="p-4 sm:p-6">
-                   <div className="flex flex-col md:flex-row gap-4">
-                     <div className="flex items-start gap-3 flex-1 min-w-0">
-                       <Avatar className="h-10 w-10 sm:h-12 sm:w-12 flex-shrink-0">
-                         <AvatarImage src={realtor.avatar_url || undefined} />
-                         <AvatarFallback>
-                           <span className="font-medium text-xs sm:text-sm">
-                             {realtor.name.split(' ').map(n => n[0]).join('').toUpperCase()}
-                           </span>
-                         </AvatarFallback>
-                       </Avatar>
-                       
-                       <div className="flex-1 space-y-2 min-w-0">
-                         <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
-                           <h3 className="text-base sm:text-lg font-semibold truncate">{realtor.name}</h3>
-                           <div className="flex flex-wrap items-center gap-1">
-                             {getStatusBadge(realtor.is_active)}
-                             <Badge variant="outline" className="text-xs">
-                               <Award className="h-3 w-3 mr-1" />
-                               {realtor.commission_percentage}%
-                             </Badge>
-                           </div>
-                         </div>
-                         
-                         <div className="flex flex-col gap-1 text-xs sm:text-sm text-muted-foreground">
-                           <div className="flex items-center gap-1 min-w-0">
-                             <Mail className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
-                             <span className="truncate">{realtor.email}</span>
-                           </div>
-                           {realtor.phone && (
-                             <div className="flex items-center gap-1 min-w-0">
-                               <Phone className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
-                               <span className="truncate">{realtor.phone}</span>
-                             </div>
-                           )}
-                           {realtor.creci && (
-                             <div className="flex items-center gap-1 flex-shrink-0">
-                               <span className="font-medium">CRECI:</span>
-                               <span>{realtor.creci}</span>
-                             </div>
-                           )}
-                         </div>
+        {realtors.length === 0 ? (
+          <Card>
+            <CardContent className="flex flex-col items-center justify-center p-12">
+              <User className="h-12 w-12 text-muted-foreground mb-4" />
+              <h3 className="text-lg font-semibold mb-2">Nenhum corretor cadastrado</h3>
+              <p className="text-muted-foreground text-center mb-4">
+                Adicione corretores à sua equipe para começar a gerenciar leads e vendas.
+              </p>
+              <Button onClick={handleAddNew}>
+                <Plus className="h-4 w-4 mr-2" />
+                Adicionar Primeiro Corretor
+              </Button>
+            </CardContent>
+          </Card>
+        ) : viewMode === 'grid' ? (
+          <div className="grid gap-4 grid-cols-1">
+            {realtors.map((realtor) => (
+              <Card key={realtor.id} className="h-full">
+                <CardContent className="p-4 sm:p-6 h-full">
+                  <div className="flex flex-col md:flex-row gap-4">
+                    <div className="flex items-start gap-3 flex-1 min-w-0">
+                      <Avatar className="h-10 w-10 sm:h-12 sm:w-12 flex-shrink-0">
+                        <AvatarImage src={realtor.avatar_url || undefined} />
+                        <AvatarFallback>
+                          <span className="font-medium text-xs sm:text-sm">
+                            {realtor.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                          </span>
+                        </AvatarFallback>
+                      </Avatar>
+                      
+                      <div className="flex-1 space-y-2 min-w-0">
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+                          <h3 className="text-base sm:text-lg font-semibold truncate">{realtor.name}</h3>
+                          <div className="flex flex-wrap items-center gap-1">
+                            {getStatusBadge(realtor.is_active)}
+                            <Badge variant="outline" className="text-xs">
+                              <Award className="h-3 w-3 mr-1" />
+                              {realtor.commission_percentage}%
+                            </Badge>
+                          </div>
+                        </div>
+                        
+                        <div className="flex flex-col gap-1 text-xs sm:text-sm text-muted-foreground">
+                          <div className="flex items-center gap-1 min-w-0">
+                            <Mail className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
+                            <span className="truncate">{realtor.email}</span>
+                          </div>
+                          {realtor.phone && (
+                            <div className="flex items-center gap-1 min-w-0">
+                              <Phone className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
+                              <span className="truncate">{realtor.phone}</span>
+                            </div>
+                          )}
+                          {realtor.creci && (
+                            <div className="flex items-center gap-1 flex-shrink-0">
+                              <span className="font-medium">CRECI:</span>
+                              <span>{realtor.creci}</span>
+                            </div>
+                          )}
+                        </div>
 
-                         {realtor.bio && (
-                           <p className="text-xs sm:text-sm text-muted-foreground line-clamp-2">{realtor.bio}</p>
-                         )}
-                       </div>
-                     </div>
-                    
-                    <div className="flex flex-row md:flex-col items-start gap-1 md:gap-2 flex-shrink-0">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => toggleRealtorStatus(realtor.id, realtor.is_active)}
-                        className="text-xs flex-1 md:flex-none md:w-20"
-                      >
-                        {realtor.is_active ? (
-                          <>
-                            <UserX className="h-3 w-3 md:mr-1" />
-                            <span className="hidden md:inline text-xs">Desativar</span>
-                          </>
-                        ) : (
-                          <>
-                            <UserCheck className="h-3 w-3 md:mr-1" />
-                            <span className="hidden md:inline text-xs">Ativar</span>
-                          </>
+                        {realtor.bio && (
+                          <p className="text-xs sm:text-sm text-muted-foreground line-clamp-2">{realtor.bio}</p>
                         )}
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleEdit(realtor)}
-                        className="text-xs flex-1 md:flex-none md:w-20"
-                      >
-                        <Edit className="h-3 w-3 md:mr-1" />
-                        <span className="hidden md:inline text-xs">Editar</span>
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="destructive"
-                        onClick={() => handleDelete(realtor.id)}
-                        className="text-xs flex-1 md:flex-none md:w-20"
-                      >
-                        <Trash2 className="h-3 w-3 md:mr-1" />
-                        <span className="hidden md:inline text-xs">Excluir</span>
-                      </Button>
+                      </div>
                     </div>
+                   
+                   <div className="flex flex-row md:flex-col items-start gap-1 md:gap-2 flex-shrink-0">
+                     <Button
+                       size="sm"
+                       variant="outline"
+                       onClick={() => toggleRealtorStatus(realtor.id, realtor.is_active)}
+                       className="text-xs flex-1 md:flex-none md:w-20"
+                     >
+                       {realtor.is_active ? (
+                         <>
+                           <UserX className="h-3 w-3 md:mr-1" />
+                           <span className="hidden md:inline text-xs">Desativar</span>
+                         </>
+                       ) : (
+                         <>
+                           <UserCheck className="h-3 w-3 md:mr-1" />
+                           <span className="hidden md:inline text-xs">Ativar</span>
+                         </>
+                       )}
+                     </Button>
+                     <Button
+                       size="sm"
+                       variant="outline"
+                       onClick={() => handleEdit(realtor)}
+                       className="text-xs flex-1 md:flex-none md:w-20"
+                     >
+                       <Edit className="h-3 w-3 md:mr-1" />
+                       <span className="hidden md:inline text-xs">Editar</span>
+                     </Button>
+                     <Button
+                       size="sm"
+                       variant="destructive"
+                       onClick={() => handleDelete(realtor.id)}
+                       className="text-xs flex-1 md:flex-none md:w-20"
+                     >
+                       <Trash2 className="h-3 w-3 md:mr-1" />
+                       <span className="hidden md:inline text-xs">Excluir</span>
+                     </Button>
+                   </div>
+                 </div>
+               </CardContent>
+             </Card>
+           ))}
+          </div>
+        ) : (
+          <div className="w-full rounded-md border divide-y bg-card">
+            {realtors.map((realtor) => (
+              <div key={realtor.id} className="p-4 flex items-start justify-between gap-3">
+                <div className="flex items-start gap-3 min-w-0">
+                  <Avatar className="h-10 w-10 flex-shrink-0">
+                    <AvatarImage src={realtor.avatar_url || undefined} />
+                    <AvatarFallback>
+                      <span className="font-medium text-xs">
+                        {realtor.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                      </span>
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <h3 className="text-sm font-semibold truncate">{realtor.name}</h3>
+                      {getStatusBadge(realtor.is_active)}
+                      <Badge variant="outline" className="text-xs">
+                        <Award className="h-3 w-3 mr-1" />
+                        {realtor.commission_percentage}%
+                      </Badge>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+                      <span className="flex items-center gap-1 min-w-0">
+                        <Mail className="h-3 w-3" />
+                        <span className="truncate">{realtor.email}</span>
+                      </span>
+                      {realtor.phone && (
+                        <span className="flex items-center gap-1 min-w-0">
+                          <Phone className="h-3 w-3" />
+                          <span className="truncate">{realtor.phone}</span>
+                        </span>
+                      )}
+                      {realtor.creci && (
+                        <span className="flex items-center gap-1">
+                          <span className="font-medium">CRECI:</span>
+                          <span>{realtor.creci}</span>
+                        </span>
+                      )}
+                    </div>
+                    {realtor.bio && (
+                      <p className="text-xs text-muted-foreground mt-1 line-clamp-1">{realtor.bio}</p>
+                    )}
                   </div>
-                </CardContent>
-              </Card>
-            ))
-          )}
-        </div>
+                </div>
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  <Button size="sm" variant="outline" onClick={() => toggleRealtorStatus(realtor.id, realtor.is_active)} className="h-8 text-xs">
+                    {realtor.is_active ? <UserX className="h-3 w-3" /> : <UserCheck className="h-3 w-3" />}
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={() => handleEdit(realtor)} className="h-8 text-xs">
+                    <Edit className="h-3 w-3" />
+                  </Button>
+                  <Button size="sm" variant="destructive" onClick={() => handleDelete(realtor.id)} className="h-8 text-xs">
+                    <Trash2 className="h-3 w-3" />
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Add/Edit Realtor Dialog */}

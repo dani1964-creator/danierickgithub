@@ -3,6 +3,7 @@ import { useState, useMemo } from 'react';
 import PropertyCard from '@/components/properties/PropertyCard';
 import { Button } from '@/components/ui/button';
 import BackgroundRenderer from '@/components/backgrounds/BackgroundRenderer';
+import SectionHeader from '@/components/common/SectionHeader';
 
 interface Property {
   id: string;
@@ -93,41 +94,20 @@ const PropertiesGrid = ({
   if (regularProperties.length === 0) return null;
 
   return (
-    <section id="todos-imoveis">
+  <section id="todos-imoveis" className="bg-surface">
       <BackgroundRenderer
-        style={brokerProfile?.sections_background_style || 'style2'}
+        style={brokerProfile?.sections_background_style || 'pro-minimal'}
         color1={brokerProfile?.sections_background_color_1 || brokerProfile?.primary_color || '#2563eb'}
         color2={brokerProfile?.sections_background_color_2 || brokerProfile?.secondary_color || '#64748b'}
         color3={brokerProfile?.sections_background_color_3 || '#ffffff'}
         className="py-16"
       >
         <div className="content-container">
-        <div className="text-center mb-12">
-          {/* Design assimétrico moderno */}
-          <div className="relative">
-            <div className="flex items-center justify-center mb-6">
-              <div 
-                className="w-16 h-1 rounded-full mr-4"
-                style={{ backgroundColor: brokerProfile?.primary_color || '#2563eb' }}
-              ></div>
-              <h2 
-                className="text-4xl lg:text-5xl font-black bg-clip-text text-transparent tracking-tight"
-                style={{ 
-                  backgroundImage: `linear-gradient(135deg, ${brokerProfile?.primary_color || '#2563eb'}, ${brokerProfile?.secondary_color || '#64748b'})` 
-                }}
-              >
-                Todos os Imóveis
-              </h2>
-              <div 
-                className="w-8 h-1 rounded-full ml-4"
-                style={{ backgroundColor: brokerProfile?.secondary_color || '#64748b' }}
-              ></div>
-            </div>
-          </div>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Encontre o imóvel perfeito para você
-          </p>
-        </div>
+        <SectionHeader
+          title="Todos os Imóveis"
+          subtitle="Encontre o imóvel perfeito para você"
+          className="mb-8"
+        />
 
         <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 desktop-grid">
           {visibleProperties.map((property) => (

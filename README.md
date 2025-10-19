@@ -1,73 +1,103 @@
-# Welcome to your Lovable project
+# IMOBIDEPS — Sistema de Imóveis
 
-## Project info
+IMOBIDEPS é uma plataforma completa para gestão e divulgação de imóveis, com painel administrativo, site público por imobiliária e integrações com Supabase.
 
-**URL**: https://lovable.dev/projects/7e4fce2b-229f-4b5b-8ce6-bfe367e21344
+Aplicação React + Vite + TypeScript com Tailwind e shadcn/ui.
 
-## How can I edit this code?
+## Como rodar localmente
 
-There are several ways of editing your application.
-
-**Use Lovable**
-
-Simply visit the [Lovable Project](https://lovable.dev/projects/7e4fce2b-229f-4b5b-8ce6-bfe367e21344) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
+Pré-requisitos: Node.js LTS e pnpm.
 
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+pnpm install
+pnpm dev
 ```
 
-**Edit a file directly in GitHub**
+Acesse http://localhost:8080
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
-
-**Use GitHub Codespaces**
-
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with:
+## Tecnologias
 
 - Vite
 - TypeScript
 - React
 - shadcn-ui
 - Tailwind CSS
+- Supabase JS
 
-## How can I deploy this project?
+## Deploy na DigitalOcean App Platform (com multi-tenant por domínio)
 
-Simply open [Lovable](https://lovable.dev/projects/7e4fce2b-229f-4b5b-8ce6-bfe367e21344) and click on Share -> Publish.
+Este projeto suporta subdomínios por corretora e domínios personalizados via tabela `broker_domains`.
 
-## Can I connect a custom domain to my Lovable project?
+### Variáveis de ambiente obrigatórias
 
-Yes, you can!
+- `VITE_SUPABASE_URL` — URL do projeto Supabase
+- `VITE_SUPABASE_ANON_KEY` — anon key do Supabase
+- `VITE_BASE_PUBLIC_DOMAIN` — domínio base da vitrine pública, ex.: `adminimobiliaria.site`
+- `VITE_PUBLIC_APP_URL` — URL do app admin (usado em links), ex.: `https://app.adminimobiliaria.site`
+- `VITE_CNAME_TARGET` — host de destino para CNAME (ex.: `your-app.ondigitalocean.app` ou `cname.suaedge.com`). A UI exibe esse alvo para os clientes.
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+### Passo a passo (App Platform)
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+1. Crie um novo app estático apontando para este repositório.
+2. Build command: `pnpm i --frozen-lockfile && pnpm build`
+3. Output directory: `dist`
+4. Configure as variáveis de ambiente acima.
+5. Depois de publicado, adicione domínios:
+	- App admin: `app.adminimobiliaria.site` (opcional)
+	- Vitrine base: `adminimobiliaria.site` (opcional, pode manter apenas wildcard)
+	- Wildcard para subdomínios de corretores: `*.adminimobiliaria.site`
+
+Checklist prático (DO + Cloudflare):
+- [ ] Criar app estático na DO a partir do GitHub
+- [ ] Definir envs (VITE_*)
+- [ ] Anotar o domínio `SEU_APP.ondigitalocean.app` e setar `VITE_CNAME_TARGET`
+- [ ] Adicionar domínios do SaaS no app (admin + wildcard)
+- [ ] No Cloudflare, criar CNAME `app` e `*` para `SEU_APP.ondigitalocean.app`
+- [ ] Verificar emissão de certificados na DO
+
+### DNS (exemplo usando adminimobiliaria.site)
+
+Crie os seguintes registros no seu provedor de DNS:
+
+- CNAME `app` -> domínio do App Platform (ex.: `your-app.ondigitalocean.app`)
+- CNAME `@` ou `www` (opcional) -> o mesmo domínio do App Platform
+- CNAME `*` (wildcard) -> o mesmo domínio do App Platform
+
+Com isso, URLs como `corretora1.adminimobiliaria.site` funcionarão automaticamente (resolução pelo `website_slug`).
+
+### Domínios personalizados por corretora
+
+Para apontar um domínio próprio (ex.: `vitrine.imobiliariax.com.br`):
+
+1. No provedor de DNS do cliente, crie um CNAME do host desejado para o domínio do seu app na DigitalOcean (ex.: `your-app.ondigitalocean.app`).
+2. No painel admin, vá em Configurações > Domínios personalizados e adicione exatamente o host (ex.: `vitrine.imobiliariax.com.br`).
+3. Aguarde a propagação DNS e teste acessando o domínio. O sistema resolve o broker automaticamente.
+
+Observação: a tabela `broker_domains` só permite SELECT público de domínios ativos e escrita restrita ao dono da corretora (políticas RLS já incluídas nas migrações).
+
+Domínio raiz vs subdomínio (clientes):
+- Subdomínio (ex.: `vitrine.cliente.com`): normalmente use CNAME apontando para `VITE_CNAME_TARGET`.
+- Domínio raiz (ex.: `cliente.com`): muitos DNS não permitem CNAME no raiz. Use A/AAAA (ou ALIAS/ANAME) conforme instruções da plataforma (DO) ao adicionar o domínio para emitir SSL.
+
+Provedores de domínio (clientes):
+- Seus clientes podem usar qualquer registrador/provedor de DNS (registro.br, Hostinger, HostGator, Cloudflare, GoDaddy, etc.). As instruções são genéricas: criar CNAME (para subdomínio) ou A/AAAA (para raiz) apontando para o alvo informado. A UI do Settings exibe o “CNAME alvo”.
+
+### Vercel x DigitalOcean x Cloudflare
+
+- Hospedagem na Vercel é compatível. Basta definir corretamente as variáveis acima e apontar o `VITE_CNAME_TARGET` para o host que os clientes devem usar nos CNAMEs (ex.: `cname.vercel-dns.com` ou o domínio da sua app na Vercel).
+- Na DigitalOcean App Platform, use o domínio `.ondigitalocean.app` como `VITE_CNAME_TARGET` e configure os domínios/custom domains no painel da DO.
+- Com Cloudflare na frente, você pode manter um único `CNAME alvo` (por exemplo, um subdomínio seu) e proxyar para o provedor real (Vercel/DO). Ajuste o `VITE_CNAME_TARGET` para o host “público” que você quer expor aos clientes.
+
+### Subdomínios do SaaS x Admin
+
+- Subdomínios do SaaS: `*.adminimobiliaria.site` servem as vitrines públicas por corretora.
+- Admin/painel: idealmente fica em `app.adminimobiliaria.site` (ou outro subdomínio fixo).
+- Domínios personalizados cadastrados por cada corretora (na UI de Configurações) afetam apenas a vitrine pública dessa corretora. As telas de administração continuam sob `app.adminimobiliaria.site` (ou o domínio fixo do SaaS), não migram para o domínio do cliente.
+
+### Build local
+
+```sh
+pnpm build
+```
+
+Sirva a pasta `dist/` com um servidor estático.

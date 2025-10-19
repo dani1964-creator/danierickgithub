@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Building2, KeyRound, Mail } from "lucide-react";
+import { Loader2, Home, KeyRound, Mail } from "lucide-react";
 import { SecurityMonitor } from "@/lib/security-monitor";
 
 const AuthForm = () => {
@@ -68,24 +68,26 @@ const AuthForm = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-background via-background to-muted/20 relative overflow-hidden">
+  <div className="fixed inset-0 z-50 w-full h-full m-0 p-4 bg-gradient-to-br from-background via-background to-muted/20 overflow-hidden">
       {/* Background elements */}
-      <div className="absolute inset-0 overflow-hidden">
+      <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/5 rounded-full blur-3xl animate-pulse"></div>
         <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-primary/5 rounded-full blur-3xl animate-pulse delay-1000"></div>
       </div>
       
-      <div className="relative w-full max-w-md animate-fade-in">
+      <div className="absolute z-10 left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md">
         <Card className="backdrop-blur-sm bg-card/95 border-border/50 shadow-2xl">
           <CardHeader className="text-center pb-8 pt-8">
-            <div className="mx-auto mb-4 w-12 h-12 bg-primary rounded-lg flex items-center justify-center animate-scale-in">
-              <Building2 className="h-6 w-6 text-primary-foreground" />
-            </div>
+            <img
+              src="/imobideps-logo.svg"
+              alt="IMOBIDEPS"
+              className="mx-auto mb-4 w-12 h-12"
+            />
             <CardTitle className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-              Plataforma Imobiliária
+              IMOBIDEPS
             </CardTitle>
             <CardDescription className="text-base text-muted-foreground mt-2">
-              Acesse seu painel administrativo
+              Sistema de Imóveis — acesse seu painel
             </CardDescription>
           </CardHeader>
           
@@ -134,7 +136,7 @@ const AuthForm = () => {
                     Entrando...
                   </>
                 ) : (
-                  "Acessar Plataforma"
+                  "Entrar no IMOBIDEPS"
                 )}
               </Button>
             </form>

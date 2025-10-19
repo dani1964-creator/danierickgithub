@@ -1,23 +1,4 @@
-
-interface BrokerProfile {
-  id: string;
-  business_name: string;
-  display_name: string | null;
-  about_text: string | null;
-  logo_url: string | null;
-  primary_color: string | null;
-  secondary_color: string | null;
-  footer_text: string | null;
-  background_image_url: string | null;
-  overlay_color: string | null;
-  overlay_opacity: string | null;
-  whatsapp_button_text: string | null;
-  whatsapp_button_color: string | null;
-  hero_title: string | null;
-  hero_subtitle: string | null;
-  address: string | null;
-  cnpj: string | null;
-}
+import type { BrokerProfile } from '@/types/broker';
 
 interface HeroBannerProps {
   brokerProfile: BrokerProfile;

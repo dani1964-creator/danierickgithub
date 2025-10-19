@@ -13,31 +13,37 @@ interface BackgroundStyleSelectorProps {
   onColorChange: (colorIndex: 1 | 2 | 3, color: string) => void;
 }
 
+// Presets profissionais (novos). IDs antigos ainda são suportados no renderer.
 const backgroundStyles = [
   {
-    id: 'style1',
-    name: 'Gradiente Suave',
-    description: 'Fundo moderno com gradientes e elementos circulares'
+    id: 'pro-minimal',
+    name: 'Minimal Super Clean',
+    description: 'Sólido suave com micro texturas discretas'
   },
   {
-    id: 'style2', 
-    name: 'Geométrico Diagonal',
-    description: 'Design com formas geométricas e overlay diagonal'
+    id: 'pro-soft-gradient', 
+    name: 'Soft Gradient Pro',
+    description: 'Gradiente sutil e elegante, sem distrações'
   },
   {
-    id: 'style3',
-    name: 'Ondas Modernas',
-    description: 'Ondas fluidas com animações suaves'
+    id: 'pro-mesh',
+    name: 'Subtle Mesh',
+    description: 'Mesh gradients bem suaves para profundidade'
   },
   {
-    id: 'style4',
-    name: 'Minimalista Clean',
-    description: 'Design limpo com elementos sutis'
+    id: 'pro-glass',
+    name: 'Glass Surface',
+    description: 'Sensação de vidro fosco com leve brilho'
   },
   {
-    id: 'style5',
-    name: 'Padrão Hexagonal',
-    description: 'Padrão geométrico hexagonal elegante'
+    id: 'pro-grid',
+    name: 'Fine Grid',
+    description: 'Grade fina e neutra para organização'
+  },
+  {
+    id: 'pro-dots',
+    name: 'Soft Dots',
+    description: 'Pontos extremamente sutis para textura'
   }
 ];
 
@@ -87,7 +93,7 @@ const BackgroundStyleSelector = ({
                 </p>
                 
                 {/* Mini Preview */}
-                <div className="h-20 rounded-md overflow-hidden border">
+                <div className="h-24 rounded-md overflow-hidden border">
                   <BackgroundRenderer
                     style={style.id}
                     color1={color1}
@@ -96,9 +102,9 @@ const BackgroundStyleSelector = ({
                     className="h-full"
                   >
                     <div className="flex items-center justify-center h-full">
-                      <div className="text-xs text-center opacity-60">
-                        <div className="w-8 h-2 bg-current rounded mb-1 mx-auto"></div>
-                        <div className="w-12 h-1 bg-current rounded opacity-60 mx-auto"></div>
+                      <div className="text-[10px] text-center opacity-60">
+                        <div className="w-10 h-2 bg-current rounded mb-1 mx-auto"></div>
+                        <div className="w-16 h-1 bg-current rounded opacity-60 mx-auto"></div>
                       </div>
                     </div>
                   </BackgroundRenderer>
@@ -185,7 +191,7 @@ const BackgroundStyleSelector = ({
         <CardContent className="p-4">
           <div className="space-y-3">
             <Label className="text-base font-semibold">Visualização</Label>
-            <div className="h-32 rounded-lg overflow-hidden border">
+            <div className="h-40 rounded-lg overflow-hidden border">
               <BackgroundRenderer
                 style={selectedStyle}
                 color1={color1}

@@ -46,37 +46,33 @@ interface Property {
   realtor_creci?: string;
   realtor_bio?: string;
   realtor_whatsapp_button_text?: string;
+  // Campos opcionais - Informações gerais
+  hoa_fee?: number | null;
+  hoa_periodicity?: string | null;
+  iptu_value?: number | null;
+  iptu_periodicity?: string | null;
+  built_year?: number | null;
+  suites?: number | null;
+  private_area_m2?: number | null;
+  total_area_m2?: number | null;
+  covered_parking_spaces?: number | null;
+  floor_number?: number | null;
+  total_floors?: number | null;
+  sunlight_orientation?: string | null;
+  property_condition?: string | null;
+  water_cost?: number | null;
+  electricity_cost?: number | null;
+  furnished?: boolean | null;
+  accepts_pets?: boolean | null;
+  elevator?: boolean | null;
+  portaria_24h?: boolean | null;
+  gas_included?: boolean | null;
+  accessibility?: boolean | null;
+  heating_type?: string | null;
+  notes?: string | null;
 }
 
-interface BrokerProfile {
-  id: string;
-  business_name: string;
-  display_name: string | null;
-  website_slug: string | null;
-  about_text: string | null;
-  logo_url: string | null;
-  primary_color: string | null;
-  secondary_color: string | null;
-  footer_text: string | null;
-  background_image_url: string | null;
-  overlay_color: string | null;
-  overlay_opacity: string | null;
-  whatsapp_button_text: string | null;
-  whatsapp_button_color: string | null;
-  whatsapp_number: string | null;
-  address: string | null;
-  cnpj: string | null;
-  sections_background_style?: string | null;
-  sections_background_color_1?: string | null;
-  sections_background_color_2?: string | null;
-  sections_background_color_3?: string | null;
-}
-
-interface BrokerContact {
-  whatsapp_number: string | null;
-  contact_email: string | null;
-  creci: string | null;
-}
+import type { BrokerProfile, BrokerContact } from '@/types/broker';
 
 const PropertyDetailPage = () => {
   const { slug, propertySlug } = useParams();
@@ -96,6 +92,7 @@ const PropertyDetailPage = () => {
   const [viewsCount, setViewsCount] = useState(0);
   const [carouselApi, setCarouselApi] = useState<CarouselApi>();
   const [thumbnailCarouselApi, setThumbnailCarouselApi] = useState<CarouselApi>();
+  const [activeTab, setActiveTab] = useState<'Detalhes' | 'Características'>('Detalhes');
 
   useEffect(() => {
     if (propertySlug && slug) {
@@ -177,12 +174,7 @@ const PropertyDetailPage = () => {
       });
 
       setProperty(propertyData);
-      setBrokerProfile({
-        ...brokerData,
-        address: (brokerData as any).address || null,
-        cnpj: (brokerData as any).cnpj || null,
-        whatsapp_number: (brokerData as any).whatsapp_number || null
-      });
+      setBrokerProfile(brokerData as unknown as BrokerProfile);
       setSimilarProperties(similarData || []);
       setSocialLinks(socialData || []);
       setViewsCount(propertyData.views_count || 0);
@@ -225,6 +217,30 @@ const PropertyDetailPage = () => {
       currency: 'BRL',
       minimumFractionDigits: 0,
     }).format(price);
+  };
+
+  const getPeriodicityLabel = (p?: string | null) => {
+    if (!p) return '';
+    const map: Record<string, string> = {
+      monthly: 'mês',
+      annual: 'ano',
+      yearly: 'ano',
+      other: 'período',
+    };
+    return map[p] || p;
+  };
+
+  const FeeBadge = ({ label, amount, periodicity }: { label: string; amount?: number | null; periodicity?: string | null }) => {
+    if (amount == null || isNaN(amount as number)) return null;
+    return (
+      <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full border border-gray-200 bg-white text-gray-700 text-xs sm:text-sm">
+        <span className="font-medium text-gray-900">{label}:</span>
+        <span>{formatPrice(amount)}</span>
+        {periodicity && (
+          <span className="text-gray-500">/ {getPeriodicityLabel(periodicity)}</span>
+        )}
+      </span>
+    );
   };
 
   const handleContactLead = async () => {
@@ -317,17 +333,9 @@ const PropertyDetailPage = () => {
       const currentOrigin = window.location.origin;
       const currentPath = window.location.pathname;
       
-      // Check if we're on a custom domain (not containing lovable.app)
-      const isCustomDomain = !window.location.hostname.includes('lovable.app') && 
-                            !window.location.hostname.includes('localhost');
-      
-      if (isCustomDomain) {
-        // For custom domains, use clean URLs
-        shareUrl = `${currentOrigin}/${property.slug}`;
-      } else {
-        // For Lovable domains, use Edge Function URL for WhatsApp sharing
-        shareUrl = `https://demcjskpwcxqohzlyjxb.supabase.co/functions/v1/seo-handler?broker=${brokerProfile?.website_slug}&path=/${property.slug}&origin=${encodeURIComponent(currentOrigin + currentPath)}`;
-      }
+      // Sempre usar URL limpa baseada em slug do corretor e slug do imóvel
+      const brokerSlug = brokerProfile?.website_slug || slug;
+      shareUrl = `${currentOrigin}/${brokerSlug}/${property.slug}`;
       
       const message = encodeURIComponent(
         `Olá! Tenho interesse no imóvel "${property.title}" - Código: ${property.property_code || property.id.slice(-8)}. Valor: ${formatPrice(property.price)}. Gostaria de mais informações. Link: ${shareUrl}`
@@ -373,8 +381,9 @@ const PropertyDetailPage = () => {
   const handleShare = () => {
     if (!property || !brokerProfile) return;
 
-    // Use Edge Function URL for social sharing
-    const shareUrl = `https://demcjskpwcxqohzlyjxb.supabase.co/functions/v1/seo-handler?broker=${brokerProfile.website_slug}&path=/${property.slug}`;
+  // Usar URL direta do site (sem Edge Function)
+  const brokerSlug = brokerProfile.website_slug || slug;
+  const shareUrl = `${window.location.origin}/${brokerSlug}/${property.slug}`;
 
     if (navigator.share) {
       navigator.share({
@@ -599,17 +608,29 @@ const PropertyDetailPage = () => {
       {/* Meta tags dinâmicas para compartilhamento */}
       <Helmet>
         <title>
-          {property ? 
-            `${property.title} - ${brokerProfile?.business_name || 'Imobiliária'}` : 
-            `${brokerProfile?.business_name || 'Imobiliária'}`
-          }
+          {(() => {
+            const base = property ? `${property.title} - ${brokerProfile?.business_name || 'Imobiliária'}` : `${brokerProfile?.business_name || 'Imobiliária'}`;
+            const tpl = brokerProfile?.property_title_template?.trim();
+            if (!tpl || !property) return base;
+            return tpl
+              .replace('{title}', property.title)
+              .replace('{business_name}', brokerProfile?.business_name || 'Imobiliária');
+          })()}
         </title>
         <meta 
           name="description" 
-          content={property ? 
-            `${property.description?.slice(0, 160)} - ${formatPrice(property.price)} em ${property.neighborhood}, ${property.uf}` :
-            `Confira este imóvel em ${brokerProfile?.business_name || 'nossa imobiliária'}`
-          } 
+          content={(() => {
+            const base = property ? `${property.description?.slice(0, 160)} - ${formatPrice(property.price)} em ${property.neighborhood}, ${property.uf}` : `Confira este imóvel em ${brokerProfile?.business_name || 'nossa imobiliária'}`;
+            const tpl = brokerProfile?.property_description_template?.trim();
+            if (!tpl || !property) return base;
+            return tpl
+              .replace('{price}', formatPrice(property.price))
+              .replace('{bedrooms}', String(property.bedrooms ?? ''))
+              .replace('{bathrooms}', String(property.bathrooms ?? ''))
+              .replace('{area_m2}', String(property.area_m2 ?? ''))
+              .replace('{neighborhood}', property.neighborhood || '')
+              .replace('{uf}', property.uf || '');
+          })()} 
         />
         
         {/* Open Graph para WhatsApp e redes sociais */}
@@ -640,9 +661,17 @@ const PropertyDetailPage = () => {
         <meta property="og:image:height" content="630" />
         <meta property="og:image:type" content="image/jpeg" />
         <meta property="og:type" content="website" />
+  <meta property="og:site_name" content={brokerProfile?.business_name || 'Imobiliária'} />
         <meta property="og:url" content={window.location.href} />
-        <meta name="robots" content="index, follow" />
-        <link rel="canonical" href={window.location.href} />
+        <meta name="robots" content={`${(brokerProfile?.robots_index ?? true) ? 'index' : 'noindex'}, ${(brokerProfile?.robots_follow ?? true) ? 'follow' : 'nofollow'}`} />
+        <link rel="canonical" href={(() => {
+          const preferCustom = brokerProfile?.canonical_prefer_custom_domain ?? true;
+          const useCustom = preferCustom && brokerProfile?.custom_domain;
+          if (useCustom) {
+            return `https://${brokerProfile!.custom_domain!}/${property?.slug}`;
+          }
+          return `${window.location.origin}/${brokerProfile?.website_slug}/${property?.slug}`;
+        })()} />
         
         {/* Twitter Card */}
         <meta name="twitter:card" content="summary_large_image" />
@@ -677,6 +706,31 @@ const PropertyDetailPage = () => {
             `${window.location.origin}/placeholder.svg`
           } 
         />
+
+        {/* JSON-LD Structured Data: Product/Offer for real estate */}
+        <script type="application/ld+json">
+          {JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'Product',
+            name: property?.title,
+            description: property?.description?.slice(0, 160),
+            image: property?.main_image_url
+              ? (property.main_image_url.startsWith('http') ? property.main_image_url : `${window.location.origin}${property.main_image_url}`)
+              : undefined,
+            sku: property?.property_code || property?.id,
+            brand: {
+              '@type': 'Organization',
+              name: brokerProfile?.business_name || 'Imobiliária'
+            },
+            offers: {
+              '@type': 'Offer',
+              priceCurrency: 'BRL',
+              price: property?.price,
+              availability: 'https://schema.org/InStock',
+              url: window.location.href
+            }
+          })}
+        </script>
       </Helmet>
 
       {/* Container principal do conteúdo da propriedade */}
@@ -910,21 +964,30 @@ const PropertyDetailPage = () => {
 
               {/* Property Info Section */}
               <div className="space-y-6">
-                {/* Title and Price Card */}
-                <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+                {/* Title and Price Card (refinado) */}
+                <div className="bg-white rounded-2xl shadow-sm p-6 border border-gray-200">
                   <div className="space-y-4">
                     <div>
-                      <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-3 leading-tight">
+                      <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-3 leading-tight tracking-tight">
                         {property.title}
                       </h1>
                       <div className="flex items-center text-gray-600 mb-4">
                         <MapPin className="h-4 w-4 mr-2" />
                         <span className="text-base">{property.neighborhood}, {property.uf}</span>
                       </div>
-                      <div className="bg-gray-900 text-white px-6 py-3 rounded-lg inline-block">
-                        <span className="text-2xl sm:text-3xl font-bold">
-                          {formatPrice(property.price)}
-                        </span>
+                      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
+                        <div className="inline-flex items-baseline gap-2">
+                          <span className="text-3xl sm:text-4xl font-extrabold text-gray-900">
+                            {formatPrice(property.price)}
+                          </span>
+                          {property.transaction_type === 'rent' && (
+                            <span className="text-gray-500 text-sm">/ mês</span>
+                          )}
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          <FeeBadge label="Condomínio" amount={property.hoa_fee as any} periodicity={property.hoa_periodicity as any} />
+                          <FeeBadge label="IPTU" amount={property.iptu_value as any} periodicity={property.iptu_periodicity as any} />
+                        </div>
                       </div>
                     </div>
                     
@@ -969,36 +1032,186 @@ const PropertyDetailPage = () => {
                   </div>
                 </div>
 
-                {/* Description Card */}
-                <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 border border-gray-200">
-                  <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-3 sm:mb-4">
-                    Descrição do Imóvel
-                  </h2>
-                  <div className="prose max-w-none text-gray-700">
-                    {property.description ? (
-                      <p className="whitespace-pre-wrap leading-relaxed text-sm sm:text-base">{property.description}</p>
-                    ) : (
-                      <p className="text-gray-500 italic text-sm sm:text-base">Nenhuma descrição disponível.</p>
-                    )}
-                  </div>
-                </div>
 
-                {/* Features Card */}
-                {property.features && property.features.length > 0 && (
-                  <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 border border-gray-200">
-                    <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-3 sm:mb-4">
-                      Características
-                    </h2>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                      {property.features.map((feature, index) => (
-                        <div key={index} className="flex items-center p-2 sm:p-3 bg-gray-50 rounded-lg border border-gray-200">
-                          <div className="w-2 h-2 bg-gray-400 rounded-full mr-2 sm:mr-3 flex-shrink-0"></div>
-                          <span className="text-gray-700 text-sm sm:text-base">{feature}</span>
-                        </div>
-                      ))}
+                {/* Faixa azul com tabs (Detalhes / Características) */}
+                <div className="rounded-2xl border border-blue-100 overflow-hidden">
+                  <div className="bg-blue-50">
+                    <div className="grid grid-cols-1 lg:grid-cols-3">
+                      {/* Tabs laterais */}
+                      <div className="flex lg:flex-col gap-2 p-2 sm:p-3 lg:p-4">
+                        {['Detalhes', 'Características'].map((tab) => (
+                          <button
+                            key={tab}
+                            onClick={() => setActiveTab(tab as 'Detalhes' | 'Características')}
+                            className={`text-sm sm:text-base font-semibold rounded-xl px-4 py-2 border transition-colors w-full lg:w-auto lg:px-5 lg:py-3 ${activeTab === tab ? 'bg-white border-white text-gray-900 shadow-sm' : 'bg-blue-100/40 border-blue-100 text-blue-800 hover:bg-blue-100'}`}
+                          >
+                            {tab}
+                          </button>
+                        ))}
+                      </div>
+                      {/* Conteúdo da aba */}
+                      <div className="lg:col-span-2 bg-white p-4 sm:p-6">
+                        {activeTab === 'Detalhes' && (
+                          <div className="space-y-6">
+                            {/* Descrição */}
+                            <div>
+                              <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-3 sm:mb-4">
+                                Descrição do Imóvel
+                              </h2>
+                              <div className="prose max-w-none text-gray-700">
+                                {property.description ? (
+                                  <p className="whitespace-pre-wrap leading-relaxed text-sm sm:text-base">{property.description}</p>
+                                ) : (
+                                  <p className="text-gray-500 italic text-sm sm:text-base">Nenhuma descrição disponível.</p>
+                                )}
+                              </div>
+                            </div>
+
+                            {/* Informações gerais (já renderizadas acima quando houver) - aqui mantemos para proximidade conceitual */}
+                            {(property.private_area_m2 || property.total_area_m2 || property.suites || property.covered_parking_spaces || property.floor_number || property.total_floors || property.built_year || property.sunlight_orientation || property.property_condition || property.water_cost || property.electricity_cost || property.furnished || property.accepts_pets || property.elevator || property.portaria_24h || property.gas_included || property.accessibility || property.heating_type) && (
+                              <div>
+                                {/* Resumo das informações gerais sem título (integrad0 à aba Detalhes) */}
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {activeTab === 'Características' && (
+                          <div>
+                            <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-3 sm:mb-4">
+                              Características
+                            </h2>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                              {/* Itens vindos de features (texto livre) */}
+                              {property.features && property.features.length > 0 && property.features.map((feature, index) => (
+                                <div key={`feat-${index}`} className="flex items-center p-2 sm:p-3 bg-gray-50 rounded-lg border border-gray-200">
+                                  <div className="w-2 h-2 bg-gray-400 rounded-full mr-2 sm:mr-3 flex-shrink-0"></div>
+                                  <span className="text-gray-700 text-sm sm:text-base">{feature}</span>
+                                </div>
+                              ))}
+
+                              {/* Itens estruturados (antes "Informações gerais") */}
+                              {property.private_area_m2 && (
+                                <div className="p-3 rounded-lg border border-gray-200 bg-gray-50">
+                                  <div className="text-xs text-gray-500">Área útil</div>
+                                  <div className="text-gray-900 font-semibold">{property.private_area_m2} m²</div>
+                                </div>
+                              )}
+                              {property.total_area_m2 && (
+                                <div className="p-3 rounded-lg border border-gray-200 bg-gray-50">
+                                  <div className="text-xs text-gray-500">Área total</div>
+                                  <div className="text-gray-900 font-semibold">{property.total_area_m2} m²</div>
+                                </div>
+                              )}
+                              {property.suites != null && (
+                                <div className="p-3 rounded-lg border border-gray-200 bg-gray-50">
+                                  <div className="text-xs text-gray-500">Suítes</div>
+                                  <div className="text-gray-900 font-semibold">{property.suites}</div>
+                                </div>
+                              )}
+                              {property.covered_parking_spaces != null && (
+                                <div className="p-3 rounded-lg border border-gray-200 bg-gray-50">
+                                  <div className="text-xs text-gray-500">Vagas cobertas</div>
+                                  <div className="text-gray-900 font-semibold">{property.covered_parking_spaces}</div>
+                                </div>
+                              )}
+                              {property.floor_number != null && (
+                                <div className="p-3 rounded-lg border border-gray-200 bg-gray-50">
+                                  <div className="text-xs text-gray-500">Andar</div>
+                                  <div className="text-gray-900 font-semibold">{property.floor_number}</div>
+                                </div>
+                              )}
+                              {property.total_floors != null && (
+                                <div className="p-3 rounded-lg border border-gray-200 bg-gray-50">
+                                  <div className="text-xs text-gray-500">Total de andares</div>
+                                  <div className="text-gray-900 font-semibold">{property.total_floors}</div>
+                                </div>
+                              )}
+                              {property.built_year && (
+                                <div className="p-3 rounded-lg border border-gray-200 bg-gray-50">
+                                  <div className="text-xs text-gray-500">Ano de construção</div>
+                                  <div className="text-gray-900 font-semibold">{property.built_year}</div>
+                                </div>
+                              )}
+                              {property.sunlight_orientation && (
+                                <div className="p-3 rounded-lg border border-gray-200 bg-gray-50">
+                                  <div className="text-xs text-gray-500">Face do sol</div>
+                                  <div className="text-gray-900 font-semibold">{property.sunlight_orientation}</div>
+                                </div>
+                              )}
+                              {property.property_condition && (
+                                <div className="p-3 rounded-lg border border-gray-200 bg-gray-50">
+                                  <div className="text-xs text-gray-500">Condição</div>
+                                  <div className="text-gray-900 font-semibold">{property.property_condition}</div>
+                                </div>
+                              )}
+                              {property.water_cost != null && (
+                                <div className="p-3 rounded-lg border border-gray-200 bg-gray-50">
+                                  <div className="text-xs text-gray-500">Água</div>
+                                  <div className="text-gray-900 font-semibold">{formatPrice(property.water_cost as any)}</div>
+                                </div>
+                              )}
+                              {property.electricity_cost != null && (
+                                <div className="p-3 rounded-lg border border-gray-200 bg-gray-50">
+                                  <div className="text-xs text-gray-500">Luz</div>
+                                  <div className="text-gray-900 font-semibold">{formatPrice(property.electricity_cost as any)}</div>
+                                </div>
+                              )}
+                              {typeof property.furnished === 'boolean' && (
+                                <div className="p-3 rounded-lg border border-gray-200 bg-gray-50">
+                                  <div className="text-xs text-gray-500">Mobiliado</div>
+                                  <div className="text-gray-900 font-semibold">{property.furnished ? 'Sim' : 'Não'}</div>
+                                </div>
+                              )}
+                              {typeof property.accepts_pets === 'boolean' && (
+                                <div className="p-3 rounded-lg border border-gray-200 bg-gray-50">
+                                  <div className="text-xs text-gray-500">Aceita pets</div>
+                                  <div className="text-gray-900 font-semibold">{property.accepts_pets ? 'Sim' : 'Não'}</div>
+                                </div>
+                              )}
+                              {typeof property.elevator === 'boolean' && (
+                                <div className="p-3 rounded-lg border border-gray-200 bg-gray-50">
+                                  <div className="text-xs text-gray-500">Elevador</div>
+                                  <div className="text-gray-900 font-semibold">{property.elevator ? 'Sim' : 'Não'}</div>
+                                </div>
+                              )}
+                              {typeof property.portaria_24h === 'boolean' && (
+                                <div className="p-3 rounded-lg border border-gray-200 bg-gray-50">
+                                  <div className="text-xs text-gray-500">Portaria 24h</div>
+                                  <div className="text-gray-900 font-semibold">{property.portaria_24h ? 'Sim' : 'Não'}</div>
+                                </div>
+                              )}
+                              {typeof property.gas_included === 'boolean' && (
+                                <div className="p-3 rounded-lg border border-gray-200 bg-gray-50">
+                                  <div className="text-xs text-gray-500">Gás encanado incluso</div>
+                                  <div className="text-gray-900 font-semibold">{property.gas_included ? 'Sim' : 'Não'}</div>
+                                </div>
+                              )}
+                              {typeof property.accessibility === 'boolean' && (
+                                <div className="p-3 rounded-lg border border-gray-200 bg-gray-50">
+                                  <div className="text-xs text-gray-500">Acessibilidade</div>
+                                  <div className="text-gray-900 font-semibold">{property.accessibility ? 'Sim' : 'Não'}</div>
+                                </div>
+                              )}
+                              {property.heating_type && (
+                                <div className="p-3 rounded-lg border border-gray-200 bg-gray-50">
+                                  <div className="text-xs text-gray-500">Aquecimento</div>
+                                  <div className="text-gray-900 font-semibold">{property.heating_type}</div>
+                                </div>
+                              )}
+                              {property.notes && (
+                                <div className="p-3 rounded-lg border border-gray-200 bg-gray-50 lg:col-span-3">
+                                  <div className="text-xs text-gray-500 mb-1">Observações</div>
+                                  <div className="text-sm text-gray-700 whitespace-pre-wrap">{property.notes}</div>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
-                )}
+                </div>
 
                 {/* Location Card */}
                 <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 border border-gray-200">
@@ -1045,9 +1258,16 @@ const PropertyDetailPage = () => {
                             )}
                           </div>
                           <h3 className="font-semibold text-gray-900 mb-1 sm:mb-2 line-clamp-2 text-sm sm:text-base">{similar.title}</h3>
-                          <div className="text-gray-900 font-semibold text-base sm:text-lg mb-1">
+                          <div className="text-gray-900 font-semibold text-base sm:text-lg mb-0.5">
                             {formatPrice(similar.price)}
                           </div>
+                          {typeof (similar as any).hoa_fee === 'number' && (similar as any).hoa_fee > 0 && (
+                            <div className="text-[11px] sm:text-xs text-gray-600 mb-1">
+                              Condomínio {formatPrice((similar as any).hoa_fee)}
+                              {((similar as any).hoa_periodicity === 'monthly') && ' / mês'}
+                              {((similar as any).hoa_periodicity === 'annual') && ' / ano'}
+                            </div>
+                          )}
                           <div className="flex items-center text-gray-600 text-xs sm:text-sm">
                             <MapPin className="h-3 w-3 mr-1 flex-shrink-0" />
                             <span className="truncate">{similar.neighborhood}, {similar.uf}</span>

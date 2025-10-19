@@ -1,3 +1,4 @@
+// @ts-nocheck
 // Edge function: admin-brokers
 // Provides admin-only endpoints to manage brokers using Service Role
 // Auth is verified via simple internal credentials sent from the frontend

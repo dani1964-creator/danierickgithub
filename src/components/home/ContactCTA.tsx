@@ -3,29 +3,7 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import LeadModal from '@/components/leads/LeadModal';
-interface BrokerProfile {
-  id: string;
-  business_name: string;
-  display_name: string | null;
-  website_slug: string | null;
-  about_text: string | null;
-  logo_url: string | null;
-  primary_color: string | null;
-  secondary_color: string | null;
-  footer_text: string | null;
-  background_image_url: string | null;
-  overlay_color: string | null;
-  overlay_opacity: string | null;
-  whatsapp_button_text: string | null;
-  whatsapp_button_color: string | null;
-  address: string | null;
-  cnpj: string | null;
-}
-interface BrokerContact {
-  whatsapp_number: string | null;
-  contact_email: string | null;
-  creci: string | null;
-}
+import type { BrokerProfile, BrokerContact } from '@/types/broker';
 interface ContactCTAProps {
   brokerProfile: BrokerProfile;
 }

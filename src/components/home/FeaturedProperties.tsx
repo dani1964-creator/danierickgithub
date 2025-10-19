@@ -2,6 +2,7 @@
 import { SwipeableCarousel } from '@/components/ui/swipeable-carousel';
 import PropertyCard from '@/components/properties/PropertyCard';
 import BackgroundRenderer from '@/components/backgrounds/BackgroundRenderer';
+import SectionHeader from '@/components/common/SectionHeader';
 
 interface Property {
   id: string;
@@ -72,45 +73,20 @@ const FeaturedProperties = ({
   if (featuredProperties.length === 0) return null;
 
   return (
-    <section id="imoveis-destaque">
+  <section id="imoveis-destaque" className="bg-surface">
       <BackgroundRenderer
-        style={brokerProfile?.sections_background_style || 'style1'}
+        style={brokerProfile?.sections_background_style || 'pro-minimal'}
         color1={brokerProfile?.sections_background_color_1 || brokerProfile?.primary_color || '#2563eb'}
         color2={brokerProfile?.sections_background_color_2 || brokerProfile?.secondary_color || '#64748b'}
         color3={brokerProfile?.sections_background_color_3 || '#ffffff'}
         className="py-16"
       >
         <div className="content-container">
-        <div className="text-center mb-12">
-          {/* Título com efeito glassmorphism moderno */}
-          <div className="relative inline-block">
-            <div 
-              className="absolute inset-0 backdrop-blur-xl rounded-3xl border border-white/20 shadow-2xl"
-              style={{ 
-                background: `linear-gradient(135deg, ${brokerProfile?.primary_color || '#2563eb'}08, ${brokerProfile?.secondary_color || '#64748b'}05)`,
-              }}
-            ></div>
-            <div className="relative px-12 py-8">
-              <h2 
-                className="text-4xl lg:text-5xl font-black bg-clip-text text-transparent tracking-tight"
-                style={{ 
-                  backgroundImage: `linear-gradient(135deg, ${brokerProfile?.primary_color || '#2563eb'}, ${brokerProfile?.secondary_color || '#64748b'})` 
-                }}
-              >
-                Imóveis em Destaque
-              </h2>
-              <div 
-                className="w-24 h-1 mx-auto mt-4 rounded-full"
-                style={{ 
-                  background: `linear-gradient(90deg, ${brokerProfile?.primary_color || '#2563eb'}, ${brokerProfile?.secondary_color || '#64748b'})` 
-                }}
-              ></div>
-            </div>
-          </div>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto mt-6">
-            Selecionamos os melhores imóveis para você
-          </p>
-        </div>
+        <SectionHeader
+          title="Imóveis em Destaque"
+          subtitle="Selecionamos os melhores imóveis para você"
+          className="mb-8"
+        />
 
         <SwipeableCarousel autoplay={true} autoplayDelay={5000}>
           {featuredProperties.map((property) => (

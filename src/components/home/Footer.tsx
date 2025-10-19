@@ -4,30 +4,7 @@ import { Phone, Mail, MapPin } from 'lucide-react';
 import instagramIcon from '@/assets/icons/instagram-icon.png';
 import facebookIcon from '@/assets/icons/facebook-icon.png';
 import websiteIcon from '@/assets/icons/website-icon.png';
-
-
-interface BrokerProfile {
-  id: string;
-  business_name: string;
-  display_name: string | null;
-  about_text: string | null;
-  logo_url: string | null;
-  logo_size?: number | null;
-  primary_color: string | null;
-  secondary_color: string | null;
-  footer_text: string | null;
-  whatsapp_button_text: string | null;
-  whatsapp_button_color: string | null;
-  website_slug: string | null;
-  address: string | null;
-  cnpj: string | null;
-}
-
-interface BrokerContact {
-  whatsapp_number: string | null;
-  contact_email: string | null;
-  creci: string | null;
-}
+import type { BrokerProfile, BrokerContact } from '@/types/broker';
 
 interface FooterProps {
   brokerProfile: BrokerProfile | null;

@@ -1,3 +1,4 @@
+import type { BrokerProfile } from '@/types/broker';
 import { useState, useEffect } from 'react';
 import { Save, Globe, Palette, Code, Share2, FileText, Search } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
@@ -16,50 +17,16 @@ import SocialLinksManager from '@/components/social/SocialLinksManager';
 import BackgroundStyleSelector from '@/components/backgrounds/BackgroundStyleSelector';
 import FaviconUpload from '@/components/settings/FaviconUpload';
 
-interface BrokerProfile {
-  id: string;
-  business_name: string;
-  display_name: string;
-  website_slug: string;
-  custom_domain: string | null;
-  address: string | null;
-  about_text: string | null;
-  footer_text: string | null;
-  whatsapp_number: string | null;
-  contact_email: string | null;
-  creci: string | null;
-  cnpj: string | null;
-  hero_title: string | null;
-  hero_subtitle: string | null;
-  logo_url: string | null;
-  logo_size: number | null;
-  primary_color: string | null;
-  secondary_color: string | null;
-  background_image_url: string | null;
-  overlay_color: string | null;
-  overlay_opacity: string | null;
-  whatsapp_button_text: string | null;
-  whatsapp_button_color: string | null;
-  tracking_scripts: any;
-  about_us_content: string | null;
-  privacy_policy_content: string | null;
-  terms_of_use_content: string | null;
-  sections_background_style: string | null;
-  sections_background_color_1: string | null;
-  sections_background_color_2: string | null;
-  sections_background_color_3: string | null;
-  site_title: string | null;
-  site_description: string | null;
-  site_favicon_url: string | null;
-  site_share_image_url: string | null;
-}
+type WebsiteProfile = Partial<BrokerProfile> & {
+  tracking_scripts?: any;
+};
 
 const WebsiteSettings = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [profile, setProfile] = useState<BrokerProfile | null>(null);
+  const [profile, setProfile] = useState<WebsiteProfile | null>(null);
   const [activeTab, setActiveTab] = useState('general');
 
   useEffect(() => {
@@ -72,24 +39,40 @@ const WebsiteSettings = () => {
     try {
       const { data, error } = await supabase
         .from('brokers')
-        .select('id, business_name, display_name, website_slug, custom_domain, address, about_text, footer_text, whatsapp_number, contact_email, creci, cnpj, hero_title, hero_subtitle, logo_url, logo_size, primary_color, secondary_color, background_image_url, overlay_color, overlay_opacity, whatsapp_button_text, whatsapp_button_color, tracking_scripts, about_us_content, privacy_policy_content, terms_of_use_content, sections_background_style, sections_background_color_1, sections_background_color_2, sections_background_color_3, site_title, site_description, site_favicon_url, site_share_image_url')
+        // Usamos * para evitar erro quando colunas novas (SEO) ainda não existem no banco
+        .select('*')
         .eq('user_id', user?.id)
         .single();
 
       if (error) throw error;
-      setProfile({
-        ...data,
-        logo_size: data.logo_size || 80,
-        overlay_color: data.overlay_color || '#000000',
-        overlay_opacity: data.overlay_opacity || '50',
-        sections_background_style: data.sections_background_style || 'style1',
-        sections_background_color_1: data.sections_background_color_1 || '#2563eb',
-        sections_background_color_2: data.sections_background_color_2 || '#64748b',
-        sections_background_color_3: data.sections_background_color_3 || '#ffffff',
-        site_title: data.site_title || '',
-        site_description: data.site_description || '', 
-        site_favicon_url: data.site_favicon_url || '',
-        site_share_image_url: data.site_share_image_url || ''
+    setProfile({
+  ...(data as Partial<WebsiteProfile>),
+  logo_size: (data as any)?.logo_size || 80,
+  overlay_color: (data as any)?.overlay_color || '#000000',
+  overlay_opacity: (data as any)?.overlay_opacity || '50',
+  sections_background_style: (data as any)?.sections_background_style || 'pro-minimal',
+  sections_background_color_1: (data as any)?.sections_background_color_1 || '#2563eb',
+  sections_background_color_2: (data as any)?.sections_background_color_2 || '#64748b',
+  sections_background_color_3: (data as any)?.sections_background_color_3 || '#ffffff',
+  site_title: (data as any)?.site_title || '',
+  site_description: (data as any)?.site_description || '',
+  site_favicon_url: (data as any)?.site_favicon_url || '',
+  site_share_image_url: (data as any)?.site_share_image_url || '',
+  robots_index: (data as any)?.robots_index ?? true,
+  robots_follow: (data as any)?.robots_follow ?? true,
+  canonical_prefer_custom_domain: (data as any)?.canonical_prefer_custom_domain ?? true,
+  home_title_template: (data as any)?.home_title_template || '',
+  home_description_template: (data as any)?.home_description_template || '',
+  property_title_template: (data as any)?.property_title_template || '',
+  property_description_template: (data as any)?.property_description_template || '',
+  // Branding tokens (resiliente caso não exista)
+  brand_primary: (data as any)?.brand_primary || (data as any)?.primary_color || '#2563eb',
+  brand_secondary: (data as any)?.brand_secondary || (data as any)?.secondary_color || '#64748b',
+  brand_accent: (data as any)?.brand_accent || '#22c55e',
+  brand_surface: (data as any)?.brand_surface || '#ffffff',
+  brand_surface_fg: (data as any)?.brand_surface_fg || '#0f172a',
+  brand_radius: (data as any)?.brand_radius ?? 12,
+  brand_card_elevation: (data as any)?.brand_card_elevation ?? 8
       });
     } catch (error: any) {
       toast({
@@ -107,52 +90,107 @@ const WebsiteSettings = () => {
 
     setSaving(true);
     try {
-      const { error } = await supabase
+      // Monta payload base (sempre existente)
+      const baseUpdate = {
+        business_name: profile.business_name,
+        display_name: profile.display_name,
+        website_slug: profile.website_slug,
+        custom_domain: profile.custom_domain,
+        address: profile.address,
+        about_text: profile.about_text,
+        footer_text: profile.footer_text,
+        whatsapp_number: profile.whatsapp_number,
+        contact_email: profile.contact_email,
+        creci: profile.creci,
+        cnpj: profile.cnpj,
+        hero_title: profile.hero_title,
+        hero_subtitle: profile.hero_subtitle,
+        logo_url: profile.logo_url,
+        logo_size: profile.logo_size,
+  primary_color: profile.primary_color,
+  secondary_color: profile.secondary_color,
+        background_image_url: profile.background_image_url,
+        overlay_color: profile.overlay_color,
+        overlay_opacity: profile.overlay_opacity,
+        whatsapp_button_text: profile.whatsapp_button_text,
+        whatsapp_button_color: profile.whatsapp_button_color,
+        tracking_scripts: profile.tracking_scripts,
+        about_us_content: profile.about_us_content,
+        privacy_policy_content: profile.privacy_policy_content,
+        terms_of_use_content: profile.terms_of_use_content,
+        sections_background_style: profile.sections_background_style,
+        sections_background_color_1: profile.sections_background_color_1,
+        sections_background_color_2: profile.sections_background_color_2,
+        sections_background_color_3: profile.sections_background_color_3,
+        site_title: profile.site_title,
+        site_description: profile.site_description,
+        site_favicon_url: profile.site_favicon_url,
+        site_share_image_url: profile.site_share_image_url,
+        // Branding tokens - salvar quando existir no schema
+        brand_primary: (profile as any).brand_primary,
+        brand_secondary: (profile as any).brand_secondary,
+        brand_accent: (profile as any).brand_accent,
+        brand_surface: (profile as any).brand_surface,
+        brand_surface_fg: (profile as any).brand_surface_fg,
+        brand_radius: (profile as any).brand_radius,
+        brand_card_elevation: (profile as any).brand_card_elevation,
+      } as const;
+
+      // Campos de SEO (novos) — podem não existir no banco ainda
+      const seoUpdate = {
+        robots_index: profile.robots_index ?? true,
+        robots_follow: profile.robots_follow ?? true,
+        canonical_prefer_custom_domain: profile.canonical_prefer_custom_domain ?? true,
+        home_title_template: profile.home_title_template,
+        home_description_template: profile.home_description_template,
+        property_title_template: profile.property_title_template,
+        property_description_template: profile.property_description_template,
+      } as const;
+
+      // 1) Salvar sempre os campos base primeiro (garante persistência)
+      const { error: baseErr } = await supabase
         .from('brokers')
         .update({
-          business_name: profile.business_name,
-          display_name: profile.display_name,
-          website_slug: profile.website_slug,
-          custom_domain: profile.custom_domain,
-          address: profile.address,
-          about_text: profile.about_text,
-          footer_text: profile.footer_text,
-          whatsapp_number: profile.whatsapp_number,
-          contact_email: profile.contact_email,
-          creci: profile.creci,
-          cnpj: profile.cnpj,
-          hero_title: profile.hero_title,
-          hero_subtitle: profile.hero_subtitle,
-          logo_url: profile.logo_url,
-          logo_size: profile.logo_size,
-          primary_color: profile.primary_color,
-          secondary_color: profile.secondary_color,
-          background_image_url: profile.background_image_url,
-          overlay_color: profile.overlay_color,
-          overlay_opacity: profile.overlay_opacity,
-          whatsapp_button_text: profile.whatsapp_button_text,
-          whatsapp_button_color: profile.whatsapp_button_color,
-          tracking_scripts: profile.tracking_scripts,
-          about_us_content: profile.about_us_content,
-          privacy_policy_content: profile.privacy_policy_content,
-          terms_of_use_content: profile.terms_of_use_content,
-          sections_background_style: profile.sections_background_style,
-          sections_background_color_1: profile.sections_background_color_1,
-          sections_background_color_2: profile.sections_background_color_2,
-          sections_background_color_3: profile.sections_background_color_3,
-          site_title: profile.site_title,
-          site_description: profile.site_description,
-          site_favicon_url: profile.site_favicon_url,
-          site_share_image_url: profile.site_share_image_url,
+          ...baseUpdate,
         })
         .eq('user_id', user?.id);
 
-      if (error) throw error;
+      if (baseErr) throw baseErr;
 
-      toast({
-        title: "Configurações salvas",
-        description: "Suas configurações foram atualizadas com sucesso."
-      });
+      // 2) Tentar salvar os campos de SEO separadamente (pode falhar se migration não aplicada)
+      const { error: seoErr } = await supabase
+        .from('brokers')
+        .update({
+          ...seoUpdate,
+        })
+        .eq('user_id', user?.id);
+
+      if (seoErr) {
+        const rawMsg = (seoErr as any)?.message || '';
+        const msg = rawMsg.toLowerCase?.() || '';
+        const details = (seoErr as any)?.details?.toLowerCase?.() || '';
+        const text = `${msg} ${details}`;
+        const looksLikeMissingColumn =
+          text.includes('does not exist') ||
+          text.includes('could not find') ||
+          text.includes('schema cache') ||
+          text.includes('unknown column') ||
+          text.includes('column') && text.includes('not found');
+
+        if (looksLikeMissingColumn) {
+          toast({
+            title: 'Configurações salvas (parcialmente)',
+            description: 'Os campos de SEO não foram salvos porque ainda não existem no seu banco. Aplique a migration para habilitá-los.',
+          });
+        } else {
+          throw seoErr;
+        }
+      } else {
+        toast({
+          title: 'Configurações salvas',
+          description: 'Suas configurações foram atualizadas com sucesso.',
+        });
+      }
     } catch (error: any) {
       toast({
         title: "Erro ao salvar",
@@ -164,7 +202,7 @@ const WebsiteSettings = () => {
     }
   };
 
-  const updateProfile = (field: keyof BrokerProfile, value: string | any) => {
+  const updateProfile = (field: keyof WebsiteProfile, value: string | any) => {
     if (profile) {
       setProfile({ ...profile, [field]: value });
     }
@@ -494,6 +532,78 @@ const WebsiteSettings = () => {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Identidade Visual */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Palette className="h-5 w-5" />
+                  Identidade Visual
+                </CardTitle>
+                <CardDescription>
+                  Defina cores de marca, superfícies e raio de borda da sua vitrine
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid gap-6 md:grid-cols-2">
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-3">
+                      <Label className="w-44">Cor Primária</Label>
+                      <Input type="color" className="h-9 w-12 p-1" value={(profile?.brand_primary as string) || '#2563eb'} onChange={(e) => updateProfile('brand_primary', e.target.value)} />
+                      <Input type="text" className="flex-1" value={(profile?.brand_primary as string) || ''} onChange={(e) => updateProfile('brand_primary', e.target.value)} placeholder="#2563eb" />
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Label className="w-44">Cor Secundária</Label>
+                      <Input type="color" className="h-9 w-12 p-1" value={(profile?.brand_secondary as string) || '#64748b'} onChange={(e) => updateProfile('brand_secondary', e.target.value)} />
+                      <Input type="text" className="flex-1" value={(profile?.brand_secondary as string) || ''} onChange={(e) => updateProfile('brand_secondary', e.target.value)} placeholder="#64748b" />
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Label className="w-44">Cor de Acento</Label>
+                      <Input type="color" className="h-9 w-12 p-1" value={(profile?.brand_accent as string) || '#22c55e'} onChange={(e) => updateProfile('brand_accent', e.target.value)} />
+                      <Input type="text" className="flex-1" value={(profile?.brand_accent as string) || ''} onChange={(e) => updateProfile('brand_accent', e.target.value)} placeholder="#22c55e" />
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Label className="w-44">Superfície (cards)</Label>
+                      <Input type="color" className="h-9 w-12 p-1" value={(profile?.brand_surface as string) || '#ffffff'} onChange={(e) => updateProfile('brand_surface', e.target.value)} />
+                      <Input type="text" className="flex-1" value={(profile?.brand_surface as string) || ''} onChange={(e) => updateProfile('brand_surface', e.target.value)} placeholder="#ffffff" />
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Label className="w-44">Texto na Superfície</Label>
+                      <Input type="color" className="h-9 w-12 p-1" value={(profile?.brand_surface_fg as string) || '#0f172a'} onChange={(e) => updateProfile('brand_surface_fg', e.target.value)} />
+                      <Input type="text" className="flex-1" value={(profile?.brand_surface_fg as string) || ''} onChange={(e) => updateProfile('brand_surface_fg', e.target.value)} placeholder="#0f172a" />
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Label className="w-44">Raio de Borda (px)</Label>
+                      <Input type="number" className="w-28" min={0} max={32} value={Number((profile?.brand_radius as number) ?? 12)} onChange={(e) => updateProfile('brand_radius', Number(e.target.value))} />
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Label className="w-44">Elevação do Card (0–24)</Label>
+                      <Input type="number" className="w-28" min={0} max={24} value={Number((profile?.brand_card_elevation as number) ?? 8)} onChange={(e) => updateProfile('brand_card_elevation', Number(e.target.value))} />
+                    </div>
+                  </div>
+                  {/* Preview */}
+                  <div className="p-6 rounded-lg border bg-white">
+                    <p className="mb-3 text-sm text-muted-foreground">Pré-visualização</p>
+                    <div
+                      className="rounded-brand shadow-brand p-5 border border-brand"
+                      style={{
+                        backgroundColor: (profile?.brand_surface as string) || 'var(--surface)',
+                        color: (profile?.brand_surface_fg as string) || 'var(--surface-fg)'
+                      }}
+                    >
+                      <h4 className="font-semibold mb-2">Título do Card</h4>
+                      <p className="text-sm text-slate-500 mb-4">Descrição breve do imóvel.</p>
+                      <Button
+                        className="px-3 py-2 text-white text-sm"
+                        style={{ backgroundColor: (profile?.brand_primary as string) || 'var(--color-primary)' }}
+                      >
+                        Botão de exemplo
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
 
           <TabsContent value="visual" className="space-y-6">
@@ -651,7 +761,7 @@ const WebsiteSettings = () => {
               </CardHeader>
               <CardContent>
                 <BackgroundStyleSelector
-                  selectedStyle={profile?.sections_background_style || 'style1'}
+                  selectedStyle={profile?.sections_background_style || 'pro-minimal'}
                   color1={profile?.sections_background_color_1 || '#2563eb'}
                   color2={profile?.sections_background_color_2 || '#64748b'}
                   color3={profile?.sections_background_color_3 || '#ffffff'}
@@ -1175,6 +1285,86 @@ const WebsiteSettings = () => {
                     <p className="text-sm text-muted-foreground">
                       Imagem que aparece quando o site é compartilhado no WhatsApp, Facebook, etc. (recomendado: 1200x630px)
                     </p>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <Label htmlFor="robots_index">Indexação</Label>
+                      <select
+                        id="robots_index"
+                        className="border rounded-md p-2"
+                        value={(profile.robots_index ?? true) ? 'index' : 'noindex'}
+                        onChange={(e) => updateProfile('robots_index', e.target.value === 'index')}
+                      >
+                        <option value="index">Permitir indexação (index)</option>
+                        <option value="noindex">Bloquear indexação (noindex)</option>
+                      </select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="robots_follow">Follow</Label>
+                      <select
+                        id="robots_follow"
+                        className="border rounded-md p-2"
+                        value={(profile.robots_follow ?? true) ? 'follow' : 'nofollow'}
+                        onChange={(e) => updateProfile('robots_follow', e.target.value === 'follow')}
+                      >
+                        <option value="follow">Permitir follow (follow)</option>
+                        <option value="nofollow">Bloquear follow (nofollow)</option>
+                      </select>
+                    </div>
+                    <div className="space-y-2 md:col-span-2">
+                      <Label htmlFor="canonical_prefer_custom_domain">Preferir domínio personalizado no canonical</Label>
+                      <select
+                        id="canonical_prefer_custom_domain"
+                        className="border rounded-md p-2"
+                        value={(profile.canonical_prefer_custom_domain ?? true) ? 'yes' : 'no'}
+                        onChange={(e) => updateProfile('canonical_prefer_custom_domain', e.target.value === 'yes')}
+                      >
+                        <option value="yes">Sim</option>
+                        <option value="no">Não</option>
+                      </select>
+                      <p className="text-sm text-muted-foreground">Se marcado, usamos o domínio personalizado no link canônico quando disponível.</p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Template de Título (Home)</Label>
+                    <Input
+                      value={profile.home_title_template || ''}
+                      onChange={(e) => updateProfile('home_title_template', e.target.value)}
+                      placeholder="{business_name} - Imóveis para Venda e Locação"
+                    />
+                    <p className="text-sm text-muted-foreground">Suporta placeholders: {`{business_name}`}, {`{properties_count}`}</p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Template de Descrição (Home)</Label>
+                    <Textarea
+                      value={profile.home_description_template || ''}
+                      onChange={(e) => updateProfile('home_description_template', e.target.value)}
+                      placeholder="Encontre seu imóvel dos sonhos com {business_name}. {properties_count} propriedades disponíveis."
+                      rows={3}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Template de Título (Imóvel)</Label>
+                    <Input
+                      value={profile.property_title_template || ''}
+                      onChange={(e) => updateProfile('property_title_template', e.target.value)}
+                      placeholder="{title} - {business_name}"
+                    />
+                    <p className="text-sm text-muted-foreground">Suporta placeholders: {`{title}`}, {`{business_name}`}</p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Template de Descrição (Imóvel)</Label>
+                    <Textarea
+                      value={profile.property_description_template || ''}
+                      onChange={(e) => updateProfile('property_description_template', e.target.value)}
+                      placeholder="{price} • {bedrooms} quartos • {bathrooms} banheiros • {area_m2}m² em {neighborhood}, {uf}"
+                      rows={3}
+                    />
                   </div>
                 </div>
               </CardContent>

@@ -1,3 +1,5 @@
+// @ts-nocheck
+// @ts-nocheck
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.57.4';
@@ -10,6 +12,7 @@ const corsHeaders = {
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
 const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 const supabase = createClient(supabaseUrl, supabaseKey);
+const PUBLIC_BASE_URL = Deno.env.get('PUBLIC_BASE_URL');
 
 function isSocialCrawler(userAgent: string): boolean {
   const crawlers = [
@@ -81,6 +84,16 @@ async function getPropertyData(brokerSlug: string, propertySlug: string) {
   return data?.[0] || null;
 }
 
+function getSiteBase(broker: any) {
+  const preferCustom = (broker.canonical_prefer_custom_domain ?? true) === true;
+  if (preferCustom && broker.custom_domain) {
+    return `https://${broker.custom_domain}`;
+  }
+  // Fall back to PUBLIC_BASE_URL if provided, senão slug no host atual
+  const base = PUBLIC_BASE_URL || '';
+  return `${base}/${broker.website_slug}`;
+}
+
 function generateMetaTags(broker: any, property?: any) {
   let title, description, image, url, favicon;
   
@@ -89,13 +102,16 @@ function generateMetaTags(broker: any, property?: any) {
     title = `${property.title} - ${broker.business_name}`;
     description = `${property.description?.substring(0, 160) || 'Imóvel exclusivo'} | ${broker.business_name}`;
     image = property.main_image_url || broker.site_share_image_url;
-    url = `https://${broker.custom_domain || `${broker.website_slug}.lovable.app`}/${property.slug}`;
+    // Construir URL canônica baseada em domínio próprio se existir, senão slug + caminho
+    const base = getSiteBase(broker);
+    url = `${base}/${property.slug}`;
   } else {
     // Meta tags para página principal da imobiliária
     title = broker.site_title || `${broker.business_name} - Imóveis para Venda e Locação`;
     description = broker.site_description || `Encontre seu imóvel dos sonhos com ${broker.business_name}. Casas, apartamentos e propriedades exclusivas.`;
     image = broker.site_share_image_url;
-    url = `https://${broker.custom_domain || `${broker.website_slug}.lovable.app`}`;
+    const base = getSiteBase(broker);
+    url = base;
   }
   
   // Use broker favicon if available
@@ -116,7 +132,7 @@ function generateMetaTags(broker: any, property?: any) {
   };
 }
 
-function generateHTML(metaTags: any): string {
+function generateHTML(metaTags: any, robots?: string): string {
   return `<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -130,7 +146,8 @@ function generateHTML(metaTags: any): string {
     <!-- Favicon -->
     <link rel="icon" href="${metaTags.favicon}" type="image/svg+xml" />
     
-    <!-- Open Graph / Facebook -->
+  <!-- Open Graph / Facebook -->
+  ${robots ? `<meta name="robots" content="${robots}" />` : ''}
     <meta property="og:type" content="website" />
     <meta property="og:url" content="${metaTags.url}" />
     <meta property="og:title" content="${metaTags.title}" />
@@ -174,13 +191,13 @@ serve(async (req) => {
       return new Response(null, { headers: corsHeaders });
     }
     
-    const userAgent = req.headers.get('user-agent') || '';
+  const userAgent = req.headers.get('user-agent') || '';
     const url = new URL(req.url);
     const pathname = url.pathname;
     
     // Check for query parameters (new sharing format)
-    const brokerParam = url.searchParams.get('broker');
-    const pathParam = url.searchParams.get('path');
+  const brokerParam = url.searchParams.get('broker');
+  const pathParam = url.searchParams.get('path');
     
     console.log(`Request: ${pathname}, User-Agent: ${userAgent}, Params: broker=${brokerParam}, path=${pathParam}`);
     
@@ -203,12 +220,11 @@ serve(async (req) => {
         });
       }
       
-      // Default: construct public URL and redirect
+      // Default: construct public URL and redirect para rota pública baseada em slug
       if (brokerParam) {
-        const publicUrl = pathParam && pathParam !== '/' 
-          ? `https://lovable.dev/${brokerParam}${pathParam}`
-          : `https://lovable.dev/${brokerParam}`;
-        
+        const publicUrl = pathParam && pathParam !== '/'
+          ? `/${brokerParam}${pathParam}`
+          : `/${brokerParam}`;
         console.log('Redirecting to public URL:', publicUrl);
         return new Response(null, {
           status: 302,
@@ -240,13 +256,13 @@ serve(async (req) => {
           propertySlug = pathParts[0];
         }
       }
-      targetUrl = `https://${brokerParam}.lovable.app${pathParam}`;
+      targetUrl = `/${brokerParam}${pathParam}`;
     } else {
       // Old format: extract from pathname
       const extracted = extractSlugFromPath(pathname);
       brokerSlug = extracted.brokerSlug;
       propertySlug = extracted.propertySlug;
-      targetUrl = `https://${brokerSlug}.lovable.app${pathname}`;
+      targetUrl = `/${brokerSlug}${pathname}`;
     }
     
     if (!brokerSlug) {
@@ -280,13 +296,14 @@ serve(async (req) => {
     
     // Gerar meta tags
     const metaTags = generateMetaTags(broker, property);
-    // Override URL com o target correto
-    metaTags.url = targetUrl;
+  // Override URL com o target correto
+  metaTags.url = targetUrl;
+  const robots = `${(broker.robots_index ?? true) ? 'index' : 'noindex'}, ${(broker.robots_follow ?? true) ? 'follow' : 'nofollow'}`;
     
     console.log('Generated meta tags:', metaTags);
     
     // Gerar HTML com meta tags
-    const html = generateHTML(metaTags);
+  const html = generateHTML(metaTags, robots);
     
     return new Response(html, {
       headers: {

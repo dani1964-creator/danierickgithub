@@ -79,7 +79,8 @@ const PropertyCard = ({
   return (
     <Card 
       id={id}
-      className="overflow-hidden hover:shadow-lg transition-all duration-300 group rounded-lg"
+      className="overflow-hidden transition-all duration-300 group rounded-brand border border-brand"
+      style={{ backgroundColor: 'var(--surface)', color: 'var(--surface-fg)', boxShadow: 'var(--shadow)' }}
     >
       {/* Layout sempre vertical para melhor experiência */}
       <div className="flex flex-col">
@@ -237,8 +238,8 @@ const PropertyCard = ({
               handleViewDetails();
             }}
             style={{ 
-              backgroundColor: brokerProfile?.primary_color || '#2563eb',
-              borderColor: brokerProfile?.primary_color || '#2563eb',
+              backgroundColor: brokerProfile?.primary_color || 'var(--color-primary)',
+              borderColor: brokerProfile?.primary_color || 'var(--color-primary)',
               color: 'white'
             }}
           >

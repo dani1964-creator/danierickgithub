@@ -1,14 +1,14 @@
-User-agent: Googlebot
-Allow: /
-
-User-agent: Bingbot
-Allow: /
-
-User-agent: Twitterbot
-Allow: /
-
-User-agent: facebookexternalhit
-Allow: /
-
 User-agent: *
 Allow: /
+
+# Bloquear áreas internas/privadas
+Disallow: /dashboard
+Disallow: /auth
+Disallow: /admin
+
+# Sitemaps
+# Caso use domínio único com rotas por slug, podemos servir um sitemap por slug em
+# /api/sitemap/:slug (Edge Function) e um sitemap raiz agregador, se necessário.
+# Exemplo de sitemap principal (opcional):
+# Sitemap: https://SEU-DOMINIO/sitemap.xml
+

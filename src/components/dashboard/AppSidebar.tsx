@@ -75,12 +75,12 @@ const AppSidebar = () => {
       <SidebarHeader>
         <div className="flex items-center gap-3 px-4 py-4">
           <div className="p-2 bg-primary rounded-lg">
-            <Building2 className="h-5 w-5 text-primary-foreground flex-shrink-0" />
+            <Home className="h-5 w-5 text-primary-foreground flex-shrink-0" />
           </div>
           {!isCollapsed && (
             <div className="min-w-0">
-              <h2 className="text-lg font-bold tracking-tight truncate">ImobiManager</h2>
-              <p className="text-xs text-muted-foreground truncate">Sistema de Gestão</p>
+              <h2 className="text-lg font-bold tracking-tight truncate">IMOBIDEPS</h2>
+              <p className="text-xs text-muted-foreground truncate">Sistema de Imóveis</p>
             </div>
           )}
         </div>

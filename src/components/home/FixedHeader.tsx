@@ -1,18 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-
-interface BrokerProfile {
-  id: string;
-  business_name: string;
-  display_name: string | null;
-  logo_url: string | null;
-  logo_size?: number | null;
-  primary_color: string | null;
-  secondary_color: string | null;
-  address: string | null;
-  cnpj: string | null;
-  website_slug: string | null;
-}
+import type { BrokerProfile } from '@/types/broker';
 
 interface FixedHeaderProps {
   brokerProfile: BrokerProfile;

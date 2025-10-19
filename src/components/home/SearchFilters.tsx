@@ -1,9 +1,9 @@
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Search, Filter, X, ChevronDown, ChevronUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGroup, SelectLabel } from '@/components/ui/select';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { sanitizeInput } from '@/lib/security';
 
@@ -26,6 +26,8 @@ interface SearchFiltersProps {
   hasActiveFilters: boolean;
   primaryColor?: string;
   secondaryColor?: string;
+  propertyTypeOptions?: { value: string; label: string }[];
+  propertyTypeGroups?: { label: string; options: { value: string; label: string }[] }[];
 }
 
 const SearchFilters = ({
@@ -35,9 +37,12 @@ const SearchFilters = ({
   setFilters,
   hasActiveFilters,
   primaryColor = '#2563eb',
-  secondaryColor = '#64748b'
+  secondaryColor = '#64748b',
+  propertyTypeOptions,
+  propertyTypeGroups
 }: SearchFiltersProps) => {
   const [isAdvancedOpen, setIsAdvancedOpen] = useState(false);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   const handleSearchChange = (value: string) => {
     // Sanitize and limit search input
@@ -87,21 +92,32 @@ const SearchFilters = ({
     <div className="space-y-4">
       {/* Barra de Busca Principal */}
       <div className="flex flex-col sm:flex-row gap-3">
-        <div className="flex-1">
+        <div className="relative flex-1">
           <Input
+            ref={searchInputRef}
             placeholder="Buscar por localização, tipo de imóvel, código..."
             value={searchTerm}
             onChange={(e) => handleSearchChange(e.target.value)}
-            className="h-11 sm:h-12 text-sm sm:text-base"
+            className="h-11 sm:h-12 text-sm sm:text-base pr-10 sm:pr-4"
             maxLength={200}
           />
+          {/* Ícone interno (mobile) */}
+          <button
+            type="button"
+            aria-label="Buscar"
+            className="sm:hidden absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+            onClick={() => searchInputRef.current?.focus()}
+          >
+            <Search className="h-5 w-5" />
+          </button>
         </div>
+        {/* Botão externo (desktop e acima) */}
         <Button 
-          className="h-11 sm:h-12 px-4 sm:px-6 md:px-8 text-sm sm:text-base"
+          className="hidden sm:inline-flex h-11 sm:h-12 px-4 sm:px-6 md:px-8 text-sm sm:text-base"
           style={{ backgroundColor: primaryColor }}
         >
           <Search className="h-4 w-4 mr-2" />
-          <span className="hidden xs:inline">Buscar</span>
+          <span>Buscar</span>
         </Button>
       </div>
 
@@ -141,10 +157,27 @@ const SearchFilters = ({
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todos</SelectItem>
-            <SelectItem value="apartment">Apartamento</SelectItem>
-            <SelectItem value="house">Casa</SelectItem>
-            <SelectItem value="commercial">Comercial</SelectItem>
-            <SelectItem value="land">Terreno</SelectItem>
+            {propertyTypeGroups && propertyTypeGroups.length > 0 ? (
+              propertyTypeGroups.map((group) => (
+                <SelectGroup key={group.label}>
+                  <SelectLabel>{group.label}</SelectLabel>
+                  {group.options.map((opt) => (
+                    <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                  ))}
+                </SelectGroup>
+              ))
+            ) : propertyTypeOptions && propertyTypeOptions.length > 0 ? (
+              propertyTypeOptions.map((opt) => (
+                <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+              ))
+            ) : (
+              <>
+                <SelectItem value="apartment">Apartamento</SelectItem>
+                <SelectItem value="house">Casa</SelectItem>
+                <SelectItem value="commercial">Comercial</SelectItem>
+                <SelectItem value="land">Terreno</SelectItem>
+              </>
+            )}
           </SelectContent>
         </Select>
 

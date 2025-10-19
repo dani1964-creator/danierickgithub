@@ -100,7 +100,7 @@ const router = createBrowserRouter([
         path: "admin",
         element: <SuperAdminPage />
       },
-      // Routes for Lovable domains (with slug)
+  // Rotas públicas por slug
       {
         path: ":slug",
         element: <PublicSite />

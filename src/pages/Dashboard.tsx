@@ -256,7 +256,8 @@ const Dashboard = () => {
 
   const handleViewPublicSite = () => {
     if (websiteSlug) {
-      navigate(`/${websiteSlug}`);
+      const url = `${window.location.origin}/${websiteSlug}`;
+      window.open(url, '_blank', 'noopener,noreferrer');
     } else {
       toast({
         title: "URL não configurada",

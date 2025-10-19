@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Mail, Phone, MessageSquare, User, Clock, CheckCircle, XCircle, Edit, Trash2, Check, X, DollarSign, TrendingUp, Calendar, UserCheck } from 'lucide-react';
+import { Mail, Phone, MessageSquare, User, Clock, CheckCircle, XCircle, Edit, Trash2, Check, X, DollarSign, TrendingUp, Calendar, UserCheck, LayoutGrid, List } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -12,6 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 
 interface Lead {
   id: string;
@@ -53,6 +54,7 @@ const Leads = () => {
   const [editCommissionValue, setEditCommissionValue] = useState('');
   const [realtors, setRealtors] = useState<any[]>([]);
   const [assigningRealtor, setAssigningRealtor] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>(() => (localStorage.getItem('leads_view_mode') as 'grid' | 'list') || 'grid');
 
   useEffect(() => {
     if (user) {
@@ -549,7 +551,7 @@ const Leads = () => {
 
   return (
     <DashboardLayout>
-      <div className="space-y-4 md:space-y-6 animate-fade-in px-2 md:px-0">
+      <div className="space-y-4 md:space-y-6 animate-fade-in">
          {/* Header */}
         <div className="flex flex-col gap-3 md:gap-4">
           <div className="flex flex-col gap-2">
@@ -562,27 +564,37 @@ const Leads = () => {
           </div>
           
           {leads.length > 0 && (
-            <div className="flex flex-col sm:flex-row sm:items-center gap-2 md:gap-3">
-              <div className="flex items-center gap-2">
-                <Checkbox 
-                  checked={selectedLeads.length === leads.length}
-                  onCheckedChange={handleSelectAll}
-                />
-                <span className="text-sm text-muted-foreground">
-                  Selecionar todos
-                </span>
+            <div className="flex flex-col gap-2 md:gap-3">
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <Checkbox 
+                    checked={selectedLeads.length === leads.length}
+                    onCheckedChange={handleSelectAll}
+                  />
+                  <span className="text-sm text-muted-foreground">
+                    Selecionar todos
+                  </span>
+                  {selectedLeads.length > 0 && (
+                    <Button 
+                      variant="destructive" 
+                      size="sm"
+                      onClick={() => setShowDeleteDialog(true)}
+                      className="text-xs md:text-sm h-8 md:h-9"
+                    >
+                      <Trash2 className="h-3 w-3 md:h-4 md:w-4 mr-1 md:mr-2" />
+                      Excluir ({selectedLeads.length})
+                    </Button>
+                  )}
+                </div>
+                <ToggleGroup type="single" value={viewMode} onValueChange={(v) => { if (v) { localStorage.setItem('leads_view_mode', v); setViewMode(v as 'grid' | 'list'); } }}>
+                  <ToggleGroupItem value="grid" aria-label="Visualizar em grade">
+                    <LayoutGrid className="h-4 w-4" />
+                  </ToggleGroupItem>
+                  <ToggleGroupItem value="list" aria-label="Visualizar em lista">
+                    <List className="h-4 w-4" />
+                  </ToggleGroupItem>
+                </ToggleGroup>
               </div>
-              {selectedLeads.length > 0 && (
-                <Button 
-                  variant="destructive" 
-                  size="sm"
-                  onClick={() => setShowDeleteDialog(true)}
-                  className="self-start text-xs md:text-sm h-8 md:h-9"
-                >
-                  <Trash2 className="h-3 w-3 md:h-4 md:w-4 mr-1 md:mr-2" />
-                  Excluir ({selectedLeads.length})
-                </Button>
-              )}
             </div>
           )}
         </div>
@@ -689,7 +701,7 @@ const Leads = () => {
               
               {/* Second row: 2 tabs */}
               <div className="flex gap-1 justify-center">
-                <TabsList className="grid grid-cols-2 w-2/3 h-9">
+                <TabsList className="grid grid-cols-2 w-full h-9">
                   <TabsTrigger value="qualified" className="text-xs px-2">
                     <div className="flex items-center justify-center w-full">
                       <span>Qualificados</span>
@@ -756,38 +768,39 @@ const Leads = () => {
                 </CardContent>
               </Card>
             ) : (
-                <div className="space-y-2 md:space-y-3">
-                 {leads.map((lead) => (
-                   <Card key={lead.id}>
-                     <CardContent className="p-3 md:p-4">
-                       <div className="flex flex-col gap-2 md:gap-3">
-                         <div className="flex items-start gap-2 md:gap-3">
-                           <Checkbox 
-                             checked={selectedLeads.includes(lead.id)}
-                             onCheckedChange={(checked) => handleSelectLead(lead.id, checked as boolean)}
-                             className="mt-1 flex-shrink-0"
-                           />
-                           
-                           <div className="flex-1 space-y-2 min-w-0">
-                             <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-                               {editingLead === lead.id ? (
-                                 <div className="flex items-center gap-2 flex-1">
-                                   <Input 
-                                     value={editName}
-                                     onChange={(e) => setEditName(e.target.value)}
-                                     className="h-7 md:h-8 text-sm font-semibold"
-                                     placeholder="Nome do lead"
-                                   />
-                                   <Button size="sm" variant="ghost" onClick={saveEdit} className="h-7 w-7 md:h-8 md:w-8 p-0">
-                                     <Check className="h-3 w-3 md:h-4 md:w-4" />
-                                   </Button>
-                                   <Button size="sm" variant="ghost" onClick={cancelEdit} className="h-7 w-7 md:h-8 md:w-8 p-0">
-                                     <X className="h-3 w-3 md:h-4 md:w-4" />
-                                   </Button>
-                                 </div>
-                               ) : (
-                                 <>
-                                   <div className="flex items-center gap-2 min-w-0 flex-1">
+              viewMode === 'grid' ? (
+                <div className="grid gap-3 md:gap-4 grid-cols-1">
+                  {leads.map((lead) => (
+                    <Card key={lead.id} className="h-full">
+                      <CardContent className="p-3 md:p-4 h-full">
+                        <div className="flex flex-col gap-2 md:gap-3">
+                          <div className="flex items-start gap-2 md:gap-3">
+                            <Checkbox 
+                              checked={selectedLeads.includes(lead.id)}
+                              onCheckedChange={(checked) => handleSelectLead(lead.id, checked as boolean)}
+                              className="mt-1 flex-shrink-0"
+                            />
+                            
+                            <div className="flex-1 space-y-2 min-w-0">
+                              <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                                {editingLead === lead.id ? (
+                                  <div className="flex items-center gap-2 flex-1">
+                                    <Input 
+                                      value={editName}
+                                      onChange={(e) => setEditName(e.target.value)}
+                                      className="h-7 md:h-8 text-sm font-semibold"
+                                      placeholder="Nome do lead"
+                                    />
+                                    <Button size="sm" variant="ghost" onClick={saveEdit} className="h-7 w-7 md:h-8 md:w-8 p-0">
+                                      <Check className="h-3 w-3 md:h-4 md:w-4" />
+                                    </Button>
+                                    <Button size="sm" variant="ghost" onClick={cancelEdit} className="h-7 w-7 md:h-8 md:w-8 p-0">
+                                      <X className="h-3 w-3 md:h-4 md:w-4" />
+                                    </Button>
+                                  </div>
+                                ) : (
+                                  <>
+                                    <div className="flex items-center gap-2 min-w-0 flex-1">
                                       <h3 className="text-sm md:text-base font-semibold truncate">
                                         {lead.name === 'Visitante do Site' || 
                                          lead.email === 'visitante@exemplo.com' || 
@@ -796,121 +809,195 @@ const Leads = () => {
                                           lead.name
                                         }
                                       </h3>
-                                     <Button 
-                                       size="sm" 
-                                       variant="ghost" 
-                                       onClick={() => startEdit(lead)}
-                                       className="h-6 w-6 p-0 flex-shrink-0"
-                                     >
-                                       <Edit className="h-3 w-3" />
-                                     </Button>
-                                   </div>
-                                   {getStatusBadge(lead.status)}
-                                 </>
-                               )}
-                             </div>
-                           </div>
-                         </div>
-                         
-                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs md:text-sm text-muted-foreground ml-6 md:ml-8">
-                           <div className="flex items-center gap-1 min-w-0">
-                             <Mail className="h-3 w-3 flex-shrink-0" />
-                             {editingLead === lead.id ? (
-                               <Input 
-                                 value={editEmail}
-                                 onChange={(e) => setEditEmail(e.target.value)}
-                                 className="h-6 text-xs"
-                                 placeholder="Email do lead"
-                                 type="email"
-                               />
-                             ) : (
-                               <span className="truncate">{lead.email}</span>
-                             )}
-                           </div>
-                           {lead.phone && (
-                             <div className="flex items-center gap-1 min-w-0">
-                               <Phone className="h-3 w-3 flex-shrink-0" />
-                               <span className="truncate">{lead.phone}</span>
-                             </div>
-                           )}
-                           <div className="flex items-center gap-1 sm:col-span-2">
-                             <Clock className="h-3 w-3 flex-shrink-0" />
-                             <span className="text-xs">{formatDate(lead.created_at)}</span>
-                           </div>
-                         </div>
+                                      <Button 
+                                        size="sm" 
+                                        variant="ghost" 
+                                        onClick={() => startEdit(lead)}
+                                        className="h-6 w-6 p-0 flex-shrink-0"
+                                      >
+                                        <Edit className="h-3 w-3" />
+                                      </Button>
+                                    </div>
+                                    {getStatusBadge(lead.status)}
+                                  </>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs md:text-sm text-muted-foreground ml-0 md:ml-8">
+                            <div className="flex items-center gap-1 min-w-0">
+                              <Mail className="h-3 w-3 flex-shrink-0" />
+                              {editingLead === lead.id ? (
+                                <Input 
+                                  value={editEmail}
+                                  onChange={(e) => setEditEmail(e.target.value)}
+                                  className="h-6 text-xs"
+                                  placeholder="Email do lead"
+                                  type="email"
+                                />
+                              ) : (
+                                <span className="truncate">{lead.email}</span>
+                              )}
+                            </div>
+                            {lead.phone && (
+                              <div className="flex items-center gap-1 min-w-0">
+                                <Phone className="h-3 w-3 flex-shrink-0" />
+                                <span className="truncate">{lead.phone}</span>
+                              </div>
+                            )}
+                            <div className="flex items-center gap-1 sm:col-span-2">
+                              <Clock className="h-3 w-3 flex-shrink-0" />
+                              <span className="text-xs">{formatDate(lead.created_at)}</span>
+                            </div>
+                          </div>
 
-                         {renderPropertyInfo(lead) && (
-                           <div className="ml-6 md:ml-8">
-                             {renderPropertyInfo(lead)}
-                           </div>
-                         )}
+                          {renderPropertyInfo(lead) && (
+                            <div className="ml-0 md:ml-8">
+                              {renderPropertyInfo(lead)}
+                            </div>
+                          )}
 
-                         <div className="flex flex-col gap-2 ml-6 md:ml-8">
-                           <div className="flex flex-wrap gap-2">
-                             {lead.status === 'new' && (
-                               <Button 
-                                 size="sm" 
-                                 onClick={() => updateLeadStatus(lead.id, 'contacted')}
-                                 className="text-xs h-7 md:h-8"
-                               >
-                                 <span className="hidden sm:inline">Marcar como </span>Contatado
-                               </Button>
-                             )}
-                             {lead.status === 'contacted' && (
-                               <Button 
-                                 size="sm" 
-                                 variant="outline"
-                                 onClick={() => updateLeadStatus(lead.id, 'qualified')}
-                                 className="text-xs h-7 md:h-8"
-                               >
-                                 Qualificar
-                               </Button>
-                             )}
-                             {lead.status === 'qualified' && (
-                                 <Button 
-                                   size="sm" 
-                                   className="bg-green-500 hover:bg-green-600 text-xs h-7 md:h-8"
-                                   onClick={() => updateLeadStatus(lead.id, 'converted')}
-                                 >
-                                   Converter
-                                 </Button>
-                               )}
-                           </div>
-                           
-                           {/* Realtor Assignment */}
-                           <div className="flex items-center gap-2 w-full">
-                             <UserCheck className="h-3 w-3 text-muted-foreground flex-shrink-0" />
-                             <Select
-                               value={lead.realtor_id || "none"}
-                               onValueChange={(value) => assignRealtorToLead(lead.id, value)}
-                             >
-                               <SelectTrigger className="w-full sm:w-[180px] md:w-[200px] h-7 md:h-8 text-xs">
-                                 <SelectValue placeholder="Atribuir corretor" />
-                               </SelectTrigger>
-                               <SelectContent>
-                                 <SelectItem value="none">Nenhum corretor</SelectItem>
-                                 {realtors.map((realtor) => (
-                                   <SelectItem key={realtor.id} value={realtor.id}>
-                                     {realtor.name}
-                                   </SelectItem>
-                                 ))}
-                               </SelectContent>
-                             </Select>
-                           </div>
-                         </div>
-                       </div>
-                     </CardContent>
-                   </Card>
-                 ))}
+                          <div className="flex flex-col gap-2 ml-0 md:ml-8">
+                            <div className="flex flex-wrap gap-2">
+                              {lead.status === 'new' && (
+                                <Button 
+                                  size="sm" 
+                                  onClick={() => updateLeadStatus(lead.id, 'contacted')}
+                                  className="text-xs h-7 md:h-8"
+                                >
+                                  <span className="hidden sm:inline">Marcar como </span>Contatado
+                                </Button>
+                              )}
+                              {lead.status === 'contacted' && (
+                                <Button 
+                                  size="sm" 
+                                  variant="outline"
+                                  onClick={() => updateLeadStatus(lead.id, 'qualified')}
+                                  className="text-xs h-7 md:h-8"
+                                >
+                                  Qualificar
+                                </Button>
+                              )}
+                              {lead.status === 'qualified' && (
+                                  <Button 
+                                    size="sm" 
+                                    className="bg-green-500 hover:bg-green-600 text-xs h-7 md:h-8"
+                                    onClick={() => updateLeadStatus(lead.id, 'converted')}
+                                  >
+                                    Converter
+                                  </Button>
+                                )}
+                            </div>
+                            
+                            {/* Realtor Assignment */}
+                            <div className="flex items-center gap-2 w-full">
+                              <UserCheck className="h-3 w-3 text-muted-foreground flex-shrink-0" />
+                              <Select
+                                value={lead.realtor_id || "none"}
+                                onValueChange={(value) => assignRealtorToLead(lead.id, value)}
+                              >
+                                <SelectTrigger className="w-full sm:w-[180px] md:w-[200px] h-7 md:h-8 text-xs">
+                                  <SelectValue placeholder="Atribuir corretor" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="none">Nenhum corretor</SelectItem>
+                                  {realtors.map((realtor) => (
+                                    <SelectItem key={realtor.id} value={realtor.id}>
+                                      {realtor.name}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
                 </div>
+              ) : (
+                <div className="w-full rounded-md border divide-y bg-card">
+                  {leads.map((lead) => (
+                    <div key={lead.id} className="p-3 md:p-4 flex flex-col gap-2">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex items-start gap-2 min-w-0">
+                          <Checkbox 
+                            checked={selectedLeads.includes(lead.id)}
+                            onCheckedChange={(checked) => handleSelectLead(lead.id, checked as boolean)}
+                            className="mt-1 flex-shrink-0"
+                          />
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-2 min-w-0">
+                              <h3 className="text-sm font-semibold truncate">
+                                {lead.name === 'Visitante do Site' || lead.email === 'visitante@exemplo.com' || !lead.name ? 'Visitante' : lead.name}
+                              </h3>
+                              {getStatusBadge(lead.status)}
+                            </div>
+                            <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+                              <span className="flex items-center gap-1 min-w-0">
+                                <Mail className="h-3 w-3" />
+                                <span className="truncate">{lead.email}</span>
+                              </span>
+                              {lead.phone && (
+                                <span className="flex items-center gap-1 min-w-0">
+                                  <Phone className="h-3 w-3" />
+                                  <span className="truncate">{lead.phone}</span>
+                                </span>
+                              )}
+                              <span className="flex items-center gap-1">
+                                <Clock className="h-3 w-3" />
+                                <span>{formatDate(lead.created_at)}</span>
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          {lead.status === 'new' && (
+                            <Button size="sm" onClick={() => updateLeadStatus(lead.id, 'contacted')} className="h-7 text-xs">Contatar</Button>
+                          )}
+                          {lead.status === 'contacted' && (
+                            <Button size="sm" variant="outline" onClick={() => updateLeadStatus(lead.id, 'qualified')} className="h-7 text-xs">Qualificar</Button>
+                          )}
+                          {lead.status === 'qualified' && (
+                            <Button size="sm" className="h-7 text-xs bg-green-500 hover:bg-green-600" onClick={() => updateLeadStatus(lead.id, 'converted')}>Converter</Button>
+                          )}
+                          <Button size="sm" variant="ghost" onClick={() => startEdit(lead)} className="h-7 w-7 p-0">
+                            <Edit className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </div>
+                      {renderPropertyInfo(lead)}
+                      <div className="flex items-center gap-2">
+                        <UserCheck className="h-3 w-3 text-muted-foreground" />
+                        <Select value={lead.realtor_id || 'none'} onValueChange={(value) => assignRealtorToLead(lead.id, value)}>
+                          <SelectTrigger className="w-full sm:w-[220px] h-7 text-xs">
+                            <SelectValue placeholder="Atribuir corretor" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="none">Nenhum corretor</SelectItem>
+                            {realtors.map((realtor) => (
+                              <SelectItem key={realtor.id} value={realtor.id}>
+                                {realtor.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )
             )}
           </TabsContent>
 
           {['new', 'contacted', 'qualified'].map((status) => (
             <TabsContent key={status} value={status} className="space-y-3 md:space-y-4">
-              {getLeadsByStatus(status).map((lead) => (
-                <Card key={lead.id}>
-                  <CardContent className="p-3 md:p-4">
+              {viewMode === 'grid' ? (
+                <div className="grid gap-3 md:gap-4 grid-cols-1">
+                {getLeadsByStatus(status).map((lead) => (
+                  <Card key={lead.id} className="h-full">
+                    <CardContent className="p-3 md:p-4 h-full">
                     <div className="flex flex-col gap-2 md:gap-3">
                       <div className="flex items-start gap-2 md:gap-3">
                         <Checkbox 
@@ -963,7 +1050,7 @@ const Leads = () => {
                         </div>
                       </div>
                       
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs md:text-sm text-muted-foreground ml-6 md:ml-8">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs md:text-sm text-muted-foreground ml-0 md:ml-8">
                         <div className="flex items-center gap-1 min-w-0">
                           <Mail className="h-3 w-3 flex-shrink-0" />
                           {editingLead === lead.id ? (
@@ -991,12 +1078,12 @@ const Leads = () => {
                       </div>
 
                       {renderPropertyInfo(lead) && (
-                        <div className="ml-6 md:ml-8">
+                        <div className="ml-0 md:ml-8">
                           {renderPropertyInfo(lead)}
                         </div>
                       )}
 
-                      <div className="flex flex-col gap-2 ml-6 md:ml-8">
+                      <div className="flex flex-col gap-2 ml-0 md:ml-8">
                         <div className="flex flex-wrap gap-2">
                           {status === 'new' && (
                             <Button 
@@ -1053,6 +1140,79 @@ const Leads = () => {
                   </CardContent>
                 </Card>
               ))}
+              </div>
+              ) : (
+                <div className="w-full rounded-md border divide-y bg-card">
+                  {getLeadsByStatus(status).map((lead) => (
+                    <div key={lead.id} className="p-3 md:p-4 flex flex-col gap-2">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex items-start gap-2 min-w-0">
+                          <Checkbox 
+                            checked={selectedLeads.includes(lead.id)}
+                            onCheckedChange={(checked) => handleSelectLead(lead.id, checked as boolean)}
+                            className="mt-1 flex-shrink-0"
+                          />
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-2 min-w-0">
+                              <h3 className="text-sm font-semibold truncate">
+                                {lead.name === 'Visitante do Site' || lead.email === 'visitante@exemplo.com' || !lead.name ? 'Visitante' : lead.name}
+                              </h3>
+                              {getStatusBadge(lead.status)}
+                            </div>
+                            <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+                              <span className="flex items-center gap-1 min-w-0">
+                                <Mail className="h-3 w-3" />
+                                <span className="truncate">{lead.email}</span>
+                              </span>
+                              {lead.phone && (
+                                <span className="flex items-center gap-1 min-w-0">
+                                  <Phone className="h-3 w-3" />
+                                  <span className="truncate">{lead.phone}</span>
+                                </span>
+                              )}
+                              <span className="flex items-center gap-1">
+                                <Clock className="h-3 w-3" />
+                                <span>{formatDate(lead.created_at)}</span>
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          {status === 'new' && (
+                            <Button size="sm" onClick={() => updateLeadStatus(lead.id, 'contacted')} className="h-7 text-xs">Contatar</Button>
+                          )}
+                          {status === 'contacted' && (
+                            <Button size="sm" variant="outline" onClick={() => updateLeadStatus(lead.id, 'qualified')} className="h-7 text-xs">Qualificar</Button>
+                          )}
+                          {status === 'qualified' && (
+                            <Button size="sm" className="h-7 text-xs bg-green-500 hover:bg-green-600" onClick={() => updateLeadStatus(lead.id, 'converted')}>Converter</Button>
+                          )}
+                          <Button size="sm" variant="ghost" onClick={() => startEdit(lead)} className="h-7 w-7 p-0">
+                            <Edit className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </div>
+                      {renderPropertyInfo(lead)}
+                      <div className="flex items-center gap-2">
+                        <UserCheck className="h-3 w-3 text-muted-foreground" />
+                        <Select value={lead.realtor_id || 'none'} onValueChange={(value) => assignRealtorToLead(lead.id, value)}>
+                          <SelectTrigger className="w-full sm:w-[220px] h-7 text-xs">
+                            <SelectValue placeholder="Atribuir corretor" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="none">Nenhum corretor</SelectItem>
+                            {realtors.map((realtor) => (
+                              <SelectItem key={realtor.id} value={realtor.id}>
+                                {realtor.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </TabsContent>
           ))}
 
@@ -1111,10 +1271,11 @@ const Leads = () => {
                 </div>
 
                 {/* Converted Leads List with Financial Info */}
-                <div className="space-y-3 md:space-y-4">
-                  {getLeadsByStatus('converted').map((lead) => (
-                    <Card key={lead.id}>
-                      <CardContent className="p-3 md:p-4 lg:p-6">
+                {viewMode === 'grid' ? (
+                  <div className="grid gap-3 md:gap-4 grid-cols-1">
+                    {getLeadsByStatus('converted').map((lead) => (
+                      <Card key={lead.id} className="h-full">
+                        <CardContent className="p-3 md:p-4 lg:p-6 h-full">
                         <div className="flex flex-col gap-3 md:flex-row md:items-start md:gap-3">
                           <div className="flex items-start gap-2 md:gap-3 flex-1">
                             <Checkbox 
@@ -1246,10 +1407,85 @@ const Leads = () => {
                             </div>
                           </div>
                         </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="w-full rounded-md border divide-y bg-card">
+                    {getLeadsByStatus('converted').map((lead) => (
+                      <div key={lead.id} className="p-3 md:p-4 flex flex-col gap-2">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex items-start gap-2 min-w-0">
+                            <Checkbox 
+                              checked={selectedLeads.includes(lead.id)}
+                              onCheckedChange={(checked) => handleSelectLead(lead.id, checked as boolean)}
+                              className="mt-1 flex-shrink-0"
+                            />
+                            <div className="min-w-0">
+                              <div className="flex items-center gap-2 min-w-0">
+                                <h3 className="text-sm font-semibold truncate">
+                                  {lead.name === 'Visitante do Site' || lead.email === 'visitante@exemplo.com' || !lead.name ? 'Visitante' : lead.name}
+                                </h3>
+                                {getStatusBadge(lead.status)}
+                                {lead.deal_closed_at && (
+                                  <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                                    <Calendar className="h-3 w-3" />
+                                    <span className="truncate">{formatDate(lead.deal_closed_at)}</span>
+                                  </span>
+                                )}
+                              </div>
+                              <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+                                <span className="flex items-center gap-1 min-w-0">
+                                  <Mail className="h-3 w-3" />
+                                  <span className="truncate">{lead.email}</span>
+                                </span>
+                                {lead.phone && (
+                                  <span className="flex items-center gap-1 min-w-0">
+                                    <Phone className="h-3 w-3" />
+                                    <span className="truncate">{lead.phone}</span>
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                          {!editingFinancials || editingFinancials !== lead.id ? (
+                            <Button size="sm" variant="outline" onClick={() => startEditFinancials(lead)} className="h-8 text-xs">Editar</Button>
+                          ) : (
+                            <div className="flex gap-2">
+                              <Button size="sm" onClick={saveFinancials} className="h-8 text-xs">Salvar</Button>
+                              <Button size="sm" variant="outline" onClick={cancelEditFinancials} className="h-8 text-xs">Cancelar</Button>
+                            </div>
+                          )}
+                        </div>
+                        {renderPropertyInfo(lead)}
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                          <div>
+                            <label className="text-xs text-muted-foreground">Valor do Negócio</label>
+                            {editingFinancials === lead.id ? (
+                              <Input type="number" step="0.01" value={editDealValue} onChange={(e) => setEditDealValue(e.target.value)} className="h-8 text-xs" />
+                            ) : (
+                              <div className="font-semibold text-blue-600">{lead.deal_value ? formatCurrency(lead.deal_value) : 'Não informado'}</div>
+                            )}
+                          </div>
+                          <div>
+                            <label className="text-xs text-muted-foreground">Valor da Comissão</label>
+                            {editingFinancials === lead.id ? (
+                              <Input type="number" step="0.01" value={editCommissionValue} onChange={(e) => setEditCommissionValue(e.target.value)} className="h-8 text-xs" />
+                            ) : (
+                              <div className="font-semibold text-purple-600">{lead.commission_value ? formatCurrency(lead.commission_value) : 'Não informado'}</div>
+                            )}
+                          </div>
+                          {lead.deal_value && lead.commission_value && (
+                            <div className="text-xs text-muted-foreground self-end">
+                              Taxa: {((lead.commission_value / lead.deal_value) * 100).toFixed(2)}%
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </>
             )}
           </TabsContent>

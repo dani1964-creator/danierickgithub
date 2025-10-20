@@ -1,3 +1,4 @@
+// @ts-nocheck
 // deno-lint-ignore-file no-explicit-any
 // Edge Function: domain-provision
 // Provisiona um domínio na DigitalOcean App Platform para o app deste projeto
@@ -6,18 +7,29 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
+// Tipagens mínimas para evitar dependência de libs DOM no lint do repositório
+declare const Deno: { env: { get(key: string): string | undefined } };
+type RequestLike = { method: string; json(): Promise<unknown> };
+
+type DOAppDomain = { name?: string; domain?: { name?: string } };
+type DOAppSpec = { domains?: DOAppDomain[] };
+type DOAppResponse = { app?: { spec?: DOAppSpec } };
+
+const getDoDomainName = (d: DOAppDomain) => d.name ?? d.domain?.name;
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-serve(async (req) => {
+serve(async (req: RequestLike) => {
   try {
     if (req.method === "OPTIONS") {
       return new Response(null, { headers: corsHeaders });
     }
 
-    const { domain } = await req.json();
+  const body = (await req.json()) as { domain?: string; broker_id?: string };
+  const domain = body?.domain;
     if (!domain || typeof domain !== 'string') {
       return new Response(JSON.stringify({ error: 'missing domain' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
@@ -37,15 +49,15 @@ serve(async (req) => {
       const t = await appRes.text();
       return new Response(JSON.stringify({ error: 'failed to get app', details: t }), { status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
-    const appJson = await appRes.json();
-    const spec = appJson.app?.spec;
+  const appJson = (await appRes.json()) as DOAppResponse;
+  const spec = appJson.app?.spec as DOAppSpec | undefined;
     if (!spec) {
       return new Response(JSON.stringify({ error: 'missing app spec' }), { status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
     // 2) Adicionar domínio custom_domains se não existir
-    const current = spec.domains || [];
-    const exists = current.some((d: any) => d.domain?.name === domain || d.name === domain);
+    const current: DOAppDomain[] = spec.domains || [];
+    const exists = current.some((d) => getDoDomainName(d) === domain);
     if (!exists) {
       current.push({ name: domain });
     }

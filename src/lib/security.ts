@@ -30,7 +30,7 @@ export const validateEmail = (email: string): boolean => {
 
 export const validatePhone = (phone: string): boolean => {
   if (!phone) return true; // Phone is optional
-  const phoneRegex = /^[\d\s\-\(\)\+]+$/;
+  const phoneRegex = /^[\d\s\-()+]+$/;
   return phoneRegex.test(phone);
 };
 

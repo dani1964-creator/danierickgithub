@@ -5,6 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { getErrorMessage } from '@/lib/utils';
 
 interface AvatarUploadProps {
   currentUrl?: string | null;
@@ -87,11 +88,11 @@ export const AvatarUpload = ({
         description: "Foto carregada com sucesso!"
       });
 
-    } catch (error: any) {
-      console.error('Upload error:', error);
+    } catch (error: unknown) {
+      console.error('Upload error:', getErrorMessage(error));
       toast({
         title: "Erro no upload",
-        description: error.message || "Tente novamente.",
+        description: getErrorMessage(error) || "Tente novamente.",
         variant: "destructive"
       });
       setPreviewUrl(currentUrl);

@@ -22,7 +22,18 @@ interface SearchFiltersProps {
     property_code: string;
     status: string;
   };
-  setFilters: (filters: any) => void;
+  setFilters: (filters: {
+    transaction_type: string;
+    property_type: string;
+    min_price: string;
+    max_price: string;
+    bedrooms: string;
+    neighborhood: string;
+    city: string;
+    uf: string;
+    property_code: string;
+    status: string;
+  } | ((prev: SearchFiltersProps['filters']) => SearchFiltersProps['filters'])) => void;
   hasActiveFilters: boolean;
   primaryColor?: string;
   secondaryColor?: string;

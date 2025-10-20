@@ -1,4 +1,5 @@
 import type { Config } from "tailwindcss";
+import animate from "tailwindcss-animate";
 
 export default {
 	darkMode: ["class"],
@@ -18,6 +19,24 @@ export default {
 			}
 		},
 		extend: {
+			fontFamily: {
+				sans: ['Inter', 'ui-sans-serif', 'system-ui'],
+				body: ['Inter', 'ui-sans-serif', 'system-ui'],
+				headline: ['Inter', 'ui-sans-serif', 'system-ui'],
+			},
+			fontSize: {
+				sm: ['13px', '20px'],
+				base: ['15px', '24px'],
+				lg: ['18px', '28px'],
+				xl: ['20px', '30px'],
+				'2xl': ['24px', '34px'],
+				'3xl': ['30px', '40px'],
+			},
+			boxShadow: {
+				'soft-1': '0 6px 18px rgba(16,24,40,0.06)',
+				'soft-2': '0 10px 30px rgba(16,24,40,0.08)',
+				'soft-3': '0 20px 40px rgba(16,24,40,0.10)'
+			},
 			colors: {
 				border: 'hsl(var(--border))',
 				input: 'hsl(var(--input))',
@@ -134,5 +153,5 @@ export default {
 			}
 		}
 	},
-	plugins: [require("tailwindcss-animate")],
+	plugins: [animate],
 } satisfies Config;

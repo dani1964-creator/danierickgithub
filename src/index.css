@@ -397,3 +397,37 @@ body {
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
+
+/* Professional spacing scale */
+@layer utilities {
+  .space-tight { @apply space-y-2; }
+  .space-comfortable { @apply space-y-4; }
+  .space-relaxed { @apply space-y-6; }
+  .space-loose { @apply space-y-8; }
+  
+  /* Professional padding scale */
+  .p-tight { @apply p-3; }
+  .p-comfortable { @apply p-4; }
+  .p-relaxed { @apply p-6; }
+  .p-loose { @apply p-8; }
+  
+  /* Professional margin scale */
+  .m-tight { @apply m-3; }
+  .m-comfortable { @apply m-4; }
+  .m-relaxed { @apply m-6; }
+  .m-loose { @apply m-8; }
+  
+  /* Focus ring utilities */
+  .focus-ring {
+    @apply focus:outline-none focus:ring-2 focus:ring-primary/20 focus:ring-offset-2;
+  }
+  
+  /* Glass effect for modern UI */
+  .glass {
+    @apply bg-white/70 backdrop-blur-sm border border-white/20;
+  }
+  
+  .glass-dark {
+    @apply bg-black/20 backdrop-blur-sm border border-white/10;
+  }
+}

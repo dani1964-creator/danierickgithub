@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Save, User, Globe2, Plus, Trash2, Copy, CloudCog } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -51,6 +51,7 @@ const Settings = () => {
     try { return new URL(appUrl).host; } catch { return (appUrl || '').replace(/^https?:\/\//, '').replace(/\/$/, ''); }
   })();
   const cnameTarget = (import.meta.env.VITE_CNAME_TARGET as string) || appHost;
+  const getErrorMessage = (err: unknown) => (err instanceof Error ? err.message : typeof err === 'string' ? err : 'Erro desconhecido');
   const isLikelyApex = (d: string) => {
     const dom = normalizeDomain(d);
     if (!dom || !dom.includes('.')) return false;
@@ -66,13 +67,28 @@ const Settings = () => {
     return parts.length === 2;
   };
 
-  useEffect(() => {
-    if (user) {
-      fetchProfile();
+  const fetchDomains = useCallback(async (brokerId: string) => {
+    try {
+      setDomainsLoading(true);
+      const { data, error } = await supabase
+        .from('broker_domains')
+        .select('id, broker_id, domain, is_active, created_at')
+        .eq('broker_id', brokerId)
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      setDomains(data || []);
+    } catch (err: unknown) {
+      toast({
+        title: 'Erro ao carregar domínios',
+        description: getErrorMessage(err),
+        variant: 'destructive',
+      });
+    } finally {
+      setDomainsLoading(false);
     }
-  }, [user]);
+  }, [toast]);
 
-  const fetchProfile = async () => {
+  const fetchProfile = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from('brokers')
@@ -86,37 +102,22 @@ const Settings = () => {
       if (data?.id) {
         fetchDomains(data.id);
       }
-    } catch (error: any) {
+    } catch (err: unknown) {
       toast({
         title: "Erro ao carregar perfil",
-        description: error.message,
+        description: getErrorMessage(err),
         variant: "destructive"
       });
     } finally {
       setLoading(false);
     }
-  };
+  }, [fetchDomains, toast, user?.id]);
 
-  const fetchDomains = async (brokerId: string) => {
-    try {
-      setDomainsLoading(true);
-      const { data, error } = await supabase
-        .from('broker_domains')
-        .select('id, broker_id, domain, is_active, created_at')
-        .eq('broker_id', brokerId)
-        .order('created_at', { ascending: false });
-      if (error) throw error;
-      setDomains(data || []);
-    } catch (error: any) {
-      toast({
-        title: 'Erro ao carregar domínios',
-        description: error.message,
-        variant: 'destructive',
-      });
-    } finally {
-      setDomainsLoading(false);
+  useEffect(() => {
+    if (user) {
+      fetchProfile();
     }
-  };
+  }, [user, fetchProfile]);
 
   const saveProfile = async () => {
     if (!profile) return;
@@ -144,10 +145,10 @@ const Settings = () => {
         title: "Perfil atualizado",
         description: "Suas configurações foram salvas com sucesso."
       });
-    } catch (error: any) {
+    } catch (err: unknown) {
       toast({
         title: "Erro ao salvar",
-        description: error.message,
+        description: getErrorMessage(err),
         variant: "destructive"
       });
     } finally {
@@ -202,8 +203,8 @@ const Settings = () => {
       } catch (_) {
         // silencioso, botão manual abaixo cobre o caso
       }
-    } catch (error: any) {
-      toast({ title: 'Erro ao adicionar domínio', description: error.message, variant: 'destructive' });
+    } catch (err: unknown) {
+      toast({ title: 'Erro ao adicionar domínio', description: getErrorMessage(err), variant: 'destructive' });
     } finally {
       setSavingDomain(false);
     }
@@ -217,8 +218,8 @@ const Settings = () => {
         .eq('id', d.id);
       if (error) throw error;
       setDomains((prev) => prev.map((it) => (it.id === d.id ? { ...it, is_active: next } : it)));
-    } catch (error: any) {
-      toast({ title: 'Erro ao atualizar domínio', description: error.message, variant: 'destructive' });
+    } catch (err: unknown) {
+      toast({ title: 'Erro ao atualizar domínio', description: getErrorMessage(err), variant: 'destructive' });
     }
   };
 
@@ -232,8 +233,8 @@ const Settings = () => {
       if (error) throw error;
       setDomains((prev) => prev.filter((it) => it.id !== d.id));
       toast({ title: 'Domínio removido' });
-    } catch (error: any) {
-      toast({ title: 'Erro ao remover domínio', description: error.message, variant: 'destructive' });
+    } catch (err: unknown) {
+      toast({ title: 'Erro ao remover domínio', description: getErrorMessage(err), variant: 'destructive' });
     }
   };
 
@@ -244,8 +245,8 @@ const Settings = () => {
       });
       if (fnError) throw fnError;
       toast({ title: 'Provisionamento solicitado', description: 'Verifique no provedor a emissão do certificado.' });
-    } catch (error: any) {
-      toast({ title: 'Erro ao provisionar domínio', description: error.message || String(error), variant: 'destructive' });
+    } catch (err: unknown) {
+      toast({ title: 'Erro ao provisionar domínio', description: getErrorMessage(err), variant: 'destructive' });
     }
   };
 

@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Slider } from '@/components/ui/slider';
 import { useToast } from '@/hooks/use-toast';
+import { getErrorMessage } from '@/lib/utils';
 
 interface LogoUploadProps {
   logoUrl: string;
@@ -46,10 +47,10 @@ const LogoUpload = ({ logoUrl, logoSize = 80, onLogoChange, onLogoSizeChange }: 
         description: "Sua logo foi enviada com sucesso!"
       });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: "Erro no upload",
-        description: error.message,
+        description: getErrorMessage(error),
         variant: "destructive"
       });
     } finally {

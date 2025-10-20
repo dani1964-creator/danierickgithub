@@ -21,7 +21,9 @@ export function isCustomDomainHost(host?: string): boolean {
  * - {slug}.{BASE_DOMAIN} retorna {slug} (ignora subdomínios reservados como 'app' e 'www')
  * - host customizado: consulta a tabela broker_domains para achar o broker e retorna o website_slug dele
  */
-export async function resolveBrokerSlug(supabase: any): Promise<string | null> {
+import type { SupabaseClient } from '@supabase/supabase-js';
+
+export async function resolveBrokerSlug(supabase: SupabaseClient): Promise<string | null> {
   const host = getHost();
   const base = baseDomain();
   if (!host || !base) return null;
@@ -43,5 +45,8 @@ export async function resolveBrokerSlug(supabase: any): Promise<string | null> {
     console.warn('resolveBrokerSlug error', error);
     return null;
   }
-  return data?.brokers?.website_slug ?? null;
+  // Quando usa join com brokers!inner(...), o Supabase retorna um array de brokers
+  const joined = (data as unknown as { brokers?: Array<{ website_slug?: string | null }> })
+    ?.brokers;
+  return joined && joined.length > 0 ? (joined[0].website_slug ?? null) : null;
 }

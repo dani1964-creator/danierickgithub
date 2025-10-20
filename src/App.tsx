@@ -30,8 +30,8 @@ const queryClient = new QueryClient({
       refetchOnWindowFocus: false,
       refetchOnMount: 'always',
       retry: (failureCount, error) => {
-        if (error && typeof error === 'object' && 'status' in error) {
-          const status = (error as any).status;
+        const status = (error as unknown as { status?: number })?.status;
+        if (typeof status === 'number') {
           if (status === 404 || status === 401 || status === 403) {
             return false;
           }

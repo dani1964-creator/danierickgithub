@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Mail, Phone, MessageSquare, User, Clock, CheckCircle, XCircle, Edit, Trash2, Check, X, DollarSign, TrendingUp, Calendar, UserCheck, LayoutGrid, List } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { getErrorMessage } from '@/lib/utils';
 
 interface Lead {
   id: string;
@@ -38,6 +39,12 @@ interface Lead {
   };
 }
 
+interface Realtor {
+  id: string;
+  name: string;
+  is_active?: boolean;
+}
+
 const Leads = () => {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -52,9 +59,92 @@ const Leads = () => {
   const [editingFinancials, setEditingFinancials] = useState<string | null>(null);
   const [editDealValue, setEditDealValue] = useState('');
   const [editCommissionValue, setEditCommissionValue] = useState('');
-  const [realtors, setRealtors] = useState<any[]>([]);
+  const [realtors, setRealtors] = useState<Realtor[]>([]);
   const [assigningRealtor, setAssigningRealtor] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>(() => (localStorage.getItem('leads_view_mode') as 'grid' | 'list') || 'grid');
+
+  const fetchRealtors = useCallback(async () => {
+    try {
+      // First, get the broker_id for the current user
+      const { data: brokerData, error: brokerError } = await supabase
+        .from('brokers')
+        .select('id')
+        .eq('user_id', user?.id)
+        .single();
+
+      if (brokerError) {
+        console.error('Error fetching broker:', brokerError);
+        return;
+      }
+
+      if (!brokerData) {
+        console.error('Broker not found');
+        return;
+      }
+
+      // Then fetch only realtors for this broker
+      const { data, error } = await supabase
+        .from('realtors')
+        .select('id, name, is_active')
+        .eq('broker_id', brokerData.id)
+        .eq('is_active', true)
+        .order('name');
+
+      if (error) throw error;
+      setRealtors(data || []);
+    } catch (error: unknown) {
+      console.error('Error fetching realtors:', error);
+    }
+  }, [user?.id]);
+
+  const fetchLeads = useCallback(async () => {
+    try {
+      // First, get the broker_id for the current user to ensure proper filtering
+      const { data: brokerData, error: brokerError } = await supabase
+        .from('brokers')
+        .select('id')
+        .eq('user_id', user?.id)
+        .single();
+
+      if (brokerError) {
+        console.error('Error fetching broker:', brokerError);
+        throw new Error('Erro ao identificar corretor');
+      }
+
+      if (!brokerData) {
+        throw new Error('Corretor não encontrado');
+      }
+
+      // Then fetch only leads for this broker
+      const { data, error } = await supabase
+        .from('leads')
+        .select(`
+          *,
+          realtor:realtors(
+            id,
+            name
+          ),
+          property:properties(
+            title,
+            property_code
+          )
+        `)
+        .eq('broker_id', brokerData.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setLeads(data || []);
+    } catch (error: unknown) {
+      console.error('Error fetching leads:', error);
+      toast({
+        title: "Erro ao carregar leads",
+        description: getErrorMessage(error),
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  }, [toast, user?.id]);
 
   useEffect(() => {
     if (user) {
@@ -97,90 +187,8 @@ const Leads = () => {
         supabase.removeChannel(channel);
       };
     }
-  }, [user]);
+  }, [user, fetchLeads, fetchRealtors, toast]);
 
-  const fetchRealtors = async () => {
-    try {
-      // First, get the broker_id for the current user
-      const { data: brokerData, error: brokerError } = await supabase
-        .from('brokers')
-        .select('id')
-        .eq('user_id', user?.id)
-        .single();
-
-      if (brokerError) {
-        console.error('Error fetching broker:', brokerError);
-        return;
-      }
-
-      if (!brokerData) {
-        console.error('Broker not found');
-        return;
-      }
-
-      // Then fetch only realtors for this broker
-      const { data, error } = await supabase
-        .from('realtors')
-        .select('id, name, is_active')
-        .eq('broker_id', brokerData.id)
-        .eq('is_active', true)
-        .order('name');
-
-      if (error) throw error;
-      setRealtors(data || []);
-    } catch (error: any) {
-      console.error('Error fetching realtors:', error);
-    }
-  };
-
-  const fetchLeads = async () => {
-    try {
-      // First, get the broker_id for the current user to ensure proper filtering
-      const { data: brokerData, error: brokerError } = await supabase
-        .from('brokers')
-        .select('id')
-        .eq('user_id', user?.id)
-        .single();
-
-      if (brokerError) {
-        console.error('Error fetching broker:', brokerError);
-        throw new Error('Erro ao identificar corretor');
-      }
-
-      if (!brokerData) {
-        throw new Error('Corretor não encontrado');
-      }
-
-      // Then fetch only leads for this broker
-      const { data, error } = await supabase
-        .from('leads')
-        .select(`
-          *,
-          realtor:realtors(
-            id,
-            name
-          ),
-          property:properties(
-            title,
-            property_code
-          )
-        `)
-        .eq('broker_id', brokerData.id)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setLeads(data || []);
-    } catch (error: any) {
-      console.error('Error fetching leads:', error);
-      toast({
-        title: "Erro ao carregar leads",
-        description: "Verifique sua conexão e tente novamente.",
-        variant: "destructive"
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const updateLeadStatus = async (leadId: string, newStatus: string) => {
     try {
@@ -199,11 +207,11 @@ const Leads = () => {
         title: "Status atualizado",
         description: "Status do lead foi atualizado com sucesso."
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error updating lead status:', error);
       toast({
         title: "Erro ao atualizar status",
-        description: "Tente novamente em alguns minutos.",
+        description: getErrorMessage(error),
         variant: "destructive"
       });
     }
@@ -259,11 +267,11 @@ const Leads = () => {
         title: "Lead atualizado",
         description: "Informações do lead foram atualizadas com sucesso."
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error updating lead:', error);
       toast({
         title: "Erro ao atualizar lead",
-        description: "Tente novamente em alguns minutos.",
+        description: getErrorMessage(error),
         variant: "destructive"
       });
     }
@@ -318,11 +326,11 @@ const Leads = () => {
         title: "Valores financeiros atualizados",
         description: "Os valores do negócio foram atualizados com sucesso."
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error updating financial values:', error);
       toast({
         title: "Erro ao atualizar valores",
-        description: "Tente novamente em alguns minutos.",
+        description: getErrorMessage(error),
         variant: "destructive"
       });
     }
@@ -381,11 +389,11 @@ const Leads = () => {
         title: "Corretor atribuído",
         description: `Lead foi atribuído para: ${realtorName}`
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error assigning realtor:', error);
       toast({
         title: "Erro ao atribuir corretor",
-        description: "Tente novamente em alguns minutos.",
+        description: getErrorMessage(error),
         variant: "destructive"
       });
     }
@@ -427,11 +435,11 @@ const Leads = () => {
         title: "Leads excluídos",
         description: `${selectedLeads.length} lead(s) foram excluídos com sucesso.`
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error deleting leads:', error);
       toast({
         title: "Erro ao excluir leads",
-        description: `Erro: ${error.message || 'Tente novamente em alguns minutos.'}`,
+        description: getErrorMessage(error),
         variant: "destructive"
       });
     }

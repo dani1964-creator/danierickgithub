@@ -1,7 +1,7 @@
 
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Home, Building2, Users, Settings, BarChart3, Globe, UserCheck } from 'lucide-react';
-import { useSidebar } from '@/components/ui/sidebar';
+import { useSidebar } from '@/components/ui/sidebar-context';
 import {
   Sidebar,
   SidebarContent,

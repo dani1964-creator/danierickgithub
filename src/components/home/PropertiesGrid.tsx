@@ -60,6 +60,12 @@ interface PropertiesGridProps {
   onImageClick: (images: string[], index: number, title: string) => void;
 }
 
+declare global {
+  interface Window {
+    ensurePropertyVisible?: (propertyId: string) => void;
+  }
+}
+
 const PropertiesGrid = ({
   properties,
   brokerProfile,
@@ -87,7 +93,7 @@ const PropertiesGrid = ({
   };
 
   // Expose function globally for navigation restoration
-  (window as any).ensurePropertyVisible = ensurePropertyVisible;
+  window.ensurePropertyVisible = ensurePropertyVisible;
 
   const hasMoreProperties = regularProperties.length > visibleCount;
 

@@ -19,8 +19,10 @@ export function useOptimizedQuery<TData = unknown>(
     refetchOnMount: false,
     retry: (failureCount, error) => {
       // Don't retry on 404s or auth errors
-      if (error && typeof error === 'object' && 'status' in error) {
-        const status = (error as any).status;
+      const hasStatus = (e: unknown): e is { status?: number } =>
+        !!e && typeof e === 'object' && 'status' in (e as { status?: number });
+      if (hasStatus(error)) {
+        const status = error.status;
         if (status === 404 || status === 401 || status === 403) {
           return false;
         }

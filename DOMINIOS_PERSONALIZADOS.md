@@ -1,1 +1,1 @@
-> Documento descontinuado. A aplicação atual não exige configuração de domínios personalizados neste repositório. Consulte `CONFIGURACAO_DOMINIO_VERCEL.md` para orientações genéricas de domínio e `README.md` para execução e deploy.
+Este documento foi simplificado. Para orientação atualizada sobre domínios personalizados (DigitalOcean + Cloudflare) consulte o `README.md`.

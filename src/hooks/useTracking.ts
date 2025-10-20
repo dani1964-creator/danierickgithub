@@ -3,22 +3,22 @@ import { useEffect } from 'react';
 // Declare global tracking functions
 declare global {
   interface Window {
-    fbq?: (action: string, event: string, data?: any) => void;
-    gtag?: (command: string, ...args: any[]) => void;
+    fbq?: (action: string, event: string, data?: Record<string, unknown>) => void;
+    gtag?: (command: string, ...args: unknown[]) => void;
     ttq?: {
-      track: (event: string, data?: any) => void;
+      track: (event: string, data?: Record<string, unknown>) => void;
       page: () => void;
     };
-    lintrk?: (action: string, event: string, data?: any) => void;
-    pintrk?: (action: string, event: string, data?: any) => void;
-    snaptr?: (action: string, event: string, data?: any) => void;
-    twq?: (action: string, event: string, data?: any) => void;
+    lintrk?: (action: string, event: string, data?: Record<string, unknown>) => void;
+    pintrk?: (action: string, event: string, data?: Record<string, unknown>) => void;
+    snaptr?: (action: string, event: string, data?: Record<string, unknown>) => void;
+    twq?: (action: string, event: string, data?: Record<string, unknown>) => void;
   }
 }
 
 export interface TrackingEvent {
   event: string;
-  data?: Record<string, any>;
+  data?: Record<string, unknown>;
 }
 
 export const useTracking = () => {
@@ -227,7 +227,21 @@ export const useTracking = () => {
 
   // Store UTM data when hook is used
   useEffect(() => {
-    storeUTMData();
+    const urlParams = new URLSearchParams(window.location.search);
+    const utmParams = {
+      utm_source: urlParams.get('utm_source'),
+      utm_medium: urlParams.get('utm_medium'),
+      utm_campaign: urlParams.get('utm_campaign'),
+      utm_term: urlParams.get('utm_term'),
+      utm_content: urlParams.get('utm_content'),
+    };
+    const hasUTM = Object.values(utmParams).some(param => param !== null);
+    if (hasUTM) {
+      localStorage.setItem('utm_data', JSON.stringify({
+        ...utmParams,
+        timestamp: Date.now(),
+      }));
+    }
   }, []);
 
   return {

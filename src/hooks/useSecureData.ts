@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { EnhancedSecurity } from '@/lib/enhanced-security';
+import { EnhancedSecurity, PublicProperty, ContactAccessResult } from '@/lib/enhanced-security';
 
 interface UseSecureDataOptions {
   enabled?: boolean;
@@ -11,7 +11,7 @@ export function useSecureProperties(
   limit: number = 50,
   options: UseSecureDataOptions = {}
 ) {
-  const [data, setData] = useState<any[]>([]);
+  const [data, setData] = useState<PublicProperty[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
@@ -53,7 +53,7 @@ export function useSecureProperties(
 }
 
 export function useSecureBrokerContact(brokerSlug: string | null) {
-  const [contactInfo, setContactInfo] = useState<any>(null);
+  const [contactInfo, setContactInfo] = useState<ContactAccessResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
@@ -85,13 +85,13 @@ export function useSecureBrokerContact(brokerSlug: string | null) {
 }
 
 export function useSecurePropertySearch() {
-  const [results, setResults] = useState<any[]>([]);
+  const [results, setResults] = useState<PublicProperty[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
   const search = useCallback(async (
     searchTerm: string,
-    filters: Record<string, any> = {},
+    filters: Record<string, unknown> = {},
     limit: number = 20
   ) => {
     try {

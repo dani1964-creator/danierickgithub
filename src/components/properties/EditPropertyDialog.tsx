@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { X, Upload } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -13,6 +13,15 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
+import { getErrorMessage } from '@/lib/utils';
+
+interface Realtor {
+  id: string;
+  name: string;
+  creci: string | null;
+  is_active: boolean;
+  avatar_url: string | null;
+}
 
 interface Property {
   id: string;
@@ -75,7 +84,7 @@ const EditPropertyDialog = ({ property, open, onOpenChange, onPropertyUpdated }:
   const [currentImages, setCurrentImages] = useState<string[]>([]);
   const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [currentImageUrl, setCurrentImageUrl] = useState('');
-  const [realtors, setRealtors] = useState<any[]>([]);
+  const [realtors, setRealtors] = useState<Realtor[]>([]);
   const [formData, setFormData] = useState({
     title: property.title,
     description: property.description || '',
@@ -93,7 +102,7 @@ const EditPropertyDialog = ({ property, open, onOpenChange, onPropertyUpdated }:
     status: property.status || 'active',
     features: property.features || [],
     property_code: property.property_code || '',
-    realtor_id: (property as any).realtor_id || '',
+  realtor_id: property.realtor_id || '',
     // Informações gerais
     hoa_fee: property.hoa_fee?.toString() || '',
     hoa_periodicity: property.hoa_periodicity || 'monthly',
@@ -120,11 +129,34 @@ const EditPropertyDialog = ({ property, open, onOpenChange, onPropertyUpdated }:
     notes: property.notes || '',
   });
 
+  const fetchRealtors = useCallback(async () => {
+    try {
+      const { data: brokerData } = await supabase
+        .from('brokers')
+        .select('id')
+        .eq('user_id', user?.id)
+        .single();
+
+      if (brokerData) {
+        const { data: realtorsData } = await supabase
+          .from('realtors')
+          .select('id, name, creci, is_active, avatar_url')
+          .eq('broker_id', brokerData.id)
+          .eq('is_active', true)
+          .order('name');
+
+        setRealtors(realtorsData || []);
+      }
+    } catch (error) {
+      console.error('Error fetching realtors:', error);
+    }
+  }, [user?.id]);
+
   useEffect(() => {
     if (user) {
       fetchRealtors();
     }
-  }, [user]);
+  }, [user, fetchRealtors]);
 
   // Sync with latest property data whenever the dialog opens
   useEffect(() => {
@@ -147,7 +179,7 @@ const EditPropertyDialog = ({ property, open, onOpenChange, onPropertyUpdated }:
         status: property.status || 'active',
         features: property.features || [],
         property_code: property.property_code || '',
-        realtor_id: (property as any).realtor_id || '',
+  realtor_id: property.realtor_id || '',
         hoa_fee: property.hoa_fee?.toString() || '',
         hoa_periodicity: property.hoa_periodicity || 'monthly',
         iptu_value: property.iptu_value?.toString() || '',
@@ -178,28 +210,7 @@ const EditPropertyDialog = ({ property, open, onOpenChange, onPropertyUpdated }:
     }
   }, [open, property]);
 
-  const fetchRealtors = async () => {
-    try {
-      const { data: brokerData } = await supabase
-        .from('brokers')
-        .select('id')
-        .eq('user_id', user?.id)
-        .single();
-
-      if (brokerData) {
-        const { data: realtorsData } = await supabase
-          .from('realtors')
-          .select('id, name, creci, is_active, avatar_url')
-          .eq('broker_id', brokerData.id)
-          .eq('is_active', true)
-          .order('name');
-
-        setRealtors(realtorsData || []);
-      }
-    } catch (error) {
-      console.error('Error fetching realtors:', error);
-    }
-  };
+  
 
   const { groups: propertyTypes, valueToId } = usePropertyTypes();
 
@@ -299,7 +310,7 @@ const EditPropertyDialog = ({ property, open, onOpenChange, onPropertyUpdated }:
       const allImages = [...currentImages, ...uploadedUrls, ...imageUrls];
 
       // Update property
-      const updatePayload: any = {
+      const updatePayload = {
         title: formData.title,
         description: formData.description,
         price: parseFloat(formData.price),
@@ -346,12 +357,12 @@ const EditPropertyDialog = ({ property, open, onOpenChange, onPropertyUpdated }:
         updated_at: new Date().toISOString()
       };
 
-      const mappedId = valueToId.get(formData.property_type);
-      if (mappedId) updatePayload.property_type_id = mappedId;
+  const mappedId = valueToId.get(formData.property_type);
+  if (mappedId) (updatePayload as Record<string, unknown>).property_type_id = mappedId;
 
       const { error } = await supabase
         .from('properties')
-        .update(updatePayload as any)
+        .update(updatePayload as unknown as Record<string, unknown>)
         .eq('id', property.id);
 
       if (error) throw error;
@@ -364,10 +375,10 @@ const EditPropertyDialog = ({ property, open, onOpenChange, onPropertyUpdated }:
       onOpenChange(false);
       onPropertyUpdated();
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: "Erro ao atualizar imóvel",
-        description: error.message,
+        description: getErrorMessage(error),
         variant: "destructive"
       });
     } finally {

@@ -1,9 +1,10 @@
 import { supabase } from "@/integrations/supabase/client";
+import { getErrorMessage } from "@/lib/utils";
 
 interface SecurityEvent {
   event_type: string;
   endpoint?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 interface RateLimitOptions {
@@ -30,8 +31,8 @@ export class SecurityMonitor {
       }
 
       return data?.success || false;
-    } catch (error) {
-      console.error('Security monitor error:', error);
+    } catch (error: unknown) {
+      console.error('Security monitor error:', getErrorMessage(error));
       return false;
     }
   }
@@ -62,8 +63,8 @@ export class SecurityMonitor {
         allowed: data?.allowed || false,
         rate_limited: data?.rate_limited || false
       };
-    } catch (error) {
-      console.error('Rate limiter error:', error);
+    } catch (error: unknown) {
+      console.error('Rate limiter error:', getErrorMessage(error));
       return { allowed: true, rate_limited: false };
     }
   }
@@ -84,7 +85,7 @@ export class SecurityMonitor {
     });
   }
 
-  static async logSuspiciousActivity(activity: string, details?: Record<string, any>) {
+  static async logSuspiciousActivity(activity: string, details?: Record<string, unknown>) {
     return this.logEvent({
       event_type: 'suspicious_activity',
       metadata: { activity, ...details }

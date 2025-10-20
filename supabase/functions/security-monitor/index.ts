@@ -6,16 +6,18 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
+declare const Deno: { env: { get(key: string): string | undefined } };
+
 interface SecurityEvent {
   event_type: string;
   user_agent?: string;
   ip_address?: string;
   endpoint?: string;
   user_id?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
-Deno.serve(async (req) => {
+Deno.serve(async (req: Request) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -87,7 +89,7 @@ Deno.serve(async (req) => {
       }
     );
 
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Security monitor error:', error);
     return new Response(
       JSON.stringify({ error: 'Internal server error' }),

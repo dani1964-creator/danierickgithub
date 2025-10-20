@@ -29,12 +29,12 @@ const HeroBanner = ({ brokerProfile }: HeroBannerProps) => {
           />
         </div>
         
-        <div className="relative z-10 h-full flex items-center justify-center text-center text-white px-4">
-          <div className="content-container max-w-4xl">
-            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-6xl font-bold mb-3 sm:mb-4 leading-tight">
+        <div className="relative z-10 h-full flex items-center justify-center text-center text-white px-6">
+          <div className="content-container max-w-5xl space-y-6">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold leading-tight tracking-tight">
               {brokerProfile?.hero_title || 'Encontre o lar dos seus sonhos'}
             </h1>
-            <p className="text-base sm:text-lg md:text-xl opacity-90 max-w-2xl mx-auto">
+            <p className="text-lg sm:text-xl md:text-2xl opacity-95 max-w-3xl mx-auto font-medium leading-relaxed">
               {brokerProfile?.hero_subtitle || 'Oferecemos os melhores imóveis da região'}
             </p>
           </div>
@@ -49,12 +49,12 @@ const HeroBanner = ({ brokerProfile }: HeroBannerProps) => {
       className="relative h-[50vh] sm:h-[60vh] md:h-[70vh] bg-gradient-to-r from-primary to-primary/80 flex items-center justify-center px-4"
       style={{ background: `linear-gradient(135deg, ${primaryColor}, ${secondaryColor})` }}
     >
-      <div className="text-center text-white">
-        <div className="content-container max-w-4xl">
-          <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-6xl font-bold mb-3 sm:mb-4 leading-tight">
+      <div className="text-center text-white px-6">
+        <div className="content-container max-w-5xl space-y-6">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold leading-tight tracking-tight">
             {brokerProfile?.hero_title || 'Encontre o lar dos seus sonhos'}
           </h1>
-          <p className="text-base sm:text-lg md:text-xl opacity-90 max-w-2xl mx-auto">
+          <p className="text-lg sm:text-xl md:text-2xl opacity-95 max-w-3xl mx-auto font-medium leading-relaxed">
             {brokerProfile?.hero_subtitle || 'Oferecemos os melhores imóveis da região'}
           </p>
         </div>

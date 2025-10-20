@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -17,7 +17,7 @@ const ContactCTA = ({
   const whatsappButtonColor = brokerProfile?.whatsapp_button_color || '#25D366';
 
   // Fetch contact information using public RPC (no authentication required)
-  const fetchContactInfo = async () => {
+  const fetchContactInfo = useCallback(async () => {
     if (!brokerProfile?.website_slug) {
       console.log('No broker profile or website_slug available for ContactCTA');
       return null;
@@ -49,7 +49,7 @@ const ContactCTA = ({
       console.error('ContactCTA Error fetching contact info:', error);
       return null;
     }
-  };
+  }, [brokerProfile?.website_slug]);
 
   // Fetch contact info when component mounts
   useEffect(() => {
@@ -57,7 +57,7 @@ const ContactCTA = ({
       console.log('ContactCTA component loaded, fetching contact info...');
       fetchContactInfo();
     }
-  }, [brokerProfile]);
+  }, [brokerProfile?.website_slug, fetchContactInfo]);
   const handleContactClick = async () => {
     // Fetch contact info if not already loaded
     let currentContactInfo = contactInfo;
@@ -87,7 +87,7 @@ const ContactCTA = ({
       console.warn('ContactCTA: Contact information access denied or not available');
     }
   };
-  const handleLeadSuccess = async (leadData: any) => {
+  const handleLeadSuccess = async (_leadData: unknown) => {
     // Após o cadastro bem-sucedido, prosseguir com o WhatsApp
     await handleContactClick();
   };

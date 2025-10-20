@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { getErrorMessage } from '@/lib/utils';
 
 interface FaviconUploadProps {
   faviconUrl: string;
@@ -60,10 +61,10 @@ const FaviconUpload = ({ faviconUrl, onFaviconChange }: FaviconUploadProps) => {
         title: "Favicon enviado",
         description: "Favicon atualizado com sucesso!"
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: "Erro no upload",
-        description: error.message,
+        description: getErrorMessage(error),
         variant: "destructive"
       });
     } finally {

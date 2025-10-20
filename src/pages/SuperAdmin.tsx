@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 import { useToast } from "@/hooks/use-toast";
@@ -34,9 +34,9 @@ interface BrokerData {
 }
 
 export default function SuperAdminPage() {
-  // Internal Super Admin credentials (frontend-only)
-  const SUPER_ADMIN_EMAIL = "erickjq123@gmail.com";
-  const SUPER_ADMIN_PASSWORD = "Danis0133";
+  // Super Admin credentials via env (fallback apenas para dev local)
+  const SUPER_ADMIN_EMAIL = import.meta.env.VITE_SA_EMAIL || "";
+  const SUPER_ADMIN_PASSWORD = import.meta.env.VITE_SA_PASSWORD || "";
   const SUPER_ADMIN_TOKEN_KEY = "sa_auth";
   const { toast } = useToast();
   const [brokers, setBrokers] = useState<BrokerData[]>([]);
@@ -50,6 +50,30 @@ export default function SuperAdminPage() {
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
   const [loginLoading, setLoginLoading] = useState(false);
+
+  const fetchBrokers = useCallback(async () => {
+    try {
+      const { data, error } = await supabase.functions.invoke('admin-brokers', {
+        body: {
+          action: 'list',
+          email: SUPER_ADMIN_EMAIL,
+          password: SUPER_ADMIN_PASSWORD
+        }
+      });
+      
+      if (error) throw error;
+      setBrokers(data?.brokers || []);
+    } catch (error) {
+      console.error('Error fetching brokers:', error);
+      toast({
+        title: "Erro ao carregar imobiliárias",
+        description: "Não foi possível carregar a lista de imobiliárias.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  }, [toast, SUPER_ADMIN_EMAIL, SUPER_ADMIN_PASSWORD]);
 
   // Check internal Super Admin token on mount and setup realtime
   useEffect(() => {
@@ -93,31 +117,7 @@ export default function SuperAdminPage() {
       setShowLoginDialog(true);
       setLoading(false);
     }
-  }, []);
-
-  const fetchBrokers = async () => {
-    try {
-      const { data, error } = await supabase.functions.invoke('admin-brokers', {
-        body: {
-          action: 'list',
-          email: SUPER_ADMIN_EMAIL,
-          password: SUPER_ADMIN_PASSWORD
-        }
-      });
-      
-      if (error) throw error;
-      setBrokers(data?.brokers || []);
-    } catch (error) {
-      console.error('Error fetching brokers:', error);
-      toast({
-        title: "Erro ao carregar imobiliárias",
-        description: "Não foi possível carregar a lista de imobiliárias.",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [fetchBrokers]);
 
   const toggleBrokerStatus = async (brokerId: string, currentStatus: boolean) => {
     try {
@@ -138,7 +138,7 @@ export default function SuperAdminPage() {
         description: `Imobiliária ${!currentStatus ? 'ativada' : 'desativada'} com sucesso.`,
       });
       
-      fetchBrokers();
+  fetchBrokers();
     } catch (error) {
       console.error('Error toggling broker status:', error);
       toast({
@@ -167,7 +167,7 @@ export default function SuperAdminPage() {
         description: "A imobiliária foi removida com sucesso.",
       });
       
-      fetchBrokers();
+  fetchBrokers();
     } catch (error) {
       console.error('Error deleting broker:', error);
       toast({
@@ -246,15 +246,15 @@ export default function SuperAdminPage() {
           description: "Bem-vindo ao painel Super Admin.",
         });
         setLoading(true);
-        await fetchBrokers();
+  await fetchBrokers();
       } else {
         throw new Error("Credenciais inválidas.");
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error logging in:', error);
       toast({
         title: "Erro no login",
-        description: error.message || "Credenciais inválidas ou sem permissão.",
+        description: error instanceof Error ? error.message : "Credenciais inválidas ou sem permissão.",
         variant: "destructive",
       });
     } finally {

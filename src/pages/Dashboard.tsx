@@ -4,9 +4,10 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { Home, Building2, Users, Globe, Settings, TrendingUp, Eye, UserPlus } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
+import { getErrorMessage } from '@/lib/utils';
 
 
 const Dashboard = () => {
@@ -21,36 +22,7 @@ const Dashboard = () => {
     isLoading: true
   });
 
-  useEffect(() => {
-    if (user) {
-      fetchBrokerProfile();
-      fetchDashboardData();
-      
-      // Set up real-time subscriptions
-      const propertiesChannel = supabase
-        .channel('properties-changes')
-        .on('postgres_changes', 
-          { event: '*', schema: 'public', table: 'properties' }, 
-          () => fetchDashboardData()
-        )
-        .subscribe();
-
-      const leadsChannel = supabase
-        .channel('leads-changes')
-        .on('postgres_changes', 
-          { event: '*', schema: 'public', table: 'leads' }, 
-          () => fetchDashboardData()
-        )
-        .subscribe();
-
-      return () => {
-        supabase.removeChannel(propertiesChannel);
-        supabase.removeChannel(leadsChannel);
-      };
-    }
-  }, [user]);
-
-  const fetchBrokerProfile = async () => {
+  const fetchBrokerProfile = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from('brokers')
@@ -60,12 +32,12 @@ const Dashboard = () => {
 
       if (error) throw error;
       setWebsiteSlug(data?.website_slug);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error fetching broker profile:', error);
     }
-  };
+  }, [user?.id]);
 
-  const fetchDashboardData = async () => {
+  const fetchDashboardData = useCallback(async () => {
     if (!user?.id) return;
 
     try {
@@ -126,16 +98,45 @@ const Dashboard = () => {
         isLoading: false
       });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error fetching dashboard data:', error);
       setDashboardData(prev => ({ ...prev, isLoading: false }));
       toast({
         title: "Erro ao carregar dados",
-        description: "Não foi possível carregar os dados do dashboard.",
+        description: getErrorMessage(error),
         variant: "destructive"
       });
     }
-  };
+  }, [toast, user?.id]);
+
+  useEffect(() => {
+    if (user) {
+      fetchBrokerProfile();
+      fetchDashboardData();
+      
+      // Set up real-time subscriptions
+      const propertiesChannel = supabase
+        .channel('properties-changes')
+        .on('postgres_changes', 
+          { event: '*', schema: 'public', table: 'properties' }, 
+          () => fetchDashboardData()
+        )
+        .subscribe();
+
+      const leadsChannel = supabase
+        .channel('leads-changes')
+        .on('postgres_changes', 
+          { event: '*', schema: 'public', table: 'leads' }, 
+          () => fetchDashboardData()
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(propertiesChannel);
+        supabase.removeChannel(leadsChannel);
+      };
+    }
+  }, [user, fetchBrokerProfile, fetchDashboardData]);
 
   if (loading) {
     return (

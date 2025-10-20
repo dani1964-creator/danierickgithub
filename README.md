@@ -82,11 +82,11 @@ Domínio raiz vs subdomínio (clientes):
 Provedores de domínio (clientes):
 - Seus clientes podem usar qualquer registrador/provedor de DNS (registro.br, Hostinger, HostGator, Cloudflare, GoDaddy, etc.). As instruções são genéricas: criar CNAME (para subdomínio) ou A/AAAA (para raiz) apontando para o alvo informado. A UI do Settings exibe o “CNAME alvo”.
 
-### Vercel x DigitalOcean x Cloudflare
+### Hospedagem e DNS
 
-- Hospedagem na Vercel é compatível. Basta definir corretamente as variáveis acima e apontar o `VITE_CNAME_TARGET` para o host que os clientes devem usar nos CNAMEs (ex.: `cname.vercel-dns.com` ou o domínio da sua app na Vercel).
-- Na DigitalOcean App Platform, use o domínio `.ondigitalocean.app` como `VITE_CNAME_TARGET` e configure os domínios/custom domains no painel da DO.
-- Com Cloudflare na frente, você pode manter um único `CNAME alvo` (por exemplo, um subdomínio seu) e proxyar para o provedor real (Vercel/DO). Ajuste o `VITE_CNAME_TARGET` para o host “público” que você quer expor aos clientes.
+- Foco atual: DigitalOcean App Platform com Cloudflare na frente.
+- Use o domínio `.ondigitalocean.app` como `VITE_CNAME_TARGET` e configure os domínios/custom domains no painel da DO.
+- Com Cloudflare na frente, você pode manter um único `CNAME alvo` (por exemplo, um subdomínio seu) e proxyar para o provedor real (DO). Ajuste o `VITE_CNAME_TARGET` para o host “público” que você quer expor aos clientes.
 
 ### Subdomínios do SaaS x Admin
 

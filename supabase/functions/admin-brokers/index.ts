@@ -10,9 +10,10 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-sa-email, x-sa-pass',
 };
 
-// Internal credentials (kept server-side only)
-const SUPER_ADMIN_EMAIL = 'erickjq123@gmail.com';
-const SUPER_ADMIN_PASSWORD = 'Danis0133';
+// Internal credentials via env vars
+declare const Deno: { env: { get(key: string): string | undefined } };
+const SUPER_ADMIN_EMAIL = Deno.env.get('SUPER_ADMIN_EMAIL') || '';
+const SUPER_ADMIN_PASSWORD = Deno.env.get('SUPER_ADMIN_PASSWORD') || '';
 
 function getSupabaseClient() {
   const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
@@ -83,20 +84,22 @@ async function deleteBroker(brokerId: string) {
   return { success: true };
 }
 
-function isAuthorized(req: Request, body: any) {
+type AdminBody = { action?: string; email?: string; password?: string; brokerId?: string; newStatus?: boolean };
+
+function isAuthorized(req: Request, body: AdminBody) {
   // Accept either headers or body credentials
   const email = req.headers.get('x-sa-email') || body?.email;
   const password = req.headers.get('x-sa-pass') || body?.password;
   return email === SUPER_ADMIN_EMAIL && password === SUPER_ADMIN_PASSWORD;
 }
 
-Deno.serve(async (req) => {
+Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const body = await req.json().catch(() => ({}));
+  const body = (await req.json().catch(() => ({}))) as AdminBody;
 
     if (!isAuthorized(req, body)) {
       return new Response(JSON.stringify({ error: 'unauthorized' }), {
@@ -105,7 +108,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    const action = body.action as string;
+  const action = body.action as string;
 
     if (action === 'list') {
       const data = await listBrokers();
@@ -113,13 +116,13 @@ Deno.serve(async (req) => {
     }
 
     if (action === 'toggle') {
-      const { brokerId, newStatus } = body;
+  const { brokerId, newStatus } = body;
       const data = await toggleBrokerStatus(brokerId, newStatus);
       return new Response(JSON.stringify(data), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
     if (action === 'delete') {
-      const { brokerId } = body;
+  const { brokerId } = body;
       const data = await deleteBroker(brokerId);
       return new Response(JSON.stringify(data), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }

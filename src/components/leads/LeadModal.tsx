@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import type React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,7 +12,16 @@ import { Loader2, User, Mail, Phone, MessageSquare } from 'lucide-react';
 interface LeadModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSuccess: (leadData: any) => void;
+  onSuccess: (leadData: {
+    broker_id: string;
+    property_id: string | null;
+    name: string;
+    email: string;
+    phone: string | null;
+    message: string;
+    source: string;
+    status: string;
+  }) => void;
   brokerProfile: {
     id: string;
     business_name: string;
@@ -121,6 +131,9 @@ const LeadModal = ({
     }));
   };
 
+  type RingStyle = React.CSSProperties & { [key: string]: string | number | undefined };
+  const inputRingStyle: RingStyle = { ['--tw-ring-color']: primaryColor + '40' };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent 
@@ -170,9 +183,7 @@ const LeadModal = ({
               onChange={(e) => handleInputChange('name', e.target.value)}
               placeholder="Seu nome completo"
               className="transition-all focus-visible:ring-1"
-              style={{
-                '--tw-ring-color': primaryColor + '40'
-              } as any}
+              style={inputRingStyle}
               required
             />
           </div>
@@ -189,9 +200,7 @@ const LeadModal = ({
               onChange={(e) => handleInputChange('email', e.target.value)}
               placeholder="seu@email.com"
               className="transition-all focus-visible:ring-1"
-              style={{
-                '--tw-ring-color': primaryColor + '40'
-              } as any}
+              style={inputRingStyle}
               required
             />
           </div>
@@ -208,9 +217,7 @@ const LeadModal = ({
               onChange={(e) => handleInputChange('phone', e.target.value)}
               placeholder="(11) 99999-9999"
               className="transition-all focus-visible:ring-1"
-              style={{
-                '--tw-ring-color': primaryColor + '40'
-              } as any}
+              style={inputRingStyle}
             />
           </div>
 
@@ -225,9 +232,7 @@ const LeadModal = ({
               onChange={(e) => handleInputChange('message', e.target.value)}
               placeholder="Conte-nos mais sobre seu interesse..."
               className="transition-all focus-visible:ring-1 min-h-[80px]"
-              style={{
-                '--tw-ring-color': primaryColor + '40'
-              } as any}
+              style={inputRingStyle}
             />
           </div>
 

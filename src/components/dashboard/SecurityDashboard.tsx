@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -12,7 +12,7 @@ interface SecurityLog {
   ip_address: string | null;
   user_agent: string | null;
   created_at: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 interface ContactAccessLog {
@@ -36,16 +36,9 @@ export default function SecurityDashboard() {
     rateLimitedEvents: 0
   });
 
-  useEffect(() => {
-    if (user) {
-      fetchSecurityData();
-    }
-  }, [user]);
-
-  const fetchSecurityData = async () => {
+  const fetchSecurityData = useCallback(async () => {
     try {
       setLoading(true);
-
       // Fetch security logs for the current user
       const { data: secLogs, error: secError } = await supabase
         .from('security_logs')
@@ -90,7 +83,13 @@ export default function SecurityDashboard() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user?.id]);
+
+  useEffect(() => {
+    if (user) {
+      fetchSecurityData();
+    }
+  }, [user, fetchSecurityData]);
 
   const getEventTypeColor = (eventType: string) => {
     if (eventType.includes('suspicious')) return 'destructive';

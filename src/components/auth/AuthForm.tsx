@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Home, KeyRound, Mail } from "lucide-react";
 import { SecurityMonitor } from "@/lib/security-monitor";
+import { getErrorMessage } from "@/lib/utils";
 
 const AuthForm = () => {
   const [loading, setLoading] = useState(false);
@@ -55,11 +56,11 @@ const AuthForm = () => {
         description: "Redirecionando para o painel...",
       });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       await SecurityMonitor.logAuthAttempt(false, signInData.email);
       toast({
         title: "Erro no login",
-        description: error.message,
+        description: getErrorMessage(error),
         variant: "destructive"
       });
     } finally {

@@ -14,10 +14,13 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { EnhancedSecurity } from '@/lib/enhanced-security';
 import { useTracking } from '@/hooks/useTracking';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useDomainAware } from '@/hooks/useDomainAware';
 import ContactCTA from '@/components/home/ContactCTA';
 import Footer from '@/components/home/Footer';
 import MobileRealtorCard from './MobileRealtorCard';
 import LeadModal from '@/components/leads/LeadModal';
+import { getErrorMessage } from '@/lib/utils';
+import { getPrefetchedDetail, setPrefetchedDetail } from '@/lib/detail-prefetch';
 
 interface Property {
   id: string;
@@ -75,7 +78,7 @@ interface Property {
 import type { BrokerProfile, BrokerContact } from '@/types/broker';
 
 const PropertyDetailPage = () => {
-  const { slug, propertySlug } = useParams();
+  const { slug, propertySlug: propertySlugParam } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
   const { trackPropertyView, trackPropertyInterest, trackWhatsAppClick } = useTracking();
@@ -83,7 +86,7 @@ const PropertyDetailPage = () => {
   const [property, setProperty] = useState<Property | null>(null);
   const [brokerProfile, setBrokerProfile] = useState<BrokerProfile | null>(null);
   const [brokerContact, setBrokerContact] = useState<BrokerContact | null>(null);
-  const [socialLinks, setSocialLinks] = useState<any[]>([]);
+  const [socialLinks, setSocialLinks] = useState<Array<{ id: string; platform: string; url: string }>>([]);
   const [similarProperties, setSimilarProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -93,23 +96,45 @@ const PropertyDetailPage = () => {
   const [carouselApi, setCarouselApi] = useState<CarouselApi>();
   const [thumbnailCarouselApi, setThumbnailCarouselApi] = useState<CarouselApi>();
   const [activeTab, setActiveTab] = useState<'Detalhes' | 'Características'>('Detalhes');
+  const { getBrokerByDomainOrSlug, isCustomDomain } = useDomainAware();
 
-  useEffect(() => {
-    if (propertySlug && slug) {
-      fetchPropertyData();
-    }
-  }, [propertySlug, slug]);
+  // Para domínios customizados, a rota é /:propertySlug (sem broker slug). Tratar isso aqui.
+  const effectivePropertySlug = propertySlugParam || (isCustomDomain() ? slug : undefined);
 
-  const fetchPropertyData = async () => {
+  const fetchPropertyData = useCallback(async () => {
     try {
-      console.log('Fetching property data for:', { propertySlug, slug });
+      console.log('Fetching property data for:', { propertySlug: effectivePropertySlug, slug });
+      // Descobrir o slug do broker quando estamos em domínio customizado
+      let effectiveSlug = slug as string | undefined;
+      if (!effectiveSlug && isCustomDomain()) {
+        const broker = await getBrokerByDomainOrSlug(undefined);
+        if (!broker) throw new Error('Corretor não encontrado para este domínio.');
+        effectiveSlug = (broker as unknown as { website_slug?: string })?.website_slug || undefined;
+      }
+      if (!effectivePropertySlug || !effectiveSlug) {
+        throw new Error('Parâmetros insuficientes para carregar o imóvel.');
+      }
       
-      // Use the new RPC function that bypasses RLS for public access to realtor data
-      const { data: propertyDataArray, error: propertyError } = await supabase
-        .rpc('get_public_property_detail_with_realtor', {
-          broker_slug: slug,
-          property_slug: propertySlug
-        });
+      // Tenta hidratar com dados pré-carregados (se existirem)
+      const cached = getPrefetchedDetail(effectiveSlug, effectivePropertySlug);
+      if (cached) {
+        // Hidrata a partir do cache sem capturar state no fechamento do hook
+        setProperty((prev) => prev ?? (cached.property as unknown as typeof prev));
+        setBrokerProfile((prev) => prev ?? (cached.brokerProfile as unknown as BrokerProfile));
+        setLoading(false); // render imediato
+      }
+
+      // Executa consultas em paralelo para reduzir TTFB
+      const [propertyResult, brokerResult] = await Promise.all([
+        supabase.rpc('get_public_property_detail_with_realtor', {
+          broker_slug: effectiveSlug,
+          property_slug: effectivePropertySlug
+        }),
+        supabase.rpc('get_public_broker_branding', { broker_website_slug: effectiveSlug })
+      ]);
+
+      const { data: propertyDataArray, error: propertyError } = propertyResult;
+      const { data: brokerDataArray, error: brokerError } = brokerResult;
 
       console.log('Property data from RPC:', propertyDataArray);
 
@@ -125,10 +150,6 @@ const PropertyDetailPage = () => {
       const propertyData = propertyDataArray[0];
       console.log('Property data:', propertyData);
 
-      // Fetch broker profile using the existing RPC function
-      const { data: brokerDataArray, error: brokerError } = await supabase
-        .rpc('get_public_broker_branding', { broker_website_slug: slug });
-
       console.log('Broker data array:', brokerDataArray);
       
       const brokerData = brokerDataArray?.[0];
@@ -143,20 +164,21 @@ const PropertyDetailPage = () => {
         throw new Error('Corretor não encontrado');
       }
 
-      // Fetch similar properties
-      const { data: similarData, error: similarError } = await supabase
+      // Fetch similar properties (não bloqueia render principal)
+      const similarPromise = supabase
         .from('properties')
         .select('*, slug')
         .eq('is_active', true)
         .eq('property_type', propertyData.property_type)
         .eq('transaction_type', propertyData.transaction_type)
-        .eq('broker_id', brokerData.id) // Use the broker's ID from broker profile
+        .eq('broker_id', brokerData.id)
         .neq('id', propertyData.id)
         .limit(6);
 
-      if (similarError) throw similarError;
+  const { data: similarData, error: similarError } = await similarPromise;
+  if (similarError) console.warn('Similar properties error:', similarError);
 
-      // Fetch social links
+      // Fetch social links (não bloqueia render principal)
       const { data: socialData, error: socialError } = await supabase
         .from('social_links')
         .select('*')
@@ -175,18 +197,29 @@ const PropertyDetailPage = () => {
 
       setProperty(propertyData);
       setBrokerProfile(brokerData as unknown as BrokerProfile);
+      // Atualiza cache de prefetch para navegações futuras
+      setPrefetchedDetail(effectiveSlug, effectivePropertySlug, {
+        property: propertyData,
+        brokerProfile: brokerData,
+      });
       setSimilarProperties(similarData || []);
       setSocialLinks(socialData || []);
       setViewsCount(propertyData.views_count || 0);
 
-      // Update views count
+      // Atualiza contador de views sem bloquear a UI
       const updatedViews = (propertyData.views_count || 0) + 1;
-      await supabase
-        .from('properties')
-        .update({ views_count: updatedViews })
-        .eq('id', propertyData.id);
-      
       setViewsCount(updatedViews);
+      (async () => {
+        try {
+          const { error: updateError } = await supabase
+            .from('properties')
+            .update({ views_count: updatedViews })
+            .eq('id', propertyData.id);
+          if (updateError) console.warn('views_count update error:', updateError.message || updateError);
+        } catch (e) {
+          console.warn('views_count update failed:', e);
+        }
+      })();
 
       // Track property view for pixels
       if (propertyData) {
@@ -199,17 +232,26 @@ const PropertyDetailPage = () => {
         });
       }
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: "Erro ao carregar imóvel",
-        description: error.message,
+        description: getErrorMessage(error),
         variant: "destructive"
       });
-      navigate(`/${slug}`);
+      // Navegar de volta para a home do corretor (funciona para custom domain também)
+      navigate(`/`);
     } finally {
       setLoading(false);
     }
-  };
+  }, [navigate, effectivePropertySlug, slug, toast, trackPropertyView, getBrokerByDomainOrSlug, isCustomDomain]);
+
+  useEffect(() => {
+    if (effectivePropertySlug) {
+      fetchPropertyData();
+    }
+  }, [effectivePropertySlug, fetchPropertyData]);
+
+  // Fallback de carregamento já existente mais abaixo
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('pt-BR', {
@@ -259,7 +301,7 @@ const PropertyDetailPage = () => {
     setShowLeadModal(true);
   };
 
-  const handleLeadSuccess = async (leadData: any) => {
+  const handleLeadSuccess = async (leadData: unknown) => {
     console.log('Lead cadastrado com sucesso:', leadData);
     
     // Track property interest for pixels
@@ -328,14 +370,13 @@ const PropertyDetailPage = () => {
     console.log('Contact info:', contactInfo);
 
     if (contactInfo?.whatsapp_number && property) {
-      // Generate clean URL based on domain type
-      let shareUrl: string;
+    // Generate clean URL based on domain type
       const currentOrigin = window.location.origin;
       const currentPath = window.location.pathname;
       
       // Sempre usar URL limpa baseada em slug do corretor e slug do imóvel
       const brokerSlug = brokerProfile?.website_slug || slug;
-      shareUrl = `${currentOrigin}/${brokerSlug}/${property.slug}`;
+    const shareUrl = `${currentOrigin}/${brokerSlug}/${property.slug}`;
       
       const message = encodeURIComponent(
         `Olá! Tenho interesse no imóvel "${property.title}" - Código: ${property.property_code || property.id.slice(-8)}. Valor: ${formatPrice(property.price)}. Gostaria de mais informações. Link: ${shareUrl}`
@@ -889,7 +930,7 @@ const PropertyDetailPage = () => {
                     <img
                       src={propertyImages[currentImageIndex]}
                       alt={`${property.title} - Imagem ${currentImageIndex + 1}`}
-                      className="w-full h-full object-contain transition-all duration-300"
+                      className="w-full h-full object-contain transition-all duration-300 bg-gray-100"
                       loading="eager"
                     />
                     
@@ -947,7 +988,8 @@ const PropertyDetailPage = () => {
                               <img
                                 src={image}
                                 alt={`Miniatura ${index + 1}`}
-                                className="w-full h-full object-cover"
+                                className="w-full h-full object-cover bg-gray-100"
+                                loading="lazy"
                               />
                             </button>
                           ))}
@@ -985,8 +1027,8 @@ const PropertyDetailPage = () => {
                           )}
                         </div>
                         <div className="flex flex-wrap gap-2">
-                          <FeeBadge label="Condomínio" amount={property.hoa_fee as any} periodicity={property.hoa_periodicity as any} />
-                          <FeeBadge label="IPTU" amount={property.iptu_value as any} periodicity={property.iptu_periodicity as any} />
+                          <FeeBadge label="Condomínio" amount={property.hoa_fee} periodicity={property.hoa_periodicity} />
+                          <FeeBadge label="IPTU" amount={property.iptu_value} periodicity={property.iptu_periodicity} />
                         </div>
                       </div>
                     </div>
@@ -1148,13 +1190,13 @@ const PropertyDetailPage = () => {
                               {property.water_cost != null && (
                                 <div className="p-3 rounded-lg border border-gray-200 bg-gray-50">
                                   <div className="text-xs text-gray-500">Água</div>
-                                  <div className="text-gray-900 font-semibold">{formatPrice(property.water_cost as any)}</div>
+                                  <div className="text-gray-900 font-semibold">{formatPrice(property.water_cost)}</div>
                                 </div>
                               )}
                               {property.electricity_cost != null && (
                                 <div className="p-3 rounded-lg border border-gray-200 bg-gray-50">
                                   <div className="text-xs text-gray-500">Luz</div>
-                                  <div className="text-gray-900 font-semibold">{formatPrice(property.electricity_cost as any)}</div>
+                                  <div className="text-gray-900 font-semibold">{formatPrice(property.electricity_cost)}</div>
                                 </div>
                               )}
                               {typeof property.furnished === 'boolean' && (
@@ -1261,11 +1303,11 @@ const PropertyDetailPage = () => {
                           <div className="text-gray-900 font-semibold text-base sm:text-lg mb-0.5">
                             {formatPrice(similar.price)}
                           </div>
-                          {typeof (similar as any).hoa_fee === 'number' && (similar as any).hoa_fee > 0 && (
+                          {typeof similar.hoa_fee === 'number' && (similar.hoa_fee ?? 0) > 0 && (
                             <div className="text-[11px] sm:text-xs text-gray-600 mb-1">
-                              Condomínio {formatPrice((similar as any).hoa_fee)}
-                              {((similar as any).hoa_periodicity === 'monthly') && ' / mês'}
-                              {((similar as any).hoa_periodicity === 'annual') && ' / ano'}
+                              Condomínio {formatPrice(similar.hoa_fee!)}
+                              {(similar.hoa_periodicity === 'monthly') && ' / mês'}
+                              {(similar.hoa_periodicity === 'annual') && ' / ano'}
                             </div>
                           )}
                           <div className="flex items-center text-gray-600 text-xs sm:text-sm">

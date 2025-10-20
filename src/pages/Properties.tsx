@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Search, Trash2, Eye, Filter } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -14,6 +14,7 @@ import AddPropertyDialog from '@/components/properties/AddPropertyDialog';
 import PropertyViewToggle from '@/components/properties/PropertyViewToggle';
 import EditPropertyButton from '@/components/properties/EditPropertyButton';
 import { sanitizeInput } from '@/lib/security';
+import { getErrorMessage } from '@/lib/utils';
 
 interface Property {
   id: string;
@@ -50,13 +51,7 @@ const Properties = () => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
-  useEffect(() => {
-    if (user) {
-      fetchProperties();
-    }
-  }, [user]);
-
-  const fetchProperties = async () => {
+  const fetchProperties = useCallback(async () => {
     try {
       // First, get the broker_id for the current user
       const { data: brokerData, error: brokerError } = await supabase
@@ -93,17 +88,23 @@ const Properties = () => {
 
       if (error) throw error;
       setProperties(data || []);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error fetching properties:', error);
       toast({
         title: "Erro ao carregar imóveis",
-        description: error.message,
+        description: getErrorMessage(error),
         variant: "destructive"
       });
     } finally {
       setLoading(false);
     }
-  };
+  }, [user?.id, toast]);
+
+  useEffect(() => {
+    if (user) {
+      fetchProperties();
+    }
+  }, [user, fetchProperties]);
 
   // Sanitize search input to prevent XSS
   const sanitizedSearchTerm = sanitizeInput(searchTerm);
@@ -140,10 +141,10 @@ const Properties = () => {
       });
 
       fetchProperties();
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: "Erro ao excluir",
-        description: error.message,
+        description: getErrorMessage(error),
         variant: "destructive"
       });
     }

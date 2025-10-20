@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { User, Mail, Phone, Plus, Edit, Trash2, Check, X, UserCheck, UserX, Award, LayoutGrid, List } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -14,6 +14,7 @@ import { AvatarUpload } from '@/components/ui/avatar-upload';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { getErrorMessage } from '@/lib/utils';
 
 interface Realtor {
   id: string;
@@ -38,7 +39,8 @@ const Realtors = () => {
   const [loading, setLoading] = useState(true);
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [editingRealtor, setEditingRealtor] = useState<string | null>(null);
-  const [brokerInfo, setBrokerInfo] = useState<any>(null);
+  interface BrokerInfo { id: string; business_name: string }
+  const [brokerInfo, setBrokerInfo] = useState<BrokerInfo | null>(null);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>(() => (localStorage.getItem('realtors_view_mode') as 'grid' | 'list') || 'grid');
 
   // Form states
@@ -53,14 +55,7 @@ const Realtors = () => {
     whatsapp_button_text: 'Tire suas dúvidas!'
   });
 
-  useEffect(() => {
-    if (user) {
-      fetchBrokerInfo();
-      fetchRealtors();
-    }
-  }, [user]);
-
-  const fetchBrokerInfo = async () => {
+  const fetchBrokerInfo = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from('brokers')
@@ -69,13 +64,13 @@ const Realtors = () => {
         .single();
 
       if (error) throw error;
-      setBrokerInfo(data);
-    } catch (error: any) {
+      setBrokerInfo(data as BrokerInfo);
+    } catch (error: unknown) {
       console.error('Error fetching broker info:', error);
     }
-  };
+  }, [user?.id]);
 
-  const fetchRealtors = async () => {
+  const fetchRealtors = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from('realtors')
@@ -83,18 +78,25 @@ const Realtors = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setRealtors(data || []);
-    } catch (error: any) {
+      setRealtors((data || []) as Realtor[]);
+    } catch (error: unknown) {
       console.error('Error fetching realtors:', error);
       toast({
         title: "Erro ao carregar corretores",
-        description: "Verifique sua conexão e tente novamente.",
+        description: getErrorMessage(error),
         variant: "destructive"
       });
     } finally {
       setLoading(false);
     }
-  };
+  }, [toast]);
+
+  useEffect(() => {
+    if (user) {
+      fetchBrokerInfo();
+      fetchRealtors();
+    }
+  }, [user, fetchBrokerInfo, fetchRealtors]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -153,11 +155,11 @@ const Realtors = () => {
       setShowAddDialog(false);
       setEditingRealtor(null);
       resetForm();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error saving realtor:', error);
       toast({
         title: "Erro ao salvar corretor",
-        description: error.message || "Tente novamente em alguns minutos.",
+        description: getErrorMessage(error),
         variant: "destructive"
       });
     }
@@ -195,11 +197,11 @@ const Realtors = () => {
         title: "Corretor excluído",
         description: "O corretor foi removido com sucesso."
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error deleting realtor:', error);
       toast({
         title: "Erro ao excluir corretor",
-        description: "Tente novamente em alguns minutos.",
+        description: getErrorMessage(error),
         variant: "destructive"
       });
     }
@@ -224,11 +226,11 @@ const Realtors = () => {
         title: `Corretor ${!currentStatus ? 'ativado' : 'desativado'}`,
         description: `O corretor foi ${!currentStatus ? 'ativado' : 'desativado'} com sucesso.`
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error updating realtor status:', error);
       toast({
         title: "Erro ao atualizar status",
-        description: "Tente novamente em alguns minutos.",
+        description: getErrorMessage(error),
         variant: "destructive"
       });
     }

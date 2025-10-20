@@ -1,5 +1,4 @@
 // @ts-nocheck
-// @ts-nocheck
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.57.4';
@@ -8,6 +7,44 @@ const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+// Tipagens mínimas para ambiente e Request/Headers
+declare const Deno: { env: { get(key: string): string | undefined } };
+type HeadersLike = { get(name: string): string | null };
+type RequestLike = { method: string; headers: HeadersLike; url: string };
+
+// Modelos mínimos usados na renderização
+interface Broker {
+  id: string;
+  business_name: string;
+  website_slug: string;
+  custom_domain?: string | null;
+  canonical_prefer_custom_domain?: boolean | null;
+  site_title?: string | null;
+  site_description?: string | null;
+  site_share_image_url?: string | null;
+  site_favicon_url?: string | null;
+  robots_index?: boolean | null;
+  robots_follow?: boolean | null;
+}
+
+interface PropertyItem {
+  slug: string;
+  title?: string | null;
+  description?: string | null;
+  main_image_url?: string | null;
+}
+
+interface MetaTags {
+  title: string;
+  description: string;
+  image: string;
+  url: string;
+  favicon: string;
+  siteName: string;
+}
+
+const getErrorMessage = (err: unknown) => (err instanceof Error ? err.message : typeof err === 'string' ? err : 'Erro desconhecido');
 
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
 const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -50,7 +87,7 @@ function extractSlugFromPath(pathname: string): { brokerSlug: string | null, pro
   return { brokerSlug, propertySlug };
 }
 
-async function getBrokerData(slug: string) {
+async function getBrokerData(slug: string): Promise<Broker | null> {
   console.log(`Fetching broker data for slug: ${slug}`);
   
   const { data, error } = await supabase
@@ -64,10 +101,10 @@ async function getBrokerData(slug: string) {
     return null;
   }
   
-  return data?.[0] || null;
+  return (data?.[0] as Broker) || null;
 }
 
-async function getPropertyData(brokerSlug: string, propertySlug: string) {
+async function getPropertyData(brokerSlug: string, propertySlug: string): Promise<PropertyItem | null> {
   console.log(`Fetching property data for broker: ${brokerSlug}, property: ${propertySlug}`);
   
   const { data, error } = await supabase
@@ -81,10 +118,10 @@ async function getPropertyData(brokerSlug: string, propertySlug: string) {
     return null;
   }
   
-  return data?.[0] || null;
+  return (data?.[0] as PropertyItem) || null;
 }
 
-function getSiteBase(broker: any) {
+function getSiteBase(broker: Broker) {
   const preferCustom = (broker.canonical_prefer_custom_domain ?? true) === true;
   if (preferCustom && broker.custom_domain) {
     return `https://${broker.custom_domain}`;
@@ -94,8 +131,11 @@ function getSiteBase(broker: any) {
   return `${base}/${broker.website_slug}`;
 }
 
-function generateMetaTags(broker: any, property?: any) {
-  let title, description, image, url, favicon;
+function generateMetaTags(broker: Broker, property?: PropertyItem): MetaTags {
+  let title: string;
+  let description: string;
+  let image: string;
+  let url: string;
   
   if (property) {
     // Meta tags para página de imóvel específico
@@ -109,13 +149,13 @@ function generateMetaTags(broker: any, property?: any) {
     // Meta tags para página principal da imobiliária
     title = broker.site_title || `${broker.business_name} - Imóveis para Venda e Locação`;
     description = broker.site_description || `Encontre seu imóvel dos sonhos com ${broker.business_name}. Casas, apartamentos e propriedades exclusivas.`;
-    image = broker.site_share_image_url;
+    image = broker.site_share_image_url || '';
     const base = getSiteBase(broker);
     url = base;
   }
   
   // Use broker favicon if available
-  favicon = broker.site_favicon_url || '/favicon-placeholder.svg';
+  const favicon = broker.site_favicon_url || '/favicon-placeholder.svg';
   
   // Fallback image se nenhuma estiver definida
   if (!image) {
@@ -132,7 +172,7 @@ function generateMetaTags(broker: any, property?: any) {
   };
 }
 
-function generateHTML(metaTags: any, robots?: string): string {
+function generateHTML(metaTags: MetaTags, robots?: string): string {
   return `<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -184,7 +224,7 @@ function generateHTML(metaTags: any, robots?: string): string {
 </html>`;
 }
 
-serve(async (req) => {
+serve(async (req: RequestLike) => {
   try {
     // Handle CORS preflight requests
     if (req.method === 'OPTIONS') {
@@ -295,7 +335,7 @@ serve(async (req) => {
     }
     
     // Gerar meta tags
-    const metaTags = generateMetaTags(broker, property);
+  const metaTags = generateMetaTags(broker, property ?? undefined);
   // Override URL com o target correto
   metaTags.url = targetUrl;
   const robots = `${(broker.robots_index ?? true) ? 'index' : 'noindex'}, ${(broker.robots_follow ?? true) ? 'follow' : 'nofollow'}`;
@@ -313,9 +353,9 @@ serve(async (req) => {
       },
     });
     
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error in seo-handler:', error);
-    return new Response(JSON.stringify({ error: error.message }), {
+    return new Response(JSON.stringify({ error: getErrorMessage(error) }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });

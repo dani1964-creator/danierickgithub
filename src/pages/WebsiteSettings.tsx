@@ -1,5 +1,7 @@
 import type { BrokerProfile } from '@/types/broker';
-import { useState, useEffect } from 'react';
+import { getErrorMessage } from '@/lib/utils';
+import type { Json } from '@/integrations/supabase/types';
+import { useState, useEffect, useCallback } from 'react';
 import { Save, Globe, Palette, Code, Share2, FileText, Search } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -18,7 +20,7 @@ import BackgroundStyleSelector from '@/components/backgrounds/BackgroundStyleSel
 import FaviconUpload from '@/components/settings/FaviconUpload';
 
 type WebsiteProfile = Partial<BrokerProfile> & {
-  tracking_scripts?: any;
+  tracking_scripts?: Json;
 };
 
 const WebsiteSettings = () => {
@@ -29,13 +31,7 @@ const WebsiteSettings = () => {
   const [profile, setProfile] = useState<WebsiteProfile | null>(null);
   const [activeTab, setActiveTab] = useState('general');
 
-  useEffect(() => {
-    if (user) {
-      fetchProfile();
-    }
-  }, [user]);
-
-  const fetchProfile = async () => {
+  const fetchProfile = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from('brokers')
@@ -46,44 +42,50 @@ const WebsiteSettings = () => {
 
       if (error) throw error;
     setProfile({
-  ...(data as Partial<WebsiteProfile>),
-  logo_size: (data as any)?.logo_size || 80,
-  overlay_color: (data as any)?.overlay_color || '#000000',
-  overlay_opacity: (data as any)?.overlay_opacity || '50',
-  sections_background_style: (data as any)?.sections_background_style || 'pro-minimal',
-  sections_background_color_1: (data as any)?.sections_background_color_1 || '#2563eb',
-  sections_background_color_2: (data as any)?.sections_background_color_2 || '#64748b',
-  sections_background_color_3: (data as any)?.sections_background_color_3 || '#ffffff',
-  site_title: (data as any)?.site_title || '',
-  site_description: (data as any)?.site_description || '',
-  site_favicon_url: (data as any)?.site_favicon_url || '',
-  site_share_image_url: (data as any)?.site_share_image_url || '',
-  robots_index: (data as any)?.robots_index ?? true,
-  robots_follow: (data as any)?.robots_follow ?? true,
-  canonical_prefer_custom_domain: (data as any)?.canonical_prefer_custom_domain ?? true,
-  home_title_template: (data as any)?.home_title_template || '',
-  home_description_template: (data as any)?.home_description_template || '',
-  property_title_template: (data as any)?.property_title_template || '',
-  property_description_template: (data as any)?.property_description_template || '',
-  // Branding tokens (resiliente caso não exista)
-  brand_primary: (data as any)?.brand_primary || (data as any)?.primary_color || '#2563eb',
-  brand_secondary: (data as any)?.brand_secondary || (data as any)?.secondary_color || '#64748b',
-  brand_accent: (data as any)?.brand_accent || '#22c55e',
-  brand_surface: (data as any)?.brand_surface || '#ffffff',
-  brand_surface_fg: (data as any)?.brand_surface_fg || '#0f172a',
-  brand_radius: (data as any)?.brand_radius ?? 12,
-  brand_card_elevation: (data as any)?.brand_card_elevation ?? 8
-      });
-    } catch (error: any) {
+      ...(data as Partial<WebsiteProfile>),
+      logo_size: (data as Partial<WebsiteProfile>)?.logo_size ?? 80,
+      overlay_color: (data as Partial<WebsiteProfile>)?.overlay_color ?? '#000000',
+      overlay_opacity: (data as Partial<WebsiteProfile>)?.overlay_opacity ?? '50',
+      sections_background_style: (data as Partial<WebsiteProfile>)?.sections_background_style ?? 'pro-minimal',
+      sections_background_color_1: (data as Partial<WebsiteProfile>)?.sections_background_color_1 ?? '#2563eb',
+      sections_background_color_2: (data as Partial<WebsiteProfile>)?.sections_background_color_2 ?? '#64748b',
+      sections_background_color_3: (data as Partial<WebsiteProfile>)?.sections_background_color_3 ?? '#ffffff',
+      site_title: (data as Partial<WebsiteProfile>)?.site_title ?? '',
+      site_description: (data as Partial<WebsiteProfile>)?.site_description ?? '',
+      site_favicon_url: (data as Partial<WebsiteProfile>)?.site_favicon_url ?? '',
+      site_share_image_url: (data as Partial<WebsiteProfile>)?.site_share_image_url ?? '',
+      robots_index: (data as Partial<WebsiteProfile>)?.robots_index ?? true,
+      robots_follow: (data as Partial<WebsiteProfile>)?.robots_follow ?? true,
+      canonical_prefer_custom_domain: (data as Partial<WebsiteProfile>)?.canonical_prefer_custom_domain ?? true,
+      home_title_template: (data as Partial<WebsiteProfile>)?.home_title_template ?? '',
+      home_description_template: (data as Partial<WebsiteProfile>)?.home_description_template ?? '',
+      property_title_template: (data as Partial<WebsiteProfile>)?.property_title_template ?? '',
+      property_description_template: (data as Partial<WebsiteProfile>)?.property_description_template ?? '',
+      // Branding tokens (resiliente caso não exista)
+      brand_primary: (data as Partial<WebsiteProfile>)?.brand_primary ?? (data as Partial<WebsiteProfile>)?.primary_color ?? '#2563eb',
+      brand_secondary: (data as Partial<WebsiteProfile>)?.brand_secondary ?? (data as Partial<WebsiteProfile>)?.secondary_color ?? '#64748b',
+      brand_accent: (data as Partial<WebsiteProfile>)?.brand_accent ?? '#22c55e',
+      brand_surface: (data as Partial<WebsiteProfile>)?.brand_surface ?? '#ffffff',
+      brand_surface_fg: (data as Partial<WebsiteProfile>)?.brand_surface_fg ?? '#0f172a',
+      brand_radius: (data as Partial<WebsiteProfile>)?.brand_radius ?? 12,
+      brand_card_elevation: (data as Partial<WebsiteProfile>)?.brand_card_elevation ?? 8,
+    });
+    } catch (error: unknown) {
       toast({
         title: "Erro ao carregar perfil",
-        description: error.message,
+        description: getErrorMessage(error),
         variant: "destructive"
       });
     } finally {
       setLoading(false);
     }
-  };
+  }, [user?.id, toast]);
+
+  useEffect(() => {
+    if (user) {
+      fetchProfile();
+    }
+  }, [user, fetchProfile]);
 
   const saveProfile = async () => {
     if (!profile) return;
@@ -126,14 +128,14 @@ const WebsiteSettings = () => {
         site_description: profile.site_description,
         site_favicon_url: profile.site_favicon_url,
         site_share_image_url: profile.site_share_image_url,
-        // Branding tokens - salvar quando existir no schema
-        brand_primary: (profile as any).brand_primary,
-        brand_secondary: (profile as any).brand_secondary,
-        brand_accent: (profile as any).brand_accent,
-        brand_surface: (profile as any).brand_surface,
-        brand_surface_fg: (profile as any).brand_surface_fg,
-        brand_radius: (profile as any).brand_radius,
-        brand_card_elevation: (profile as any).brand_card_elevation,
+  // Branding tokens - salvar quando existir no schema
+  brand_primary: (profile as WebsiteProfile).brand_primary,
+  brand_secondary: (profile as WebsiteProfile).brand_secondary,
+  brand_accent: (profile as WebsiteProfile).brand_accent,
+  brand_surface: (profile as WebsiteProfile).brand_surface,
+  brand_surface_fg: (profile as WebsiteProfile).brand_surface_fg,
+  brand_radius: (profile as WebsiteProfile).brand_radius,
+  brand_card_elevation: (profile as WebsiteProfile).brand_card_elevation,
       } as const;
 
       // Campos de SEO (novos) — podem não existir no banco ainda
@@ -166,9 +168,9 @@ const WebsiteSettings = () => {
         .eq('user_id', user?.id);
 
       if (seoErr) {
-        const rawMsg = (seoErr as any)?.message || '';
-        const msg = rawMsg.toLowerCase?.() || '';
-        const details = (seoErr as any)?.details?.toLowerCase?.() || '';
+        const rawMsg = (seoErr as unknown as { message?: string; details?: string })?.message || '';
+        const msg = (rawMsg as string).toLowerCase?.() || '';
+        const details = (seoErr as unknown as { details?: string })?.details?.toLowerCase?.() || '';
         const text = `${msg} ${details}`;
         const looksLikeMissingColumn =
           text.includes('does not exist') ||
@@ -191,10 +193,10 @@ const WebsiteSettings = () => {
           description: 'Suas configurações foram atualizadas com sucesso.',
         });
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: "Erro ao salvar",
-        description: error.message,
+        description: getErrorMessage(error),
         variant: "destructive"
       });
     } finally {
@@ -202,10 +204,21 @@ const WebsiteSettings = () => {
     }
   };
 
-  const updateProfile = (field: keyof WebsiteProfile, value: string | any) => {
+  const updateProfile = (field: keyof WebsiteProfile, value: string | number | boolean | Json | null) => {
     if (profile) {
       setProfile({ ...profile, [field]: value });
     }
+  };
+
+  // Helpers seguros para tracking_scripts
+  type TrackingScripts = Record<string, string | undefined>;
+  const getTracking = (): TrackingScripts => {
+    const t = profile?.tracking_scripts;
+    return (t && typeof t === 'object' && !Array.isArray(t)) ? (t as TrackingScripts) : {};
+  };
+  const setTracking = (patch: TrackingScripts) => {
+    const current = getTracking();
+    updateProfile('tracking_scripts', { ...current, ...patch } as unknown as Json);
   };
 
   if (loading) {
@@ -874,11 +887,8 @@ const WebsiteSettings = () => {
                   <Label htmlFor="google_analytics">Google Analytics ID</Label>
                   <Input
                     id="google_analytics"
-                    value={profile?.tracking_scripts?.google_analytics || ''}
-                    onChange={(e) => updateProfile('tracking_scripts', {
-                      ...profile?.tracking_scripts,
-                      google_analytics: e.target.value
-                    })}
+                    value={getTracking().google_analytics || ''}
+                    onChange={(e) => setTracking({ google_analytics: e.target.value })}
                     placeholder="G-XXXXXXXXXX"
                   />
                   <p className="text-xs text-muted-foreground">
@@ -890,11 +900,8 @@ const WebsiteSettings = () => {
                   <Label htmlFor="facebook_pixel">Facebook Pixel ID</Label>
                   <Input
                     id="facebook_pixel"
-                    value={profile?.tracking_scripts?.facebook_pixel || ''}
-                    onChange={(e) => updateProfile('tracking_scripts', {
-                      ...profile?.tracking_scripts,
-                      facebook_pixel: e.target.value
-                    })}
+                    value={getTracking().facebook_pixel || ''}
+                    onChange={(e) => setTracking({ facebook_pixel: e.target.value })}
                     placeholder="123456789012345"
                   />
                   <p className="text-xs text-muted-foreground">
@@ -906,11 +913,8 @@ const WebsiteSettings = () => {
                   <Label htmlFor="tiktok_pixel">TikTok Pixel ID</Label>
                   <Input
                     id="tiktok_pixel"
-                    value={profile?.tracking_scripts?.tiktok_pixel || ''}
-                    onChange={(e) => updateProfile('tracking_scripts', {
-                      ...profile?.tracking_scripts,
-                      tiktok_pixel: e.target.value
-                    })}
+                    value={getTracking().tiktok_pixel || ''}
+                    onChange={(e) => setTracking({ tiktok_pixel: e.target.value })}
                     placeholder="C4A..."
                   />
                   <p className="text-xs text-muted-foreground">
@@ -922,11 +926,8 @@ const WebsiteSettings = () => {
                   <Label htmlFor="linkedin_insight">LinkedIn Insight Tag ID</Label>
                   <Input
                     id="linkedin_insight"
-                    value={profile?.tracking_scripts?.linkedin_insight || ''}
-                    onChange={(e) => updateProfile('tracking_scripts', {
-                      ...profile?.tracking_scripts,
-                      linkedin_insight: e.target.value
-                    })}
+                    value={getTracking().linkedin_insight || ''}
+                    onChange={(e) => setTracking({ linkedin_insight: e.target.value })}
                     placeholder="123456"
                   />
                   <p className="text-xs text-muted-foreground">
@@ -938,11 +939,8 @@ const WebsiteSettings = () => {
                   <Label htmlFor="google_ads">Google Ads ID</Label>
                   <Input
                     id="google_ads"
-                    value={profile?.tracking_scripts?.google_ads || ''}
-                    onChange={(e) => updateProfile('tracking_scripts', {
-                      ...profile?.tracking_scripts,
-                      google_ads: e.target.value
-                    })}
+                    value={getTracking().google_ads || ''}
+                    onChange={(e) => setTracking({ google_ads: e.target.value })}
                     placeholder="AW-123456789"
                   />
                   <p className="text-xs text-muted-foreground">
@@ -954,11 +952,8 @@ const WebsiteSettings = () => {
                   <Label htmlFor="pinterest_tag">Pinterest Tag ID</Label>
                   <Input
                     id="pinterest_tag"
-                    value={profile?.tracking_scripts?.pinterest_tag || ''}
-                    onChange={(e) => updateProfile('tracking_scripts', {
-                      ...profile?.tracking_scripts,
-                      pinterest_tag: e.target.value
-                    })}
+                    value={getTracking().pinterest_tag || ''}
+                    onChange={(e) => setTracking({ pinterest_tag: e.target.value })}
                     placeholder="2612..."
                   />
                   <p className="text-xs text-muted-foreground">
@@ -970,11 +965,8 @@ const WebsiteSettings = () => {
                   <Label htmlFor="snapchat_pixel">Snapchat Pixel ID</Label>
                   <Input
                     id="snapchat_pixel"
-                    value={profile?.tracking_scripts?.snapchat_pixel || ''}
-                    onChange={(e) => updateProfile('tracking_scripts', {
-                      ...profile?.tracking_scripts,
-                      snapchat_pixel: e.target.value
-                    })}
+                    value={getTracking().snapchat_pixel || ''}
+                    onChange={(e) => setTracking({ snapchat_pixel: e.target.value })}
                     placeholder="12345678-1234-1234-1234-123456789012"
                   />
                   <p className="text-xs text-muted-foreground">
@@ -986,11 +978,8 @@ const WebsiteSettings = () => {
                   <Label htmlFor="twitter_pixel">Twitter Pixel ID</Label>
                   <Input
                     id="twitter_pixel"
-                    value={profile?.tracking_scripts?.twitter_pixel || ''}
-                    onChange={(e) => updateProfile('tracking_scripts', {
-                      ...profile?.tracking_scripts,
-                      twitter_pixel: e.target.value
-                    })}
+                    value={getTracking().twitter_pixel || ''}
+                    onChange={(e) => setTracking({ twitter_pixel: e.target.value })}
                     placeholder="o1234"
                   />
                   <p className="text-xs text-muted-foreground">
@@ -1016,11 +1005,8 @@ const WebsiteSettings = () => {
                     <Label htmlFor="utm_source">UTM Source</Label>
                     <Input
                       id="utm_source"
-                      value={profile?.tracking_scripts?.utm_source || ''}
-                      onChange={(e) => updateProfile('tracking_scripts', {
-                        ...profile?.tracking_scripts,
-                        utm_source: e.target.value
-                      })}
+                      value={getTracking().utm_source || ''}
+                      onChange={(e) => setTracking({ utm_source: e.target.value })}
                       placeholder="site_imobiliaria"
                     />
                     <p className="text-xs text-muted-foreground">
@@ -1032,11 +1018,8 @@ const WebsiteSettings = () => {
                     <Label htmlFor="utm_medium">UTM Medium</Label>
                     <Input
                       id="utm_medium"
-                      value={profile?.tracking_scripts?.utm_medium || ''}
-                      onChange={(e) => updateProfile('tracking_scripts', {
-                        ...profile?.tracking_scripts,
-                        utm_medium: e.target.value
-                      })}
+                      value={getTracking().utm_medium || ''}
+                      onChange={(e) => setTracking({ utm_medium: e.target.value })}
                       placeholder="organic"
                     />
                     <p className="text-xs text-muted-foreground">
@@ -1048,11 +1031,8 @@ const WebsiteSettings = () => {
                     <Label htmlFor="utm_campaign">UTM Campaign</Label>
                     <Input
                       id="utm_campaign"
-                      value={profile?.tracking_scripts?.utm_campaign || ''}
-                      onChange={(e) => updateProfile('tracking_scripts', {
-                        ...profile?.tracking_scripts,
-                        utm_campaign: e.target.value
-                      })}
+                      value={getTracking().utm_campaign || ''}
+                      onChange={(e) => setTracking({ utm_campaign: e.target.value })}
                       placeholder="imoveis_vendas"
                     />
                     <p className="text-xs text-muted-foreground">
@@ -1064,11 +1044,8 @@ const WebsiteSettings = () => {
                     <Label htmlFor="utm_term">UTM Term</Label>
                     <Input
                       id="utm_term"
-                      value={profile?.tracking_scripts?.utm_term || ''}
-                      onChange={(e) => updateProfile('tracking_scripts', {
-                        ...profile?.tracking_scripts,
-                        utm_term: e.target.value
-                      })}
+                      value={getTracking().utm_term || ''}
+                      onChange={(e) => setTracking({ utm_term: e.target.value })}
                       placeholder="imóveis+são+paulo"
                     />
                     <p className="text-xs text-muted-foreground">
@@ -1080,11 +1057,8 @@ const WebsiteSettings = () => {
                     <Label htmlFor="utm_content">UTM Content</Label>
                     <Input
                       id="utm_content"
-                      value={profile?.tracking_scripts?.utm_content || ''}
-                      onChange={(e) => updateProfile('tracking_scripts', {
-                        ...profile?.tracking_scripts,
-                        utm_content: e.target.value
-                      })}
+                      value={getTracking().utm_content || ''}
+                      onChange={(e) => setTracking({ utm_content: e.target.value })}
                       placeholder="banner_azul"
                     />
                     <p className="text-xs text-muted-foreground">
@@ -1121,11 +1095,8 @@ const WebsiteSettings = () => {
                   <Label htmlFor="header_scripts">Scripts do Header (HEAD)</Label>
                   <Textarea
                     id="header_scripts"
-                    value={profile?.tracking_scripts?.header_scripts || ''}
-                    onChange={(e) => updateProfile('tracking_scripts', {
-                      ...profile?.tracking_scripts,
-                      header_scripts: e.target.value
-                    })}
+                    value={getTracking().header_scripts || ''}
+                    onChange={(e) => setTracking({ header_scripts: e.target.value })}
                     placeholder="<!-- Scripts que devem ser carregados no head da página -->
 <script>
   // GoogleTag Manager, verificações de domínio, etc.
@@ -1142,11 +1113,8 @@ const WebsiteSettings = () => {
                   <Label htmlFor="body_scripts">Scripts do Body (BODY)</Label>
                   <Textarea
                     id="body_scripts"
-                    value={profile?.tracking_scripts?.body_scripts || ''}
-                    onChange={(e) => updateProfile('tracking_scripts', {
-                      ...profile?.tracking_scripts,
-                      body_scripts: e.target.value
-                    })}
+                    value={getTracking().body_scripts || ''}
+                    onChange={(e) => setTracking({ body_scripts: e.target.value })}
                     placeholder="<!-- Scripts e elementos que devem aparecer no body -->
 <noscript>
   <!-- Fallbacks para pixels quando JavaScript está desabilitado -->
@@ -1163,11 +1131,8 @@ const WebsiteSettings = () => {
                   <Label htmlFor="footer_scripts">Scripts do Footer</Label>
                   <Textarea
                     id="footer_scripts"
-                    value={profile?.tracking_scripts?.footer_scripts || ''}
-                    onChange={(e) => updateProfile('tracking_scripts', {
-                      ...profile?.tracking_scripts,
-                      footer_scripts: e.target.value
-                    })}
+                    value={getTracking().footer_scripts || ''}
+                    onChange={(e) => setTracking({ footer_scripts: e.target.value })}
                     placeholder="<!-- Scripts que devem carregar por último -->
 <script>
   // Chats, analytics que não são críticos, etc.
@@ -1184,11 +1149,8 @@ const WebsiteSettings = () => {
                   <Label htmlFor="custom_scripts">Scripts Customizados Gerais</Label>
                   <Textarea
                     id="custom_scripts"
-                    value={profile?.tracking_scripts?.custom_scripts || ''}
-                    onChange={(e) => updateProfile('tracking_scripts', {
-                      ...profile?.tracking_scripts,
-                      custom_scripts: e.target.value
-                    })}
+                    value={getTracking().custom_scripts || ''}
+                    onChange={(e) => setTracking({ custom_scripts: e.target.value })}
                     placeholder="<!-- Códigos customizados que não se encaixam nas categorias acima -->
 <script>
   // Pixels personalizados, scripts específicos, etc.

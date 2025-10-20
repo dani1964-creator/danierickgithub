@@ -1,10 +1,16 @@
-// @ts-nocheck
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+// deno-types shim: o linter local pode não resolver tipos remotos; no runtime do Deno isso funciona
+// @ts-expect-error - tipos remotos não resolvidos pelo linter local
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.57.4'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
+
+declare const Deno: { 
+  env: { get(key: string): string | undefined };
+  serve: (handler: (req: Request) => Response | Promise<Response>) => void;
+};
 
 interface RateLimitRequest {
   identifier: string; // IP address or user ID
@@ -13,7 +19,7 @@ interface RateLimitRequest {
   window_minutes?: number; // Default 1 minute
 }
 
-Deno.serve(async (req) => {
+Deno.serve(async (req: Request) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -85,7 +91,7 @@ Deno.serve(async (req) => {
       }
     );
 
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Rate limiter error:', error);
     return new Response(
       JSON.stringify({ error: 'Internal server error' }),

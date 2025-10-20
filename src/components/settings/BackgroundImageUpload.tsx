@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
+import { getErrorMessage } from '@/lib/utils';
 
 interface BackgroundImageUploadProps {
   imageUrl: string;
@@ -43,10 +44,10 @@ const BackgroundImageUpload = ({ imageUrl, onImageChange }: BackgroundImageUploa
         description: "Sua imagem de fundo foi enviada com sucesso!"
       });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: "Erro no upload",
-        description: error.message,
+        description: getErrorMessage(error),
         variant: "destructive"
       });
     } finally {

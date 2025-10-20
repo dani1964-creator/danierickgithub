@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Plus, Upload, X } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -13,6 +13,9 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
+import { toSlug } from '@/lib/utils';
+import { getErrorMessage } from '@/lib/utils';
+import type { Database } from '@/integrations/supabase/types';
 
 interface AddPropertyDialogProps {
   onPropertyAdded: () => void;
@@ -22,13 +25,15 @@ const AddPropertyDialog = ({ onPropertyAdded }: AddPropertyDialogProps) => {
   const { user } = useAuth();
   const { toast } = useToast();
 
-  useEffect(() => {
-    if (user) {
-      fetchRealtors();
-    }
-  }, [user]);
+  interface Realtor {
+    id: string;
+    name: string;
+    creci: string | null;
+    is_active: boolean;
+    avatar_url: string | null;
+  }
 
-  const fetchRealtors = async () => {
+  const fetchRealtors = useCallback(async () => {
     try {
       const { data: brokerData } = await supabase
         .from('brokers')
@@ -49,13 +54,19 @@ const AddPropertyDialog = ({ onPropertyAdded }: AddPropertyDialogProps) => {
     } catch (error) {
       console.error('Error fetching realtors:', error);
     }
-  };
+  }, [user?.id]);
+
+  useEffect(() => {
+    if (user) {
+      fetchRealtors();
+    }
+  }, [user, fetchRealtors]);
   const [open, setOpen] = useState(false);
   const [loading, setSaving] = useState(false);
   const [selectedImages, setSelectedImages] = useState<File[]>([]);
   const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [currentImageUrl, setCurrentImageUrl] = useState('');
-  const [realtors, setRealtors] = useState<any[]>([]);
+  const [realtors, setRealtors] = useState<Realtor[]>([]);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -73,30 +84,6 @@ const AddPropertyDialog = ({ onPropertyAdded }: AddPropertyDialogProps) => {
     features: [] as string[],
     property_code: '',
     realtor_id: '',
-    // Novos campos - Informações gerais
-    hoa_fee: '',
-    hoa_periodicity: 'monthly',
-    iptu_value: '',
-    iptu_periodicity: 'annual',
-    built_year: '',
-    suites: '',
-    private_area_m2: '',
-    total_area_m2: '',
-    covered_parking_spaces: '',
-    floor_number: '',
-    total_floors: '',
-    sunlight_orientation: '',
-    property_condition: '',
-    water_cost: '',
-    electricity_cost: '',
-    furnished: false,
-    accepts_pets: false,
-    elevator: false,
-    portaria_24h: false,
-    gas_included: false,
-    accessibility: false,
-    heating_type: '',
-    notes: '',
   });
 
   const { groups: propertyTypes, valueToId } = usePropertyTypes();
@@ -106,11 +93,7 @@ const AddPropertyDialog = ({ onPropertyAdded }: AddPropertyDialogProps) => {
     { value: 'rent', label: 'Aluguel' },
   ];
 
-  const periodicities = [
-    { value: 'monthly', label: 'Mensal' },
-    { value: 'annual', label: 'Anual' },
-    { value: 'other', label: 'Outro' },
-  ];
+  // periodicidades removidas com a retirada das informações gerais
 
   const commonFeatures = [
     'Garagem', 'Piscina', 'Elevador', 'Portaria 24h', 'Área de lazer',
@@ -219,7 +202,7 @@ const AddPropertyDialog = ({ onPropertyAdded }: AddPropertyDialogProps) => {
       const allImageUrls = [...uploadedUrls, ...imageUrls];
 
       // Create property
-      const insertPayload: any = {
+      const insertPayload: Database['public']['Tables']['properties']['Insert'] = {
         broker_id: brokerId,
         title: formData.title,
         description: formData.description,
@@ -239,39 +222,20 @@ const AddPropertyDialog = ({ onPropertyAdded }: AddPropertyDialogProps) => {
         main_image_url: allImageUrls[0] || null,
         property_code: formData.property_code,
         realtor_id: formData.realtor_id || null,
-        // Novos campos - Informações gerais
-        hoa_fee: formData.hoa_fee ? parseFloat(formData.hoa_fee) : null,
-        hoa_periodicity: formData.hoa_periodicity || null,
-        iptu_value: formData.iptu_value ? parseFloat(formData.iptu_value) : null,
-        iptu_periodicity: formData.iptu_periodicity || null,
-        built_year: formData.built_year ? parseInt(formData.built_year) : null,
-        suites: formData.suites ? parseInt(formData.suites) : null,
-        private_area_m2: formData.private_area_m2 ? parseFloat(formData.private_area_m2) : null,
-        total_area_m2: formData.total_area_m2 ? parseFloat(formData.total_area_m2) : null,
-        covered_parking_spaces: formData.covered_parking_spaces ? parseInt(formData.covered_parking_spaces) : null,
-        floor_number: formData.floor_number ? parseInt(formData.floor_number) : null,
-        total_floors: formData.total_floors ? parseInt(formData.total_floors) : null,
-        sunlight_orientation: formData.sunlight_orientation || null,
-        property_condition: formData.property_condition || null,
-        water_cost: formData.water_cost ? parseFloat(formData.water_cost) : null,
-        electricity_cost: formData.electricity_cost ? parseFloat(formData.electricity_cost) : null,
-        furnished: formData.furnished,
-        accepts_pets: formData.accepts_pets,
-        elevator: formData.elevator,
-        portaria_24h: formData.portaria_24h,
-        gas_included: formData.gas_included,
-        accessibility: formData.accessibility,
-        heating_type: formData.heating_type || null,
-        notes: formData.notes || null,
+    // mínimos obrigatórios adicionais
+        city: null,
+        is_active: true,
+  slug: toSlug(formData.title),
+    // Informações gerais removidas do formulário
       };
 
       // If DB taxonomy available, include foreign key id
-      const mappedId = valueToId.get(formData.property_type);
-      if (mappedId) insertPayload.property_type_id = mappedId;
+    const mappedId = valueToId.get(formData.property_type);
+    if (mappedId) insertPayload.property_type_id = mappedId;
 
       const { error } = await supabase
         .from('properties')
-        .insert(insertPayload as any);
+        .insert(insertPayload);
 
       if (error) throw error;
 
@@ -298,29 +262,6 @@ const AddPropertyDialog = ({ onPropertyAdded }: AddPropertyDialogProps) => {
         features: [],
         property_code: '',
         realtor_id: '',
-        hoa_fee: '',
-        hoa_periodicity: 'monthly',
-        iptu_value: '',
-        iptu_periodicity: 'annual',
-        built_year: '',
-        suites: '',
-        private_area_m2: '',
-        total_area_m2: '',
-        covered_parking_spaces: '',
-        floor_number: '',
-        total_floors: '',
-        sunlight_orientation: '',
-        property_condition: '',
-        water_cost: '',
-        electricity_cost: '',
-        furnished: false,
-        accepts_pets: false,
-        elevator: false,
-        portaria_24h: false,
-        gas_included: false,
-        accessibility: false,
-        heating_type: '',
-        notes: '',
       });
       setSelectedImages([]);
       setImageUrls([]);
@@ -328,10 +269,10 @@ const AddPropertyDialog = ({ onPropertyAdded }: AddPropertyDialogProps) => {
       setOpen(false);
       onPropertyAdded();
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: "Erro ao adicionar imóvel",
-        description: error.message,
+        description: getErrorMessage(error),
         variant: "destructive"
       });
     } finally {
@@ -534,268 +475,7 @@ const AddPropertyDialog = ({ onPropertyAdded }: AddPropertyDialogProps) => {
             </div>
           </div>
 
-          {/* Informações gerais */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Informações gerais</h3>
-            {/* Condomínio/HOA e IPTU */}
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="grid gap-2 grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="hoa_fee">Condomínio (R$)</Label>
-                  <Input
-                    id="hoa_fee"
-                    type="number"
-                    value={formData.hoa_fee}
-                    onChange={(e) => handleInputChange('hoa_fee', e.target.value)}
-                    placeholder="450"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Periodicidade</Label>
-                  <Select
-                    value={formData.hoa_periodicity}
-                    onValueChange={(value) => handleInputChange('hoa_periodicity', value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Periodicidade" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {periodicities.map(p => (
-                        <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              <div className="grid gap-2 grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="iptu_value">IPTU (R$)</Label>
-                  <Input
-                    id="iptu_value"
-                    type="number"
-                    value={formData.iptu_value}
-                    onChange={(e) => handleInputChange('iptu_value', e.target.value)}
-                    placeholder="1200"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Periodicidade</Label>
-                  <Select
-                    value={formData.iptu_periodicity}
-                    onValueChange={(value) => handleInputChange('iptu_periodicity', value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Periodicidade" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {periodicities.map(p => (
-                        <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </div>
-
-            {/* Áreas e vagas cobertas */}
-            <div className="grid gap-4 md:grid-cols-4">
-              <div className="space-y-2">
-                <Label htmlFor="private_area_m2">Área útil (m²)</Label>
-                <Input
-                  id="private_area_m2"
-                  type="number"
-                  value={formData.private_area_m2}
-                  onChange={(e) => handleInputChange('private_area_m2', e.target.value)}
-                  placeholder="85"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="total_area_m2">Área total (m²)</Label>
-                <Input
-                  id="total_area_m2"
-                  type="number"
-                  value={formData.total_area_m2}
-                  onChange={(e) => handleInputChange('total_area_m2', e.target.value)}
-                  placeholder="100"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="covered_parking_spaces">Vagas cobertas</Label>
-                <Input
-                  id="covered_parking_spaces"
-                  type="number"
-                  value={formData.covered_parking_spaces}
-                  onChange={(e) => handleInputChange('covered_parking_spaces', e.target.value)}
-                  placeholder="1"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="suites">Suítes</Label>
-                <Input
-                  id="suites"
-                  type="number"
-                  value={formData.suites}
-                  onChange={(e) => handleInputChange('suites', e.target.value)}
-                  placeholder="1"
-                />
-              </div>
-            </div>
-
-            {/* Andar, total de andares e ano */}
-            <div className="grid gap-4 md:grid-cols-3">
-              <div className="space-y-2">
-                <Label htmlFor="floor_number">Andar</Label>
-                <Input
-                  id="floor_number"
-                  type="number"
-                  value={formData.floor_number}
-                  onChange={(e) => handleInputChange('floor_number', e.target.value)}
-                  placeholder="5"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="total_floors">Total de andares</Label>
-                <Input
-                  id="total_floors"
-                  type="number"
-                  value={formData.total_floors}
-                  onChange={(e) => handleInputChange('total_floors', e.target.value)}
-                  placeholder="12"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="built_year">Ano de construção</Label>
-                <Input
-                  id="built_year"
-                  type="number"
-                  value={formData.built_year}
-                  onChange={(e) => handleInputChange('built_year', e.target.value)}
-                  placeholder="2015"
-                />
-              </div>
-            </div>
-
-            {/* Face do sol e condição */}
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="sunlight_orientation">Face do sol</Label>
-                <Input
-                  id="sunlight_orientation"
-                  value={formData.sunlight_orientation}
-                  onChange={(e) => handleInputChange('sunlight_orientation', e.target.value)}
-                  placeholder="Norte, Sul, Leste, Oeste..."
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="property_condition">Condição do imóvel</Label>
-                <Input
-                  id="property_condition"
-                  value={formData.property_condition}
-                  onChange={(e) => handleInputChange('property_condition', e.target.value)}
-                  placeholder="Novo, Usado, Reformado..."
-                />
-              </div>
-            </div>
-
-            {/* Custos utilidades */}
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="water_cost">Água (R$)</Label>
-                <Input
-                  id="water_cost"
-                  type="number"
-                  value={formData.water_cost}
-                  onChange={(e) => handleInputChange('water_cost', e.target.value)}
-                  placeholder="100"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="electricity_cost">Luz (R$)</Label>
-                <Input
-                  id="electricity_cost"
-                  type="number"
-                  value={formData.electricity_cost}
-                  onChange={(e) => handleInputChange('electricity_cost', e.target.value)}
-                  placeholder="180"
-                />
-              </div>
-            </div>
-
-            {/* Switches */}
-            <div className="grid gap-4 md:grid-cols-3">
-              <div className="flex items-center space-x-2">
-                <Switch
-                  id="furnished"
-                  checked={formData.furnished}
-                  onCheckedChange={(checked) => handleInputChange('furnished', checked)}
-                />
-                <Label htmlFor="furnished">Mobiliado</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Switch
-                  id="accepts_pets"
-                  checked={formData.accepts_pets}
-                  onCheckedChange={(checked) => handleInputChange('accepts_pets', checked)}
-                />
-                <Label htmlFor="accepts_pets">Aceita pets</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Switch
-                  id="elevator"
-                  checked={formData.elevator}
-                  onCheckedChange={(checked) => handleInputChange('elevator', checked)}
-                />
-                <Label htmlFor="elevator">Elevador</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Switch
-                  id="portaria_24h"
-                  checked={formData.portaria_24h}
-                  onCheckedChange={(checked) => handleInputChange('portaria_24h', checked)}
-                />
-                <Label htmlFor="portaria_24h">Portaria 24h</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Switch
-                  id="gas_included"
-                  checked={formData.gas_included}
-                  onCheckedChange={(checked) => handleInputChange('gas_included', checked)}
-                />
-                <Label htmlFor="gas_included">Gás encanado incluso</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Switch
-                  id="accessibility"
-                  checked={formData.accessibility}
-                  onCheckedChange={(checked) => handleInputChange('accessibility', checked)}
-                />
-                <Label htmlFor="accessibility">Acessibilidade</Label>
-              </div>
-            </div>
-
-            {/* Aquecimento e observações */}
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="heating_type">Tipo de aquecimento</Label>
-                <Input
-                  id="heating_type"
-                  value={formData.heating_type}
-                  onChange={(e) => handleInputChange('heating_type', e.target.value)}
-                  placeholder="Elétrico, Gás..."
-                />
-              </div>
-              <div className="space-y-2 md:col-span-2">
-                <Label htmlFor="notes">Observações</Label>
-                <Textarea
-                  id="notes"
-                  value={formData.notes}
-                  onChange={(e) => handleInputChange('notes', e.target.value)}
-                  placeholder="Informações adicionais relevantes..."
-                  rows={3}
-                />
-              </div>
-            </div>
-          </div>
+          {/* Informações gerais removidas */}
 
           {/* Description */}
           <div className="space-y-2">

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { getErrorMessage } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { PROPERTY_TYPE_GROUPS, PropertyTypeGroup } from '@/components/properties/property-types';
 
@@ -34,8 +35,8 @@ export function usePropertyTypes() {
         if (error) throw error;
 
         if (!cancelled) setTypes(data || []);
-      } catch (e: any) {
-        if (!cancelled) setError(e.message || 'Erro ao carregar tipos');
+      } catch (e: unknown) {
+        if (!cancelled) setError(getErrorMessage(e));
       } finally {
         if (!cancelled) setLoading(false);
       }

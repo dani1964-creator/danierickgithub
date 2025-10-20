@@ -1,6 +1,8 @@
-// @ts-nocheck
+// @ts-expect-error - tipos remotos não resolvidos pelo linter local
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+// @ts-expect-error - tipos remotos não resolvidos pelo linter local
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.57.4';
+declare const Deno: { env: { get(key: string): string | undefined } };
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -21,7 +23,7 @@ function xmlEscape(str: string) {
   }[c] as string));
 }
 
-serve(async (req) => {
+serve(async (req: Request) => {
   try {
     if (req.method === 'OPTIONS') {
       return new Response(null, { headers: corsHeaders });

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Plus, Edit, Trash2, ArrowUp, ArrowDown, Facebook, Instagram, Youtube, Linkedin, Twitter, Globe } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -11,6 +11,7 @@ import { Switch } from '@/components/ui/switch';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
+import { getErrorMessage } from '@/lib/utils';
 
 interface SocialLink {
   id: string;
@@ -43,13 +44,7 @@ const SocialLinksManager = () => {
     is_active: true,
   });
 
-  useEffect(() => {
-    if (user) {
-      fetchSocialLinks();
-    }
-  }, [user]);
-
-  const fetchSocialLinks = async () => {
+  const fetchSocialLinks = useCallback(async () => {
     try {
       const { data: brokerData } = await supabase
         .from('brokers')
@@ -67,16 +62,22 @@ const SocialLinksManager = () => {
 
       if (error) throw error;
       setSocialLinks(data || []);
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: "Erro ao carregar redes sociais",
-        description: error.message,
+        description: getErrorMessage(error),
         variant: "destructive"
       });
     } finally {
       setLoading(false);
     }
-  };
+  }, [toast, user?.id]);
+
+  useEffect(() => {
+    if (user) {
+      fetchSocialLinks();
+    }
+  }, [user, fetchSocialLinks]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -119,10 +120,10 @@ const SocialLinksManager = () => {
       resetForm();
       setOpen(false);
       fetchSocialLinks();
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: "Erro ao salvar link",
-        description: error.message,
+        description: getErrorMessage(error),
         variant: "destructive"
       });
     } finally {
@@ -140,10 +141,10 @@ const SocialLinksManager = () => {
       if (error) throw error;
       toast({ title: "Link excluído com sucesso!" });
       fetchSocialLinks();
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: "Erro ao excluir link",
-        description: error.message,
+        description: getErrorMessage(error),
         variant: "destructive"
       });
     }
@@ -158,10 +159,10 @@ const SocialLinksManager = () => {
 
       if (error) throw error;
       fetchSocialLinks();
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: "Erro ao reordenar link",
-        description: error.message,
+        description: getErrorMessage(error),
         variant: "destructive"
       });
     }

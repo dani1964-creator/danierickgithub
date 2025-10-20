@@ -5,6 +5,9 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { SwipeableCarousel } from '@/components/ui/swipeable-carousel';
+import { setPrefetchedDetail } from '@/lib/detail-prefetch';
+import { supabase } from '@/integrations/supabase/client';
+import { useDomainAware } from '@/hooks/useDomainAware';
 
 
 interface PropertyCardProps {
@@ -39,7 +42,27 @@ interface PropertyCardProps {
     whatsapp_button_color: string | null;
   } | null;
   onContactLead: (propertyId: string) => void;
-  onShare: (property: any) => void;
+  onShare: (property: {
+    id: string;
+    title: string;
+    price: number;
+    property_type: string;
+    transaction_type: string;
+    address: string;
+    neighborhood: string;
+    uf: string;
+    bedrooms: number;
+    bathrooms: number;
+    area_m2: number;
+    parking_spaces: number;
+    is_featured: boolean;
+    views_count: number;
+    main_image_url: string;
+    images: string[];
+    features: string[];
+    property_code?: string;
+    slug?: string;
+  }) => void;
   onFavorite: (propertyId: string) => void;
   isFavorited: (propertyId: string) => boolean;
   onImageClick: (images: string[], index: number, title: string) => void;
@@ -57,6 +80,7 @@ const PropertyCard = ({
 }: PropertyCardProps) => {
   const navigate = useNavigate();
   const { slug } = useParams();
+  const { isCustomDomain, getBrokerByDomainOrSlug } = useDomainAware();
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('pt-BR', {
@@ -72,8 +96,46 @@ const PropertyCard = ({
       ? [property.main_image_url] 
       : [];
 
-  const handleViewDetails = () => {
-    navigate(`/${slug}/${property.slug || property.id}`);
+  const prefetchDetail = async () => {
+    try {
+      // Determina o slug efetivo do corretor
+      let effectiveSlug = slug as string | undefined;
+      if (isCustomDomain() || !effectiveSlug) {
+        const broker = await getBrokerByDomainOrSlug(undefined);
+        effectiveSlug = (broker as unknown as { website_slug?: string })?.website_slug || effectiveSlug;
+      }
+      const propertySlug = property.slug || property.id;
+      if (!effectiveSlug || !propertySlug) return;
+      // Busca RPCs em paralelo
+      const [propertyResult, brokerResult] = await Promise.all([
+        supabase.rpc('get_public_property_detail_with_realtor', {
+          broker_slug: effectiveSlug,
+          property_slug: propertySlug,
+        }),
+        supabase.rpc('get_public_broker_branding', { broker_website_slug: effectiveSlug }),
+      ]);
+      const { data: propertyArr } = propertyResult;
+      const { data: brokerArr } = brokerResult;
+      if (propertyArr && propertyArr[0] && brokerArr && brokerArr[0]) {
+        setPrefetchedDetail(effectiveSlug, propertySlug, {
+          property: propertyArr[0],
+          brokerProfile: brokerArr[0],
+        });
+      }
+    } catch (e) {
+      // ignora erros de prefetch
+    }
+  };
+
+  const handleViewDetails = async () => {
+    // Dispara prefetch e navega em seguida
+    prefetchDetail();
+    const propertySlug = property.slug || property.id;
+    if (isCustomDomain()) {
+      navigate(`/${propertySlug}`);
+    } else {
+      navigate(`/${slug}/${propertySlug}`);
+    }
   };
 
   return (
@@ -237,6 +299,8 @@ const PropertyCard = ({
               e.stopPropagation();
               handleViewDetails();
             }}
+            onMouseEnter={prefetchDetail}
+            onFocus={prefetchDetail}
             style={{ 
               backgroundColor: brokerProfile?.primary_color || 'var(--color-primary)',
               borderColor: brokerProfile?.primary_color || 'var(--color-primary)',

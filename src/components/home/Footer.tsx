@@ -5,10 +5,17 @@ import instagramIcon from '@/assets/icons/instagram-icon.png';
 import facebookIcon from '@/assets/icons/facebook-icon.png';
 import websiteIcon from '@/assets/icons/website-icon.png';
 import type { BrokerProfile, BrokerContact } from '@/types/broker';
+import { useCallback } from 'react';
+
+type SocialLink = {
+  id: string | number;
+  platform: string;
+  url: string;
+};
 
 interface FooterProps {
   brokerProfile: BrokerProfile | null;
-  socialLinks?: any[];
+  socialLinks?: SocialLink[];
   onContactRequest: () => Promise<BrokerContact | null>;
 }
 
@@ -18,18 +25,18 @@ const Footer = ({ brokerProfile, socialLinks = [], onContactRequest }: FooterPro
   const navigate = useNavigate();
 
   // Function to request contact information when needed
-  const handleContactRequest = async () => {
+  const handleContactRequest = useCallback(async () => {
     if (!contactRequested && !contactInfo) {
       setContactRequested(true);
       const contact = await onContactRequest();
       setContactInfo(contact);
     }
-  };
+  }, [contactRequested, contactInfo, onContactRequest]);
 
   // Load contact info when footer is displayed
   useEffect(() => {
     handleContactRequest();
-  }, []);
+  }, [handleContactRequest]);
 
   // Mapear ícones personalizados para as plataformas
   const getIconForPlatform = (platform: string) => {

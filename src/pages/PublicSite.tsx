@@ -1,5 +1,5 @@
 import type { BrokerProfile, BrokerContact } from '@/types/broker';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { supabase } from '@/integrations/supabase/client';
@@ -24,6 +24,7 @@ import { useDomainAware } from '@/hooks/useDomainAware';
 import { SEODebugPanel } from '@/components/debug/SEODebugPanel';
 import { getCanonicalBase, applyTemplate } from '@/lib/seo';
 import { usePropertyTypes } from '@/hooks/usePropertyTypes';
+import { getErrorMessage } from '@/lib/utils';
 
 
 interface Property {
@@ -55,7 +56,24 @@ interface Property {
 
 const PublicSite = () => {
   // Função para buscar contato do corretor
-  const fetchContactInfo = async () => {
+  const [properties, setProperties] = useState<Property[]>([]);
+  const [brokerProfile, setBrokerProfile] = useState<BrokerProfile | null>(null);
+  const [brokerContact, setBrokerContact] = useState<BrokerContact | null>(null);
+  interface SocialLink { id: string; platform: string; url: string; icon_url?: string | null; display_order?: number | null; is_active?: boolean; }
+  const [socialLinks, setSocialLinks] = useState<SocialLink[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [favorites, setFavorites] = useState<string[]>([]);
+  const [lightboxImages, setLightboxImages] = useState<string[]>([]);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [lightboxTitle, setLightboxTitle] = useState('');
+  const [showWelcomeModal, setShowWelcomeModal] = useState(false);
+
+  // Colocar slug/toast cedo para serem capturados nos callbacks abaixo
+  const { slug, propertySlug } = useParams();
+  const { toast } = useToast();
+
+  const fetchContactInfo = useCallback(async () => {
     try {
       console.log('Fetching contact info for:', brokerProfile?.website_slug);
       const { data, error } = await supabase.rpc('get_public_broker_contact', {
@@ -73,11 +91,11 @@ const PublicSite = () => {
         return contactInfo;
       }
       return null;
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error fetching contact info:', error);
       return null;
     }
-  };
+  }, [brokerProfile?.website_slug]);
 
   // Função para contato de lead
   const handleContactLead = async (propertyId: string) => {
@@ -89,7 +107,7 @@ const PublicSite = () => {
   };
 
   // Função para compartilhar imóvel
-  const handleShare = (property: Property) => {
+  const handleShare = useCallback((property: Property) => {
     if (!brokerProfile) return;
     // Compartilhar usando URL direta baseada no slug do corretor e do imóvel
     const brokerSlug = brokerProfile.website_slug;
@@ -112,10 +130,10 @@ const PublicSite = () => {
         });
       }
     }
-  };
+  }, [brokerProfile, toast]);
 
   // Função para favoritar imóvel
-  const handleFavorite = (propertyId: string) => {
+  const handleFavorite = useCallback((propertyId: string) => {
     const newFavorites = favorites.includes(propertyId)
       ? favorites.filter(id => id !== propertyId)
       : [...favorites, propertyId];
@@ -127,21 +145,21 @@ const PublicSite = () => {
         ? "O imóvel foi removido da sua lista de favoritos."
         : "O imóvel foi adicionado à sua lista de favoritos."
     });
-  };
+  }, [favorites, toast]);
 
   // Função para checar se imóvel está favoritado
   const isFavorited = (propertyId: string) => favorites.includes(propertyId);
 
   // Função para abrir galeria de imagens
-  const handleImageClick = (images: string[], index: number, title: string) => {
+  const handleImageClick = useCallback((images: string[], index: number, title: string) => {
     setLightboxImages(images);
     setLightboxIndex(index);
     setLightboxTitle(title);
     setLightboxOpen(true);
-  };
+  }, []);
 
   // Função para sucesso no modal de boas-vindas
-  const handleWelcomeModalSuccess = () => {
+  const handleWelcomeModalSuccess = useCallback(() => {
     setShowWelcomeModal(false);
     if (slug) {
       localStorage.setItem(`lead-submitted-${slug}`, 'true');
@@ -150,21 +168,8 @@ const PublicSite = () => {
       title: "Cadastro realizado!",
       description: "Entraremos em contato em breve.",
     });
-  };
-  const { slug, propertySlug } = useParams();
-  const { toast } = useToast();
+  }, [slug, toast]);
   const { getBrokerByDomainOrSlug, getPropertiesByDomainOrSlug, isCustomDomain } = useDomainAware();
-  const [properties, setProperties] = useState<Property[]>([]);
-  const [brokerProfile, setBrokerProfile] = useState<BrokerProfile | null>(null);
-  const [brokerContact, setBrokerContact] = useState<BrokerContact | null>(null);
-  const [socialLinks, setSocialLinks] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [favorites, setFavorites] = useState<string[]>([]);
-  const [lightboxImages, setLightboxImages] = useState<string[]>([]);
-  const [lightboxIndex, setLightboxIndex] = useState(0);
-  const [lightboxOpen, setLightboxOpen] = useState(false);
-  const [lightboxTitle, setLightboxTitle] = useState('');
-  const [showWelcomeModal, setShowWelcomeModal] = useState(false);
 
   const {
     searchTerm,
@@ -184,13 +189,51 @@ const PublicSite = () => {
     if (l.includes('comerciais')) return 1; // "Comerciais / Empresariais"
     return 10; // demais grupos
   };
-  const sortedTypeGroups = (typeGroups || []).slice().sort((a, b) => {
-    const ra = rankGroup(a.label);
-    const rb = rankGroup(b.label);
-    if (ra !== rb) return ra - rb;
-    return a.label.localeCompare(b.label, 'pt-BR', { sensitivity: 'base' });
-  });
-  const propertyTypeOptions = sortedTypeGroups.flatMap((g) => g.options.map(o => ({ value: o.value, label: o.label })));
+  const sortedTypeGroups = useMemo(() => {
+    return (typeGroups || []).slice().sort((a, b) => {
+      const ra = rankGroup(a.label);
+      const rb = rankGroup(b.label);
+      if (ra !== rb) return ra - rb;
+      return a.label.localeCompare(b.label, 'pt-BR', { sensitivity: 'base' });
+    });
+  }, [typeGroups]);
+  const propertyTypeOptions = useMemo(() => sortedTypeGroups.flatMap((g) => g.options.map(o => ({ value: o.value, label: o.label }))), [sortedTypeGroups]);
+
+  const fetchBrokerData = useCallback(async () => {
+    try {
+      const effectiveSlug = isCustomDomain() ? undefined : slug;
+      console.log('Fetching broker data - Custom domain:', isCustomDomain(), 'Slug:', effectiveSlug);
+      const brokerData = await getBrokerByDomainOrSlug(effectiveSlug);
+      console.log('Broker data from domain-aware hook:', brokerData);
+      if (!brokerData) {
+        console.log('No broker found for slug/domain:', effectiveSlug);
+        setBrokerProfile(null);
+        return;
+      }
+      // Converte brokerData para BrokerProfile (Row) com cast via unknown para evitar conflito de tipos gerados
+      setBrokerProfile(brokerData as unknown as BrokerProfile);
+      const propertiesData = await getPropertiesByDomainOrSlug(effectiveSlug, 50, 0);
+      setProperties(propertiesData || []);
+      const { data: socialLinksData, error: socialError } = await supabase
+        .from('social_links')
+        .select('*')
+        .eq('broker_id', brokerData.id)
+        .eq('is_active', true)
+        .order('display_order');
+      if (!socialError) {
+        setSocialLinks((socialLinksData || []) as SocialLink[]);
+      }
+    } catch (error: unknown) {
+      console.error('Error fetching data:', error);
+      toast({
+        title: 'Erro ao carregar dados',
+        description: getErrorMessage(error),
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
+  }, [getBrokerByDomainOrSlug, getPropertiesByDomainOrSlug, isCustomDomain, slug, toast]);
 
   useEffect(() => {
     fetchBrokerData();
@@ -213,7 +256,7 @@ const PublicSite = () => {
         }, 2000);
       }
     }
-  }, [slug]);
+  }, [slug, fetchBrokerData, isCustomDomain]);
 
   // Fetch contact info when broker profile is loaded
   useEffect(() => {
@@ -221,44 +264,10 @@ const PublicSite = () => {
       console.log('Broker profile loaded, fetching contact info...');
       fetchContactInfo();
     }
-  }, [brokerProfile]);
+  }, [brokerProfile?.website_slug, fetchContactInfo]);
 
 
-  const fetchBrokerData = async () => {
-    try {
-      const effectiveSlug = isCustomDomain() ? undefined : slug;
-      console.log('Fetching broker data - Custom domain:', isCustomDomain(), 'Slug:', effectiveSlug);
-      const brokerData = await getBrokerByDomainOrSlug(effectiveSlug);
-      console.log('Broker data from domain-aware hook:', brokerData);
-      if (!brokerData) {
-        console.log('No broker found for slug/domain:', effectiveSlug);
-        setBrokerProfile(null);
-        return;
-      }
-  // Converte brokerData para BrokerProfile (Row) com cast via unknown para evitar conflito de tipos gerados
-  setBrokerProfile(brokerData as unknown as BrokerProfile);
-      const propertiesData = await getPropertiesByDomainOrSlug(effectiveSlug, 50, 0);
-      setProperties(propertiesData || []);
-      const { data: socialLinksData, error: socialError } = await supabase
-        .from('social_links')
-        .select('*')
-        .eq('broker_id', brokerData.id)
-        .eq('is_active', true)
-        .order('display_order');
-      if (!socialError) {
-        setSocialLinks(socialLinksData || []);
-      }
-    } catch (error: any) {
-      console.error('Error fetching data:', error);
-      toast({
-        title: 'Erro ao carregar dados',
-        description: error.message || 'Erro desconhecido ao carregar os dados',
-        variant: 'destructive',
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+  // removed duplicate fetchBrokerData
 
   // duplicatas removidas (definições acima já existem)
 
@@ -296,7 +305,7 @@ const PublicSite = () => {
         
         <title>
           {applyTemplate(
-            (brokerProfile as any)?.home_title_template,
+            (brokerProfile as unknown as { home_title_template?: string })?.home_title_template,
             {
               business_name: brokerProfile?.business_name || 'Imobiliária',
               properties_count: String(properties?.length || 0)
@@ -307,7 +316,7 @@ const PublicSite = () => {
           name="description" 
           content={
             applyTemplate(
-              (brokerProfile as any)?.home_description_template,
+              (brokerProfile as unknown as { home_description_template?: string })?.home_description_template,
               {
                 business_name: brokerProfile?.business_name || 'Imobiliária',
                 properties_count: String(properties?.length || 0)
@@ -396,7 +405,7 @@ const PublicSite = () => {
         
         {/* Canonical URL */}
         <link rel="canonical" href={getCanonicalBase(brokerProfile, window.location.origin)} />
-  <meta name="robots" content={`${((brokerProfile as any)?.robots_index ?? true) ? 'index' : 'noindex'}, ${((brokerProfile as any)?.robots_follow ?? true) ? 'follow' : 'nofollow'}`} />
+  <meta name="robots" content={`${((brokerProfile as unknown as { robots_index?: boolean })?.robots_index ?? true) ? 'index' : 'noindex'}, ${((brokerProfile as unknown as { robots_follow?: boolean })?.robots_follow ?? true) ? 'follow' : 'nofollow'}`} />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
         {/* JSON-LD Structured Data: Organization/RealEstateAgent */}

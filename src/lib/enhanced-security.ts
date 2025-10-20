@@ -1,14 +1,14 @@
 import { supabase } from "@/integrations/supabase/client";
 import { SecurityMonitor } from "./security-monitor";
 
-interface ContactAccessResult {
+export interface ContactAccessResult {
   whatsapp_number: string | null;
   contact_email: string | null;
   creci: string | null;
   access_allowed: boolean;
 }
 
-interface PublicProperty {
+export interface PublicProperty {
   id: string;
   title: string;
   description: string;
@@ -270,7 +270,7 @@ export class EnhancedSecurity {
    */
   static async secureFormSubmit<T>(
     formType: string,
-    formData: Record<string, any>,
+    formData: Record<string, unknown>,
     submitFunction: () => Promise<T>
   ): Promise<{ success: boolean; data?: T; error?: string }> {
     try {

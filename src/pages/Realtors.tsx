@@ -55,12 +55,15 @@ const Realtors = () => {
     whatsapp_button_text: 'Tire suas dúvidas!'
   });
 
-  const fetchBrokerInfo = useCallback(async () => {
+  const fetchBrokerInfo = useCallback(async (currentUser?: typeof user) => {
+    const userToUse = currentUser || user;
+    if (!userToUse?.id) return;
+    
     try {
       const { data, error } = await supabase
         .from('brokers')
         .select('id, business_name')
-        .eq('user_id', user?.id)
+        .eq('user_id', userToUse.id)
         .single();
 
       if (error) throw error;
@@ -68,7 +71,7 @@ const Realtors = () => {
     } catch (error: unknown) {
       console.error('Error fetching broker info:', error);
     }
-  }, [user?.id]);
+  }, []); // Removido dependências desnecessárias
 
   const fetchRealtors = useCallback(async () => {
     try {
@@ -89,14 +92,14 @@ const Realtors = () => {
     } finally {
       setLoading(false);
     }
-  }, [toast]);
+  }, []); // Removido dependências desnecessárias
 
   useEffect(() => {
     if (user) {
-      fetchBrokerInfo();
+      fetchBrokerInfo(user);
       fetchRealtors();
     }
-  }, [user, fetchBrokerInfo, fetchRealtors]);
+  }, [user]); // Precisa depender do user para executar quando ele estiver disponível
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

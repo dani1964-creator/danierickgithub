@@ -25,17 +25,19 @@ export default {
 				headline: ['Inter', 'ui-sans-serif', 'system-ui'],
 			},
 			fontSize: {
-				sm: ['13px', '20px'],
-				base: ['15px', '24px'],
-				lg: ['18px', '28px'],
-				xl: ['20px', '30px'],
-				'2xl': ['24px', '34px'],
-				'3xl': ['30px', '40px'],
+				xs: ['0.75rem', { lineHeight: '1rem' }],
+				sm: ['0.875rem', { lineHeight: '1.25rem' }],
+				base: ['0.9375rem', { lineHeight: '1.5rem' }],
+				lg: ['1.125rem', { lineHeight: '1.75rem' }],
+				xl: ['1.25rem', { lineHeight: '1.75rem' }],
+				'2xl': ['1.5rem', { lineHeight: '2rem' }],
+				'3xl': ['1.875rem', { lineHeight: '2.25rem' }],
+				'4xl': ['2.25rem', { lineHeight: '2.5rem' }],
 			},
 			boxShadow: {
-				'soft-1': '0 6px 18px rgba(16,24,40,0.06)',
-				'soft-2': '0 10px 30px rgba(16,24,40,0.08)',
-				'soft-3': '0 20px 40px rgba(16,24,40,0.10)'
+				'soft-1': '0 1px 3px rgba(16,24,40,0.04)',
+				'soft-2': '0 4px 6px rgba(16,24,40,0.05)',
+				'soft-3': '0 10px 15px rgba(16,24,40,0.06)'
 			},
 			colors: {
 				border: 'hsl(var(--border))',
@@ -80,6 +82,30 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				luxury: {
+					50: '#fafafa',
+					100: '#f5f5f5',
+					200: '#e5e5e5',
+					300: '#d4d4d4',
+					400: '#a3a3a3',
+					500: '#737373',
+					600: '#525252',
+					700: '#404040',
+					800: '#262626',
+					900: '#171717',
+				},
+				slate: {
+					50: '#f8fafc',
+					100: '#f1f5f9',
+					200: '#e2e8f0',
+					300: '#cbd5e1',
+					400: '#94a3b8',
+					500: '#64748b',
+					600: '#475569',
+					700: '#334155',
+					800: '#1e293b',
+					900: '#0f172a',
 				}
 			},
 			borderRadius: {

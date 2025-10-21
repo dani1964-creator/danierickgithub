@@ -35,9 +35,9 @@ const MobileRealtorCard = ({ property, brokerProfile, onWhatsAppClick }: MobileR
   }
 
   return (
-    <Card className="bg-white shadow-sm border border-gray-200 rounded-lg">
+    <Card className="bg-background dark:bg-card shadow-sm border border-gray-200 dark:border-border rounded-lg">
       <CardContent className="p-4">
-        <h3 className="text-base font-semibold mb-3 text-gray-900">Corretor</h3>
+        <h3 className="text-base font-semibold mb-3 text-foreground">Corretor</h3>
         
         {/* Informações do Corretor */}
         <div className="flex items-center space-x-3 mb-4">
@@ -56,10 +56,10 @@ const MobileRealtorCard = ({ property, brokerProfile, onWhatsAppClick }: MobileR
             </div>
           )}
           <div className="flex-1 min-w-0">
-            <p className="font-semibold text-gray-900 text-sm">
+            <p className="font-semibold text-foreground text-sm">
               {property.realtor_name}
             </p>
-            <p className="text-xs text-gray-600">
+            <p className="text-xs text-muted-foreground">
               Corretor {property.realtor_creci && `• CRECI ${property.realtor_creci}`}
             </p>
           </div>

@@ -22,12 +22,16 @@ const Dashboard = () => {
     isLoading: true
   });
 
-  const fetchBrokerProfile = useCallback(async () => {
+  const fetchBrokerProfile = useCallback(async (currentUser: any) => {
+    if (!currentUser?.id) {
+      return;
+    }
+    
     try {
       const { data, error } = await supabase
         .from('brokers')
         .select('website_slug')
-        .eq('user_id', user?.id)
+        .eq('user_id', currentUser.id)
         .maybeSingle();
 
       if (error) throw error;
@@ -35,19 +39,23 @@ const Dashboard = () => {
     } catch (error: unknown) {
       console.error('Error fetching broker profile:', error);
     }
-  }, [user?.id]);
+  }, []);
 
-  const fetchDashboardData = useCallback(async () => {
-    if (!user?.id) return;
+  const fetchDashboardData = useCallback(async (currentUser: any, shouldSetLoading = true) => {
+    if (!currentUser?.id) {
+      return;
+    }
 
     try {
-      setDashboardData(prev => ({ ...prev, isLoading: true }));
+      if (shouldSetLoading) {
+        setDashboardData(prev => ({ ...prev, isLoading: true }));
+      }
 
       // Get broker ID first
       const { data: brokerData, error: brokerError } = await supabase
         .from('brokers')
         .select('id')
-        .eq('user_id', user.id)
+        .eq('user_id', currentUser.id)
         .maybeSingle();
 
       if (brokerError) throw brokerError;
@@ -107,36 +115,58 @@ const Dashboard = () => {
         variant: "destructive"
       });
     }
-  }, [toast, user?.id]);
+  }, []); // Removido dependências para evitar re-renders constantes
 
   useEffect(() => {
     if (user) {
-      fetchBrokerProfile();
-      fetchDashboardData();
+      fetchBrokerProfile(user);
+      fetchDashboardData(user);
       
-      // Set up real-time subscriptions
+      // Debounce function to prevent excessive refreshes
+      let refreshTimeout: NodeJS.Timeout;
+      const debouncedRefresh = () => {
+        clearTimeout(refreshTimeout);
+        refreshTimeout = setTimeout(() => {
+          fetchDashboardData(user, false); // false = não alterar loading state
+        }, 1500); // 1.5 second debounce
+      };
+      
+      // Set up real-time subscriptions (only specific events)
       const propertiesChannel = supabase
-        .channel('properties-changes')
+        .channel('dashboard-properties-changes')
         .on('postgres_changes', 
-          { event: '*', schema: 'public', table: 'properties' }, 
-          () => fetchDashboardData()
+          { event: 'INSERT', schema: 'public', table: 'properties' }, 
+          debouncedRefresh
+        )
+        .on('postgres_changes', 
+          { event: 'UPDATE', schema: 'public', table: 'properties' }, 
+          debouncedRefresh
+        )
+        .on('postgres_changes', 
+          { event: 'DELETE', schema: 'public', table: 'properties' }, 
+          debouncedRefresh
         )
         .subscribe();
 
       const leadsChannel = supabase
-        .channel('leads-changes')
+        .channel('dashboard-leads-changes')
         .on('postgres_changes', 
-          { event: '*', schema: 'public', table: 'leads' }, 
-          () => fetchDashboardData()
+          { event: 'INSERT', schema: 'public', table: 'leads' }, 
+          debouncedRefresh
+        )
+        .on('postgres_changes', 
+          { event: 'DELETE', schema: 'public', table: 'leads' }, 
+          debouncedRefresh
         )
         .subscribe();
 
       return () => {
+        clearTimeout(refreshTimeout);
         supabase.removeChannel(propertiesChannel);
         supabase.removeChannel(leadsChannel);
       };
     }
-  }, [user, fetchBrokerProfile, fetchDashboardData]);
+  }, [user]); // Precisa depender do user para executar quando ele estiver disponível
 
   if (loading) {
     return (

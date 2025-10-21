@@ -86,7 +86,7 @@ const AboutUs = () => {
 
       <div className="min-h-screen bg-background animate-fade-in">
         {/* Header */}
-        <header className="bg-white shadow-sm border-b">
+        <header className="bg-background dark:bg-card shadow-sm border-b dark:border-border">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
             <div className="flex items-center">
               {brokerProfile?.logo_url ? (

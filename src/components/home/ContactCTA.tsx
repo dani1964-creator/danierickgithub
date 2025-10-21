@@ -95,7 +95,7 @@ const ContactCTA = ({
   return (
     <div className="w-screen relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw]">
       <div 
-        className="py-16 px-4 text-center"
+        className="py-16 md:py-20 px-6 text-center relative overflow-hidden"
         style={{
           backgroundColor: brokerProfile.primary_color || '#2563eb',
           backgroundImage: brokerProfile.background_image_url ? `url(${brokerProfile.background_image_url})` : undefined,
@@ -103,34 +103,41 @@ const ContactCTA = ({
           backgroundPosition: 'center',
         }}
       >
-        {brokerProfile.background_image_url && (
-          <div 
-            className="absolute inset-0"
-            style={{
-              backgroundColor: `${brokerProfile.overlay_color || '#000000'}${Math.round((parseInt(brokerProfile.overlay_opacity || '50') / 100) * 255).toString(16).padStart(2, '0')}`
-            }}
-          />
-        )}
+        {/* Background overlay with gradient */}
+        <div 
+          className="absolute inset-0 bg-black/20"
+          style={{
+            backgroundColor: brokerProfile.background_image_url 
+              ? `${brokerProfile.overlay_color || '#000000'}${Math.round((parseInt(brokerProfile.overlay_opacity || '50') / 100) * 255).toString(16).padStart(2, '0')}`
+              : 'transparent'
+          }}
+        />
         
-        <div className="relative z-10 max-w-4xl mx-auto">
-          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-            Interessado em nossos imóveis?
-          </h2>
-          <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto">
-            Cadastre-se para receber informações exclusivas e ser contatado por nossa equipe especializada.
-          </p>
+        <div className="relative z-10 max-w-3xl mx-auto space-y-6">
+          <div className="space-y-3">
+            <h2 className="text-2xl md:text-3xl font-semibold text-white leading-tight">
+              Interessado em nossos imóveis?
+            </h2>
+            <p className="text-base md:text-lg text-white/90 max-w-2xl mx-auto leading-relaxed">
+              Cadastre-se para receber informações exclusivas e ser contatado por nossa equipe especializada.
+            </p>
+          </div>
           
-          <Button
-            onClick={() => setShowLeadModal(true)}
-            size="lg"
-            className="text-white font-semibold px-8 py-4 text-lg hover:opacity-90 transition-all shadow-lg"
-            style={{ 
-              backgroundColor: brokerProfile.whatsapp_button_color || '#25D366',
-              borderColor: brokerProfile.whatsapp_button_color || '#25D366'
-            }}
-          >
-            {whatsappButtonText}
-          </Button>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center items-center pt-2">
+            <Button
+              onClick={() => setShowLeadModal(true)}
+              variant="outline"
+              className="border-2 border-white bg-background text-foreground hover:bg-accent px-6 py-3 text-base font-medium rounded-lg transition-all duration-200"
+            >
+              Receber Informações
+            </Button>
+          </div>
+          
+          <div className="pt-4">
+            <p className="text-white/70 text-sm">
+              Atendimento especializado • Imóveis exclusivos • Resposta rápida
+            </p>
+          </div>
         </div>
       </div>
 

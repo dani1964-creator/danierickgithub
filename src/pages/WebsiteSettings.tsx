@@ -31,13 +31,16 @@ const WebsiteSettings = () => {
   const [profile, setProfile] = useState<WebsiteProfile | null>(null);
   const [activeTab, setActiveTab] = useState('general');
 
-  const fetchProfile = useCallback(async () => {
+  const fetchProfile = useCallback(async (currentUser?: typeof user) => {
+    const userToUse = currentUser || user;
+    if (!userToUse?.id) return;
+    
     try {
       const { data, error } = await supabase
         .from('brokers')
         // Usamos * para evitar erro quando colunas novas (SEO) ainda não existem no banco
         .select('*')
-        .eq('user_id', user?.id)
+        .eq('user_id', userToUse.id)
         .single();
 
       if (error) throw error;
@@ -79,13 +82,13 @@ const WebsiteSettings = () => {
     } finally {
       setLoading(false);
     }
-  }, [user?.id, toast]);
+  }, []); // Removido dependências para evitar re-renders constantes
 
   useEffect(() => {
     if (user) {
-      fetchProfile();
+      fetchProfile(user);
     }
-  }, [user, fetchProfile]);
+  }, [user]); // Precisa depender do user para executar quando ele estiver disponível
 
   const saveProfile = async () => {
     if (!profile) return;
@@ -595,7 +598,7 @@ const WebsiteSettings = () => {
                     </div>
                   </div>
                   {/* Preview */}
-                  <div className="p-6 rounded-lg border bg-white">
+                  <div className="p-6 rounded-lg border bg-background">
                     <p className="mb-3 text-sm text-muted-foreground">Pré-visualização</p>
                     <div
                       className="rounded-brand shadow-brand p-5 border border-brand"

@@ -51,13 +51,16 @@ const Properties = () => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
-  const fetchProperties = useCallback(async () => {
+  const fetchProperties = useCallback(async (currentUser?: typeof user) => {
+    const userToUse = currentUser || user;
+    if (!userToUse?.id) return;
+    
     try {
       // First, get the broker_id for the current user
       const { data: brokerData, error: brokerError } = await supabase
         .from('brokers')
         .select('id')
-        .eq('user_id', user?.id)
+        .eq('user_id', userToUse.id)
         .single();
 
       if (brokerError) {
@@ -98,13 +101,13 @@ const Properties = () => {
     } finally {
       setLoading(false);
     }
-  }, [user?.id, toast]);
+  }, []); // Removido dependências para evitar re-renders constantes
 
   useEffect(() => {
     if (user) {
-      fetchProperties();
+      fetchProperties(user);
     }
-  }, [user, fetchProperties]);
+  }, [user]);  // Precisa depender do user para executar quando ele estiver disponível
 
   // Sanitize search input to prevent XSS
   const sanitizedSearchTerm = sanitizeInput(searchTerm);

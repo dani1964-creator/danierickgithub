@@ -424,7 +424,7 @@ const PublicSite = () => {
         </script>
       </Helmet>
       
-      <div className="public-site-layout min-h-screen bg-white">
+      <div className="public-site-layout min-h-screen bg-background">
       <TrackingScripts trackingScripts={brokerProfile?.tracking_scripts} />
       <FixedHeader brokerProfile={brokerProfile} />
       <HeroBanner brokerProfile={brokerProfile} />

@@ -111,7 +111,7 @@ const PropertiesGrid = ({
         <div className="content-container">
         <SectionHeader
           title="Todos os Imóveis"
-          subtitle="Encontre o imóvel perfeito para você"
+          subtitle="Explore nossa seleção completa de propriedades"
           className="mb-8"
         />
 

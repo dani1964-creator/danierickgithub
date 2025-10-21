@@ -64,12 +64,14 @@ const Leads = () => {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>(() => (localStorage.getItem('leads_view_mode') as 'grid' | 'list') || 'grid');
 
   const fetchRealtors = useCallback(async () => {
+    if (!user?.id) return;
+    
     try {
       // First, get the broker_id for the current user
       const { data: brokerData, error: brokerError } = await supabase
         .from('brokers')
         .select('id')
-        .eq('user_id', user?.id)
+        .eq('user_id', user.id)
         .single();
 
       if (brokerError) {
@@ -97,13 +99,16 @@ const Leads = () => {
     }
   }, [user?.id]);
 
-  const fetchLeads = useCallback(async () => {
+  const fetchLeads = useCallback(async (currentUser?: typeof user, shouldSetLoading = true) => {
+    const userToUse = currentUser || user;
+    if (!userToUse?.id) return;
+    
     try {
       // First, get the broker_id for the current user to ensure proper filtering
       const { data: brokerData, error: brokerError } = await supabase
         .from('brokers')
         .select('id')
-        .eq('user_id', user?.id)
+        .eq('user_id', userToUse.id)
         .single();
 
       if (brokerError) {
@@ -142,52 +147,73 @@ const Leads = () => {
         variant: "destructive"
       });
     } finally {
-      setLoading(false);
+      if (shouldSetLoading) {
+        setLoading(false);
+      }
     }
-  }, [toast, user?.id]);
+  }, []); // Removido dependências para evitar re-renders constantes
 
   useEffect(() => {
     if (user) {
-      fetchLeads();
+      fetchLeads(user);
       fetchRealtors();
 
-      // Set up real-time subscription for leads
+      // Debounce function to prevent excessive refreshes
+      let refreshTimeout: NodeJS.Timeout;
+      const debouncedRefresh = () => {
+        clearTimeout(refreshTimeout);
+        refreshTimeout = setTimeout(() => {
+          console.log('Leads data changed, refreshing after debounce...');
+          fetchLeads(user, false); // false = não alterar loading state
+        }, 1500); // 1.5 second debounce
+      };
+
+      // Set up real-time subscription for leads (only specific events)
       const channel = supabase
         .channel('leads-real-time')
         .on(
           'postgres_changes',
           {
-            event: '*', // Listen to all events (INSERT, UPDATE, DELETE)
+            event: 'INSERT',
             schema: 'public',
             table: 'leads'
           },
           (payload) => {
-            console.log('Real-time lead update:', payload);
-            
-            if (payload.eventType === 'INSERT') {
-              // Add new lead to the list
-              fetchLeads(); // Refetch to get proper joins
-              toast({
-                title: "Novo lead!",
-                description: "Um novo lead foi recebido.",
-                duration: 3000,
-              });
-            } else if (payload.eventType === 'UPDATE') {
-              // Update existing lead
-              fetchLeads(); // Refetch to get proper joins
-            } else if (payload.eventType === 'DELETE') {
-              // Remove lead from list
-              setLeads(prev => prev.filter(lead => lead.id !== payload.old?.id));
-            }
+            console.log('New lead inserted:', payload);
+            debouncedRefresh();
+            toast({
+              title: "Novo lead!",
+              description: "Um novo lead foi recebido.",
+              duration: 3000,
+            });
           }
+        )
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'leads'
+          },
+          debouncedRefresh
+        )
+        .on(
+          'postgres_changes',
+          {
+            event: 'DELETE',
+            schema: 'public',
+            table: 'leads'
+          },
+          debouncedRefresh
         )
         .subscribe();
 
       return () => {
+        clearTimeout(refreshTimeout);
         supabase.removeChannel(channel);
       };
     }
-  }, [user, fetchLeads, fetchRealtors, toast]);
+  }, [user]); // Precisa depender do user para executar quando ele estiver disponível
 
 
   const updateLeadStatus = async (leadId: string, newStatus: string) => {

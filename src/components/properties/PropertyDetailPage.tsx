@@ -1,7 +1,7 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
-import { ChevronLeft, MapPin, Bed, Bath, Car, Square, Eye, Heart, Share2, MessageCircle, Phone, Mail, X, Play, Maximize2, ArrowLeft, Star, Calendar, Users, Zap } from 'lucide-react';
+import { ChevronLeft, MapPin, Bed, Bath, Car, Square, Eye, Heart, Share2, MessageCircle, Phone, Mail, X, Play, Maximize2, ArrowLeft, Star, Calendar, Users, Zap, Moon, Sun } from 'lucide-react';
 import { ZoomableImage } from '@/components/ui/zoomable-image';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -17,7 +17,6 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { useDomainAware } from '@/hooks/useDomainAware';
 import ContactCTA from '@/components/home/ContactCTA';
 import Footer from '@/components/home/Footer';
-import MobileRealtorCard from './MobileRealtorCard';
 import LeadModal from '@/components/leads/LeadModal';
 import { getErrorMessage } from '@/lib/utils';
 import { getPrefetchedDetail, setPrefetchedDetail } from '@/lib/detail-prefetch';
@@ -81,6 +80,16 @@ const PropertyDetailPage = () => {
   const { slug, propertySlug: propertySlugParam } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
+  
+  // Refs para evitar dependências desnecessárias no useCallback
+  const toastRef = useRef(toast);
+  const navigateRef = useRef(navigate);
+  
+  // Atualizar refs quando funções mudarem
+  useEffect(() => {
+    toastRef.current = toast;
+    navigateRef.current = navigate;
+  }, [toast, navigate]);
   const { trackPropertyView, trackPropertyInterest, trackWhatsAppClick } = useTracking();
   const isMobile = useIsMobile();
   const [property, setProperty] = useState<Property | null>(null);
@@ -89,6 +98,7 @@ const PropertyDetailPage = () => {
   const [socialLinks, setSocialLinks] = useState<Array<{ id: string; platform: string; url: string }>>([]);
   const [similarProperties, setSimilarProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
   const [showLeadModal, setShowLeadModal] = useState(false);
@@ -96,22 +106,72 @@ const PropertyDetailPage = () => {
   const [carouselApi, setCarouselApi] = useState<CarouselApi>();
   const [thumbnailCarouselApi, setThumbnailCarouselApi] = useState<CarouselApi>();
   const [activeTab, setActiveTab] = useState<'Detalhes' | 'Características'>('Detalhes');
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    try {
+      const saved = localStorage.getItem('property-detail-dark-mode');
+      return saved ? JSON.parse(saved) : false;
+    } catch {
+      return false;
+    }
+  });
+  
+  // Aplicar classe dark ao documento quando isDarkMode mudar
+  useEffect(() => {
+    if (isDarkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [isDarkMode]);
   const { getBrokerByDomainOrSlug, isCustomDomain } = useDomainAware();
 
   // Para domínios customizados, a rota é /:propertySlug (sem broker slug). Tratar isso aqui.
   const effectivePropertySlug = propertySlugParam || (isCustomDomain() ? slug : undefined);
 
-  const fetchPropertyData = useCallback(async () => {
+  const fetchPropertyData = useCallback(async (retryCount = 0) => {
+    setLoading(true);
+    setError(null);
+    
     try {
-      console.log('Fetching property data for:', { propertySlug: effectivePropertySlug, slug });
+      console.log('🏠 Fetching property data...', { 
+        propertySlug: effectivePropertySlug, 
+        slug, 
+        retryCount 
+      });
+      
+      // Teste básico de conectividade
+      try {
+        const { error: pingError } = await supabase
+          .from('properties')
+          .select('id')
+          .limit(1);
+          
+        if (pingError) {
+          console.warn('Connectivity test warning:', pingError);
+        }
+      } catch (connectError) {
+        console.error('Connection test failed:', connectError);
+        if (retryCount < 2) {
+          console.log(`Retrying connection... (${retryCount + 1}/3)`);
+          setTimeout(() => fetchPropertyData(retryCount + 1), 1000 * (retryCount + 1));
+          return;
+        }
+        throw new Error('Sem conexão com o servidor. Verifique sua internet e tente novamente.');
+      }
       // Descobrir o slug do broker quando estamos em domínio customizado
       let effectiveSlug = slug as string | undefined;
       if (!effectiveSlug && isCustomDomain()) {
+        console.log('Custom domain detected, fetching broker data...');
         const broker = await getBrokerByDomainOrSlug(undefined);
-        if (!broker) throw new Error('Corretor não encontrado para este domínio.');
+        if (!broker) {
+          console.error('Corretor não encontrado para este domínio');
+          throw new Error('Corretor não encontrado para este domínio.');
+        }
         effectiveSlug = (broker as unknown as { website_slug?: string })?.website_slug || undefined;
+        console.log('Broker slug found:', effectiveSlug);
       }
       if (!effectivePropertySlug || !effectiveSlug) {
+        console.error('Missing parameters:', { effectivePropertySlug, effectiveSlug });
         throw new Error('Parâmetros insuficientes para carregar o imóvel.');
       }
       
@@ -125,25 +185,64 @@ const PropertyDetailPage = () => {
       }
 
       // Executa consultas em paralelo para reduzir TTFB
+      console.log('Calling RPC functions with params:', { 
+        broker_slug: effectiveSlug, 
+        property_slug: effectivePropertySlug 
+      });
+      
       const [propertyResult, brokerResult] = await Promise.all([
         supabase.rpc('get_public_property_detail_with_realtor', {
           broker_slug: effectiveSlug,
           property_slug: effectivePropertySlug
         }),
-        supabase.rpc('get_public_broker_branding', { broker_website_slug: effectiveSlug })
+        supabase.rpc('get_public_broker_branding', { 
+          broker_website_slug: effectiveSlug 
+        })
       ]);
+      
+      console.log('Property RPC result:', propertyResult);
+      console.log('Broker RPC result:', brokerResult);
 
       const { data: propertyDataArray, error: propertyError } = propertyResult;
       const { data: brokerDataArray, error: brokerError } = brokerResult;
 
       console.log('Property data from RPC:', propertyDataArray);
+      console.log('Broker data from RPC:', brokerDataArray);
 
       if (propertyError) {
-        console.error('Property error:', propertyError);
-        throw propertyError;
+        console.error('Property RPC error:', propertyError);
+        // Fallback: tentar consulta direta se RPC falhar
+        console.log('Attempting fallback query for property...');
+        const fallbackProperty = await supabase
+          .from('properties')
+          .select(`
+            *,
+            brokers!inner(
+              business_name,
+              display_name,
+              website_slug
+            )
+          `)
+          .eq('slug', effectivePropertySlug)
+          .eq('brokers.website_slug', effectiveSlug)
+          .eq('is_active', true)
+          .single();
+          
+        if (fallbackProperty.error) {
+          console.error('Fallback property query failed:', fallbackProperty.error);
+          throw new Error(`Erro ao carregar propriedade: ${fallbackProperty.error.message}`);
+        }
+        
+        console.log('Fallback property data:', fallbackProperty.data);
+      }
+
+      if (brokerError) {
+        console.error('Broker RPC error:', brokerError);
+        throw new Error(`Erro ao carregar dados do corretor: ${brokerError.message}`);
       }
 
       if (!propertyDataArray || propertyDataArray.length === 0) {
+        console.error('No property data returned from RPC');
         throw new Error('Propriedade não encontrada');
       }
 
@@ -200,7 +299,7 @@ const PropertyDetailPage = () => {
       // Atualiza cache de prefetch para navegações futuras
       setPrefetchedDetail(effectiveSlug, effectivePropertySlug, {
         property: propertyData,
-        brokerProfile: brokerData,
+        brokerProfile: brokerData as unknown as BrokerProfile,
       });
       setSimilarProperties(similarData || []);
       setSocialLinks(socialData || []);
@@ -233,17 +332,54 @@ const PropertyDetailPage = () => {
       }
 
     } catch (error: unknown) {
-      toast({
-        title: "Erro ao carregar imóvel",
-        description: getErrorMessage(error),
-        variant: "destructive"
-      });
-      // Navegar de volta para a home do corretor (funciona para custom domain também)
-      navigate(`/`);
+      console.error('Error loading property:', error);
+      
+      // Tratamento específico para diferentes tipos de erro
+      let errorMessage = '';
+      let shouldRetry = false;
+      
+      if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
+        errorMessage = 'Problema de conexão. Verifique sua internet e tente novamente.';
+        shouldRetry = true;
+      } else if (error instanceof Error) {
+        if (error.message.includes('TypeError: Failed to fetch')) {
+          errorMessage = 'Erro de conexão com o servidor. Tentando novamente...';
+          shouldRetry = true;
+        } else {
+          errorMessage = error.message;
+        }
+      } else {
+        errorMessage = getErrorMessage(error);
+      }
+      
+      setError(errorMessage);
+      
+      // Se for erro de conexão, tentar novamente automaticamente após 2 segundos
+      if (shouldRetry) {
+        toast({
+          title: "Problema de conexão",
+          description: "Tentando reconectar automaticamente...",
+          variant: "destructive"
+        });
+        
+        setTimeout(() => {
+          console.log('Auto-retrying after connection error...');
+          fetchPropertyData(0);
+        }, 2000);
+      } else {
+        toast({
+          title: "Erro ao carregar imóvel",
+          description: errorMessage,
+          variant: "destructive"
+        });
+      }
+      
+      // Não navegar imediatamente - dar opção ao usuário
+      console.log('Error occurred, showing error state instead of navigating');
     } finally {
       setLoading(false);
     }
-  }, [navigate, effectivePropertySlug, slug, toast, trackPropertyView, getBrokerByDomainOrSlug, isCustomDomain]);
+  }, [effectivePropertySlug, slug]);
 
   useEffect(() => {
     if (effectivePropertySlug) {
@@ -275,11 +411,11 @@ const PropertyDetailPage = () => {
   const FeeBadge = ({ label, amount, periodicity }: { label: string; amount?: number | null; periodicity?: string | null }) => {
     if (amount == null || isNaN(amount as number)) return null;
     return (
-      <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full border border-gray-200 bg-white text-gray-700 text-xs sm:text-sm">
-        <span className="font-medium text-gray-900">{label}:</span>
+      <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full border ${isDarkMode ? 'border-gray-600 bg-gray-700 text-gray-200' : 'border-gray-200 bg-white text-gray-700'} text-xs sm:text-sm transition-colors duration-300`}>
+        <span className={`font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'} transition-colors duration-300`}>{label}:</span>
         <span>{formatPrice(amount)}</span>
         {periodicity && (
-          <span className="text-gray-500">/ {getPeriodicityLabel(periodicity)}</span>
+          <span className={`${isDarkMode ? 'text-gray-400' : 'text-gray-500'} transition-colors duration-300`}>/ {getPeriodicityLabel(periodicity)}</span>
         )}
       </span>
     );
@@ -484,6 +620,57 @@ const PropertyDetailPage = () => {
     }
   }, [carouselApi]);
 
+  // Função para alternar modo escuro
+  const toggleDarkMode = useCallback(() => {
+    const newMode = !isDarkMode;
+    setIsDarkMode(newMode);
+    localStorage.setItem('property-detail-dark-mode', JSON.stringify(newMode));
+    
+    // Aplicar classe dark ao documento
+    if (newMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [isDarkMode]);
+
+  // Função de debug para testar RPC
+  const testRPCFunctions = useCallback(async () => {
+    console.log('Testing RPC functions...');
+    try {
+      const testSlug = slug || 'test-broker';
+      const testPropertySlug = effectivePropertySlug || 'test-property';
+      
+      console.log('Testing with params:', { testSlug, testPropertySlug });
+      
+      // Test property RPC
+      console.log('Testing get_public_property_detail_with_realtor...');
+      const propertyTest = await supabase.rpc('get_public_property_detail_with_realtor', {
+        broker_slug: testSlug,
+        property_slug: testPropertySlug
+      });
+      console.log('Property RPC test result:', propertyTest);
+      
+      // Test broker RPC
+      console.log('Testing get_public_broker_branding...');
+      const brokerTest = await supabase.rpc('get_public_broker_branding', {
+        broker_website_slug: testSlug
+      });
+      console.log('Broker RPC test result:', brokerTest);
+      
+    } catch (error) {
+      console.error('RPC test failed:', error);
+    }
+  }, [slug, effectivePropertySlug]);
+
+  // Expor função de debug globalmente para testes manuais
+  useEffect(() => {
+    (window as any).testRPCFunctions = testRPCFunctions;
+    return () => {
+      delete (window as any).testRPCFunctions;
+    };
+  }, []); // Remover dependência para evitar re-criação constante
+
   // Listen to carousel changes and sync thumbnails
   useEffect(() => {
     if (!carouselApi) return;
@@ -524,14 +711,18 @@ const PropertyDetailPage = () => {
     return () => {
       carouselApi.off('select', onSelect);
     };
-  }, [carouselApi, thumbnailCarouselApi, propertyImages.length]);
+  }, [carouselApi, thumbnailCarouselApi]);
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-gray-100 animate-fade-in">
+      <div className={`min-h-screen animate-fade-in transition-colors duration-300 ${
+        isDarkMode 
+          ? 'bg-gradient-to-br from-gray-900 to-gray-800' 
+          : 'bg-gradient-to-br from-slate-50 to-gray-100'
+      }`}>
         {/* Fixed Header Skeleton */}
-        <header className="fixed top-0 left-0 right-0 bg-white/95 backdrop-blur-md shadow-lg border-b z-50">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <header className={`fixed top-0 left-0 right-0 ${isDarkMode ? 'bg-gray-900/95 border-gray-700' : 'bg-white/95 border-gray-200'} backdrop-blur-md shadow-lg border-b z-50 transition-colors duration-300`}>
+          <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 2xl:px-16">
             <div className="flex justify-between items-center h-16 sm:h-20">
               <div className="flex items-center min-w-0 flex-1 space-x-4">
                 <Skeleton className="h-10 w-10 rounded-lg flex-shrink-0 shimmer" shimmer />
@@ -561,12 +752,12 @@ const PropertyDetailPage = () => {
           </div>
 
           {/* Content Container */}
-          <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 2xl:px-16 py-8">
             <div className="grid lg:grid-cols-3 gap-8">
               {/* Property Info Column */}
               <div className="lg:col-span-2 space-y-8">
                 {/* Title and basic info */}
-                <div className="bg-white rounded-2xl shadow-lg p-8 space-y-6 animate-scale-in">
+                <div className={`${isDarkMode ? 'bg-gray-800 border border-gray-700' : 'bg-white'} rounded-2xl shadow-lg p-8 space-y-6 animate-scale-in transition-colors duration-300`}>
                   <Skeleton className="h-10 w-full max-w-2xl shimmer" shimmer />
                   <Skeleton className="h-6 w-3/4 max-w-lg shimmer" shimmer />
                   <Skeleton className="h-12 w-48 rounded-lg shimmer" shimmer />
@@ -583,7 +774,7 @@ const PropertyDetailPage = () => {
                 </div>
 
                 {/* Description Card */}
-                <div className="bg-white rounded-2xl shadow-lg p-8 space-y-6 animate-scale-in">
+                <div className={`${isDarkMode ? 'bg-gray-800 border border-gray-700' : 'bg-white'} rounded-2xl shadow-lg p-8 space-y-6 animate-scale-in transition-colors duration-300`}>
                   <Skeleton className="h-8 w-40 shimmer" shimmer />
                   <div className="space-y-3">
                     {Array.from({ length: 5 }).map((_, i) => (
@@ -600,7 +791,7 @@ const PropertyDetailPage = () => {
               {/* Contact Sidebar */}
               <div className="lg:col-span-1">
                 <div className="sticky top-24">
-                  <div className="bg-white rounded-2xl shadow-xl border p-8 space-y-6 animate-scale-in">
+                  <div className={`${isDarkMode ? 'bg-gray-800 border-gray-600' : 'bg-white border'} rounded-2xl shadow-xl p-8 space-y-6 animate-scale-in transition-colors duration-300`}>
                     <Skeleton className="h-8 w-48 shimmer" shimmer />
                     <div className="space-y-4">
                       <Skeleton className="h-12 w-full rounded-lg shimmer" shimmer />
@@ -628,11 +819,66 @@ const PropertyDetailPage = () => {
     );
   }
 
+  // Estado de erro com mais opções
+  if (error && !loading) {
+    return (
+      <div className={`min-h-screen flex items-center justify-center ${isDarkMode ? 'bg-[#1A2331]' : 'bg-gradient-to-br from-slate-50 to-gray-100'} transition-colors duration-300`}>
+        <div className={`text-center ${isDarkMode ? 'bg-[#1A2331] border border-[#1A2331]' : 'bg-white'} rounded-2xl shadow-xl p-12 animate-scale-in max-w-md transition-colors duration-300`}>
+          <div className="text-red-500 mb-4">
+            <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.314 18.5c-.77.833.192 2.5 1.732 2.5z" />
+            </svg>
+          </div>
+          <h2 className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'} mb-3 transition-colors duration-300`}>Erro ao carregar imóvel</h2>
+          <p className={`${isDarkMode ? 'text-gray-300' : 'text-gray-600'} mb-6 transition-colors duration-300`}>{error}</p>
+          <div className="space-y-3">
+            <Button 
+              onClick={() => {
+                setError(null);
+                fetchPropertyData(0);
+              }}
+              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-6 py-3 rounded-xl font-semibold shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-105"
+            >
+              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+              Tentar Novamente
+            </Button>
+            <Button 
+              variant="outline"
+              onClick={() => navigate(`/${slug || ''}`)}
+              className={`w-full px-6 py-3 rounded-xl font-semibold transition-all duration-300 ${
+                isDarkMode 
+                  ? 'border-gray-600 hover:border-gray-500 hover:bg-gray-700 text-gray-300 hover:text-white'
+                  : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50 text-gray-700'
+              }`}
+            >
+              Voltar ao início
+            </Button>
+            
+            {/* Debug info for development */}
+            {process.env.NODE_ENV === 'development' && (
+              <details className="mt-4 text-left">
+                <summary className="text-xs text-gray-500 cursor-pointer hover:text-gray-700">Debug Info</summary>
+                <div className="mt-2 text-xs text-gray-600 space-y-1">
+                  <div>Slug: {slug}</div>
+                  <div>Property Slug: {effectivePropertySlug}</div>
+                  <div>Error: {error}</div>
+                  <div>Custom Domain: {isCustomDomain() ? 'Yes' : 'No'}</div>
+                </div>
+              </details>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (!property || !brokerProfile) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-gray-100">
-        <div className="text-center bg-white rounded-2xl shadow-xl p-12 animate-scale-in">
-          <h2 className="text-3xl font-bold text-gray-900 mb-6">Imóvel não encontrado</h2>
+      <div className={`min-h-screen flex items-center justify-center ${isDarkMode ? 'bg-[#1A2331]' : 'bg-gradient-to-br from-slate-50 to-gray-100'} transition-colors duration-300`}>
+        <div className={`text-center ${isDarkMode ? 'bg-[#1A2331] border border-[#1A2331]' : 'bg-white'} rounded-2xl shadow-xl p-12 animate-scale-in transition-colors duration-300`}>
+          <h2 className={`text-3xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'} mb-6 transition-colors duration-300`}>Imóvel não encontrado</h2>
           <Button 
             onClick={() => navigate(`/${slug || ''}`)}
             className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-3 rounded-xl font-semibold shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-105"
@@ -775,54 +1021,75 @@ const PropertyDetailPage = () => {
       </Helmet>
 
       {/* Container principal do conteúdo da propriedade */}
-      <div className="min-h-screen bg-gray-50 animate-fade-in">
-        {/* Header Premium - Melhorado com gradiente e blur */}
-        <header className="fixed top-0 left-0 right-0 bg-white/95 backdrop-blur-md shadow-sm border-b border-gray-200 z-50">
-          <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
-            <div className="flex justify-between items-center h-14 sm:h-16 md:h-20">
-              <div className="flex items-center min-w-0 flex-1 space-x-2 sm:space-x-4">
+      <div className={`min-h-screen transition-colors duration-300 ${
+        isDarkMode 
+          ? 'bg-gradient-to-br from-gray-900 to-gray-800' 
+          : 'bg-gradient-to-br from-gray-50 to-white'
+      }`}>
+        {/* Header Premium - Melhorado com design moderno */}
+        <header className={`fixed top-0 left-0 right-0 ${isDarkMode ? 'bg-gray-900/95 border-gray-700' : 'bg-white/95 border-gray-100'} backdrop-blur-xl shadow-soft-1 border-b z-50 transition-colors duration-300`}>
+          <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 2xl:px-16">
+            <div className="flex justify-between items-center h-16 sm:h-20">
+              <div className="flex items-center min-w-0 flex-1 space-x-4">
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => navigate(-1)}
-                  className="hover:bg-gray-100 p-2 sm:p-3 rounded-lg transition-colors"
+                  className="hover:bg-gray-100 p-3 rounded-xl transition-all duration-200 hover:scale-105"
                 >
-                  <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5 mr-1 sm:mr-2" />
-                  <span className="hidden sm:inline font-medium text-sm">Voltar</span>
+                  <ArrowLeft className="h-5 w-5 mr-2" />
+                  <span className="hidden sm:inline font-semibold text-sm">Voltar</span>
                 </Button>
                 
                 <button
                   onClick={() => navigate(`/${brokerProfile?.website_slug || slug}`)}
-                  className="flex items-center hover:opacity-80 transition-opacity min-w-0 flex-1"
+                  className="flex items-center hover:opacity-80 transition-all duration-200 min-w-0 flex-1 group"
                 >
                   {brokerProfile.logo_url ? (
                     <img 
                       src={brokerProfile.logo_url} 
                       alt={brokerProfile.business_name} 
-                      className="h-6 w-6 sm:h-8 sm:w-8 md:h-12 md:w-12 flex-shrink-0 rounded-lg object-contain" 
+                      className="h-8 w-8 sm:h-12 sm:w-12 flex-shrink-0 rounded-xl object-contain shadow-sm group-hover:shadow-md transition-shadow" 
                     />
                   ) : (
                     <div 
-                      className="h-6 w-6 sm:h-8 sm:w-8 md:h-12 md:w-12 rounded-lg text-white flex items-center justify-center font-bold text-xs sm:text-sm flex-shrink-0"
+                      className="h-8 w-8 sm:h-12 sm:w-12 rounded-xl text-white flex items-center justify-center font-bold text-sm flex-shrink-0 shadow-sm"
                       style={{ backgroundColor: brokerProfile.primary_color || '#374151' }}
                     >
                       {brokerProfile.business_name?.charAt(0) || 'I'}
                     </div>
                   )}
-                  <span className="ml-2 sm:ml-3 text-sm sm:text-lg md:text-2xl font-semibold text-gray-900 truncate">
+                  <span className={`ml-3 text-lg sm:text-xl font-bold truncate transition-colors duration-300 ${
+                    isDarkMode ? 'text-white' : 'text-gray-900'
+                  }`}>
                     {brokerProfile.business_name}
                   </span>
                 </button>
               </div>
 
-              <div className="flex items-center space-x-1 sm:space-x-3 flex-shrink-0">
+              <div className="flex items-center space-x-3 flex-shrink-0">
+                {/* Botão de modo escuro elegante */}
+                <Button 
+                  variant="ghost"
+                  size="sm"
+                  onClick={toggleDarkMode}
+                  className="hover:bg-gray-100 p-3 rounded-xl transition-all duration-300 hover:scale-105"
+                  title={isDarkMode ? "Modo claro" : "Modo escuro"}
+                >
+                  {isDarkMode ? (
+                    <Sun className="h-4 w-4 text-yellow-500" />
+                  ) : (
+                    <Moon className="h-4 w-4 text-gray-600" />
+                  )}
+                </Button>
+                
                 <Button 
                   variant="outline" 
                   size="sm"
                   onClick={handleShare}
-                  className="hover:bg-gray-50 border-gray-300 px-2 sm:px-4 py-2 rounded-lg text-xs sm:text-sm"
+                  className="hover:bg-gray-50 border-2 border-gray-200 hover:border-primary/30 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200"
                 >
-                  <Share2 className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                  <Share2 className="h-4 w-4 mr-2" />
                   <span className="hidden sm:inline">Compartilhar</span>
                 </Button>
                 
@@ -830,44 +1097,45 @@ const PropertyDetailPage = () => {
                   variant="ghost"
                   size="sm"
                   onClick={handleFavorite}
-                  className={`p-2 sm:p-3 rounded-lg transition-colors ${
+                  className={`p-3 rounded-xl transition-all duration-200 ${
                     isFavorited() 
-                      ? 'text-red-600 bg-red-50 hover:bg-red-100' 
+                      ? 'text-red-600 bg-red-50 hover:bg-red-100 shadow-sm' 
                       : 'text-gray-500 hover:bg-gray-100'
                   }`}
                 >
-                  <Heart className={`h-4 w-4 sm:h-5 sm:w-5 ${isFavorited() ? 'fill-current' : ''}`} />
+                  <Heart className={`h-5 w-5 ${isFavorited() ? 'fill-current' : ''}`} />
                 </Button>
               </div>
             </div>
           </div>
         </header>
 
-        {/* Breadcrumbs */}
-        <div className="pt-16 sm:pt-18 md:pt-24 pb-4">
-          <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
-            <nav className="flex text-xs sm:text-sm text-gray-600 bg-white rounded-lg px-3 sm:px-4 py-2 shadow-sm">
-              <button onClick={() => navigate(`/${slug}`)} className="hover:text-gray-900 cursor-pointer font-medium transition-colors">
+        {/* Breadcrumbs Minimalista */}
+        <div className="pt-20 sm:pt-24 pb-4">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <nav className="flex items-center text-xs text-gray-500">
+              <button onClick={() => navigate(`/${slug}`)} className="hover:text-gray-700 cursor-pointer transition-colors duration-200">
                 Início
               </button>
-              <span className="mx-2 sm:mx-3 text-gray-400">/</span>
-              <span className="text-gray-900 truncate font-medium">
+              <span className="mx-2 text-gray-300">→</span>
+              <span className="text-gray-700 truncate">
                 Código {property.property_code || property.id.slice(-8)}
               </span>
             </nav>
           </div>
         </div>
 
-        {/* Content Container */}
-        <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8 pb-8">
-          <div className="grid lg:grid-cols-4 gap-8">
-            {/* Gallery Column - 3 colunas */}
-            <div className="lg:col-span-3">
-              {/* Galeria de Imagens Mobile */}
+        {/* Content Container Melhorado */}
+        <div className="w-full pb-12">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="grid lg:grid-cols-3 gap-8 xl:gap-12">
+            {/* Gallery Column - 2 colunas */}
+            <div className="lg:col-span-2">
+              {/* Galeria de Imagens Mobile Modernizada */}
               {propertyImages.length > 0 ? (
                 <div className="lg:hidden mb-8 relative">
                   <Carousel 
-                    className="w-full" 
+                    className="w-full rounded-2xl overflow-hidden shadow-soft-2" 
                     setApi={setCarouselApi}
                     opts={{
                       align: "start",
@@ -877,14 +1145,16 @@ const PropertyDetailPage = () => {
                     <CarouselContent>
                       {propertyImages.map((image, index) => (
                         <CarouselItem key={index}>
-                           <div className="relative h-80 sm:h-96 bg-gray-100 overflow-hidden">
+                           <div className="relative h-80 sm:h-96 bg-gradient-to-br from-gray-100 to-gray-200 overflow-hidden">
                              <img
                                src={image}
                                alt={`${property.title} - Imagem ${index + 1}`}
-                               className="w-full h-full object-contain cursor-pointer transition-transform duration-300 hover:scale-105"
+                               className="w-full h-full object-cover cursor-pointer transition-transform duration-500 hover:scale-110"
                                onClick={() => {setCurrentImageIndex(index); setIsImageModalOpen(true);}}
                                loading={index === 0 ? "eager" : "lazy"}
                              />
+                             {/* Overlay gradiente para melhor legibilidade */}
+                             <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent" />
                           </div>
                         </CarouselItem>
                       ))}
@@ -892,62 +1162,72 @@ const PropertyDetailPage = () => {
                     
                     {propertyImages.length > 1 && (
                       <>
-                        <CarouselPrevious className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/90 text-gray-800 border-0 hover:bg-white z-20" />
-                        <CarouselNext className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/90 text-gray-800 border-0 hover:bg-white z-20" />
+                        <CarouselPrevious className="absolute left-3 top-1/2 -translate-y-1/2 bg-white/10 text-white border-0 hover:bg-white/20 z-20 backdrop-blur-sm rounded-full h-10 w-10 transition-all duration-300 opacity-60 hover:opacity-100" />
+                        <CarouselNext className="absolute right-3 top-1/2 -translate-y-1/2 bg-white/10 text-white border-0 hover:bg-white/20 z-20 backdrop-blur-sm rounded-full h-10 w-10 transition-all duration-300 opacity-60 hover:opacity-100" />
                       </>
                     )}
                   </Carousel>
                   
-                  {/* Fixed UI elements for mobile */}
-                  <div className="absolute top-4 right-4 bg-black/70 text-white px-3 py-1 rounded text-sm font-medium z-30">
-                    {currentImageIndex + 1} / {propertyImages.length}
+                  {/* Contador de fotos minimalista */}
+                  <div className="absolute top-4 right-4 bg-black/50 text-white px-3 py-1.5 rounded-full text-xs font-medium z-30 backdrop-blur-sm">
+                    {currentImageIndex + 1}/{propertyImages.length}
                   </div>
                   
+                  {/* Botão de expandir elegante */}
                   <button
                     onClick={() => setIsImageModalOpen(true)}
-                    className="absolute bottom-4 right-4 bg-white/90 text-gray-800 p-2 rounded-lg hover:bg-white transition-colors z-30"
+                    className="absolute bottom-4 right-4 bg-black/40 text-white p-2.5 rounded-full hover:bg-black/60 transition-all duration-300 z-30 backdrop-blur-sm opacity-70 hover:opacity-100 hover:scale-105"
+                    title="Expandir imagem"
                   >
                     <Maximize2 className="h-4 w-4" />
                   </button>
                   
                   <div className="absolute top-4 left-4 z-30">
-                    <Badge className="bg-white text-gray-900 hover:bg-white px-3 py-1 text-sm">
-                      <Eye className="h-3 w-3 mr-1" />
-                      {viewsCount} visualizações
+                    <Badge className="bg-black/40 text-white hover:bg-black/60 px-3 py-1.5 text-xs font-medium rounded-full backdrop-blur-sm transition-all duration-300 opacity-80 hover:opacity-100">
+                      <Eye className="h-3.5 w-3.5 mr-1.5" />
+                      {viewsCount}
                     </Badge>
                   </div>
                 </div>
               ) : (
-                <div className="h-80 sm:h-96 bg-gray-200 flex items-center justify-center lg:hidden mb-8">
-                  <p className="text-gray-500 font-medium">Nenhuma imagem disponível</p>
+                <div className="h-80 sm:h-96 bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center lg:hidden mb-8 rounded-2xl">
+                  <div className="text-center">
+                    <div className="w-16 h-16 bg-gray-400 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <MapPin className="h-8 w-8 text-white" />
+                    </div>
+                    <p className="text-gray-600 font-semibold">Nenhuma imagem disponível</p>
+                  </div>
                 </div>
               )}
 
-              {/* Desktop Gallery */}
+              {/* Desktop Gallery Modernizada */}
               <div className="hidden lg:block mb-8">
                 {propertyImages.length > 0 ? (
-                  <div className="relative h-[500px] rounded-lg overflow-hidden shadow-lg bg-gray-100">
+                  <div className="relative h-[600px] rounded-2xl overflow-hidden shadow-soft-3 bg-gradient-to-br from-gray-100 to-gray-200">
                     <img
                       src={propertyImages[currentImageIndex]}
                       alt={`${property.title} - Imagem ${currentImageIndex + 1}`}
-                      className="w-full h-full object-contain transition-all duration-300 bg-gray-100"
+                      className="w-full h-full object-cover transition-all duration-500 hover:scale-105"
                       loading="eager"
                     />
                     
-                    <div className="absolute top-6 right-6 bg-black/70 text-white px-4 py-2 rounded-lg text-sm font-medium">
+                    {/* Overlay gradiente para melhor legibilidade */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
+                    
+                    <div className="absolute top-6 right-6 bg-black/80 text-white px-6 py-3 rounded-full text-sm font-bold backdrop-blur-sm">
                       {currentImageIndex + 1} / {propertyImages.length}
                     </div>
                     
                     <button
                       onClick={() => setIsImageModalOpen(true)}
-                      className="absolute bottom-6 right-6 bg-white/90 text-gray-800 p-3 rounded-lg hover:bg-white transition-colors"
+                      className="absolute bottom-6 right-6 bg-white/95 text-gray-800 p-4 rounded-full hover:bg-white transition-all duration-200 shadow-lg hover:scale-110"
                     >
-                      <Maximize2 className="h-5 w-5" />
+                      <Maximize2 className="h-6 w-6" />
                     </button>
                     
                     <div className="absolute top-6 left-6">
-                      <Badge className="bg-white text-gray-900 hover:bg-white px-4 py-2 text-sm font-medium">
-                        <Eye className="h-4 w-4 mr-2" />
+                      <Badge className="bg-white/95 text-gray-900 hover:bg-white px-6 py-3 text-sm font-bold rounded-full shadow-lg">
+                        <Eye className="h-5 w-5 mr-2" />
                         {viewsCount} visualizações
                       </Badge>
                     </div>
@@ -1004,22 +1284,22 @@ const PropertyDetailPage = () => {
                 )}
               </div>
 
-              {/* Property Info Section */}
-              <div className="space-y-6">
-                {/* Title and Price Card (refinado) */}
-                <div className="bg-white rounded-2xl shadow-sm p-6 border border-gray-200">
+              {/* Property Info Section Modernizada */}
+              <div className="space-y-8">
+                {/* Title and Price Card Minimalista */}
+                <div className="bg-white rounded-lg border border-gray-100 p-6">
                   <div className="space-y-4">
                     <div>
-                      <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-3 leading-tight tracking-tight">
+                      <h1 className="text-2xl font-semibold text-gray-900 mb-2 leading-tight">
                         {property.title}
                       </h1>
-                      <div className="flex items-center text-gray-600 mb-4">
+                      <div className="flex items-center text-gray-500 mb-4">
                         <MapPin className="h-4 w-4 mr-2" />
-                        <span className="text-base">{property.neighborhood}, {property.uf}</span>
+                        <span className="text-sm">{property.neighborhood}, {property.uf}</span>
                       </div>
-                      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                         <div className="inline-flex items-baseline gap-2">
-                          <span className="text-3xl sm:text-4xl font-extrabold text-gray-900">
+                          <span className="text-2xl font-bold text-gray-900">
                             {formatPrice(property.price)}
                           </span>
                           {property.transaction_type === 'rent' && (
@@ -1033,40 +1313,44 @@ const PropertyDetailPage = () => {
                       </div>
                     </div>
                     
-                    {/* Property Features - Compact single line */}
-                    <div className="grid grid-cols-4 gap-2 sm:gap-4 mt-6">
-                      <div className="bg-gray-50 rounded-lg p-2 sm:p-3 text-center border border-gray-200">
-                        <Bed className="h-4 w-4 sm:h-5 sm:w-5 text-gray-600 mx-auto mb-1" />
-                        <div className="text-sm sm:text-lg font-semibold text-gray-900">{property.bedrooms}</div>
-                        <div className="text-sm sm:text-sm text-gray-600 font-medium">Quartos</div>
-                      </div>
-                      <div className="bg-gray-50 rounded-lg p-2 sm:p-3 text-center border border-gray-200">
-                        <Bath className="h-4 w-4 sm:h-5 sm:w-5 text-gray-600 mx-auto mb-1" />
-                        <div className="text-sm sm:text-lg font-semibold text-gray-900">{property.bathrooms}</div>
-                        <div className="text-sm sm:text-sm text-gray-600 font-medium">Banheiros</div>
-                      </div>
-                      <div className="bg-gray-50 rounded-lg p-2 sm:p-3 text-center border border-gray-200">
-                        <Square className="h-4 w-4 sm:h-5 sm:w-5 text-gray-600 mx-auto mb-1" />
-                        <div className="text-sm sm:text-lg font-semibold text-gray-900">{property.area_m2}</div>
-                        <div className="text-sm sm:text-sm text-gray-600 font-medium">m²</div>
-                      </div>
-                      <div className="bg-gray-50 rounded-lg p-2 sm:p-3 text-center border border-gray-200">
-                        <Car className="h-4 w-4 sm:h-5 sm:w-5 text-gray-600 mx-auto mb-1" />
-                        <div className="text-sm sm:text-lg font-semibold text-gray-900">{property.parking_spaces}</div>
-                        <div className="text-sm sm:text-sm text-gray-600 font-medium">Vagas</div>
-                      </div>
+                    {/* Property Features Minimalistss */}
+                    <div className="flex items-center space-x-6 mt-6 text-sm text-gray-600">
+                      {property.bedrooms > 0 && (
+                        <div className="flex items-center space-x-2">
+                          <Bed className="h-4 w-4 text-gray-400" />
+                          <span className="font-medium text-gray-900">{property.bedrooms} quartos</span>
+                        </div>
+                      )}
+                      {property.bathrooms > 0 && (
+                        <div className="flex items-center space-x-2">
+                          <Bath className="h-4 w-4 text-gray-400" />
+                          <span className="font-medium text-gray-900">{property.bathrooms} banheiros</span>
+                        </div>
+                      )}
+                      {property.area_m2 && (
+                        <div className="flex items-center space-x-2">
+                          <Square className="h-4 w-4 text-gray-400" />
+                          <span className="font-medium text-gray-900">{property.area_m2}m²</span>
+                        </div>
+                      )}
+                      {property.parking_spaces > 0 && (
+                        <div className="flex items-center space-x-2">
+                          <Car className="h-4 w-4 text-gray-400" />
+                          <span className="font-medium text-gray-900">{property.parking_spaces} vagas</span>
+                        </div>
+                      )}
                     </div>
 
-                    {/* Type and Transaction Badges */}
-                    <div className="flex flex-wrap gap-2 pt-4">
-                      <Badge className="bg-gray-100 text-gray-800 px-3 py-1 text-sm border border-gray-300">
+                    {/* Type and Transaction Badges Minimalistas */}
+                    <div className="flex flex-wrap gap-2 pt-4 border-t border-gray-100">
+                      <Badge className="bg-gray-100 text-gray-700 px-3 py-1 text-xs font-medium rounded-md">
                         {property.property_type}
                       </Badge>
-                      <Badge className="bg-gray-100 text-gray-800 px-3 py-1 text-sm border border-gray-300">
-                        {property.transaction_type}
+                      <Badge className="bg-blue-50 text-blue-700 px-3 py-1 text-xs font-medium rounded-md">
+                        {property.transaction_type === 'sale' ? 'Venda' : 'Aluguel'}
                       </Badge>
                       {property.is_featured && (
-                        <Badge className="bg-blue-100 text-blue-800 px-3 py-1 text-sm border border-blue-300">
+                        <Badge className="bg-amber-50 text-amber-700 px-3 py-1 text-xs font-medium rounded-md">
                           Destaque
                         </Badge>
                       )}
@@ -1074,18 +1358,17 @@ const PropertyDetailPage = () => {
                   </div>
                 </div>
 
-
-                {/* Faixa azul com tabs (Detalhes / Características) */}
-                <div className="rounded-2xl border border-blue-100 overflow-hidden">
-                  <div className="bg-blue-50">
+                {/* Faixa com tabs minimalista */}
+                <div className="rounded-lg border border-gray-200 overflow-hidden">
+                  <div className="bg-gray-50">
                     <div className="grid grid-cols-1 lg:grid-cols-3">
-                      {/* Tabs laterais */}
-                      <div className="flex lg:flex-col gap-2 p-2 sm:p-3 lg:p-4">
+                      {/* Tabs laterais minimalistas */}
+                      <div className="flex lg:flex-col gap-2 p-4">
                         {['Detalhes', 'Características'].map((tab) => (
                           <button
                             key={tab}
                             onClick={() => setActiveTab(tab as 'Detalhes' | 'Características')}
-                            className={`text-sm sm:text-base font-semibold rounded-xl px-4 py-2 border transition-colors w-full lg:w-auto lg:px-5 lg:py-3 ${activeTab === tab ? 'bg-white border-white text-gray-900 shadow-sm' : 'bg-blue-100/40 border-blue-100 text-blue-800 hover:bg-blue-100'}`}
+                            className={`text-sm font-medium rounded-lg px-4 py-2 transition-all duration-200 w-full lg:w-auto ${activeTab === tab ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:text-gray-900 hover:bg-white/50'}`}
                           >
                             {tab}
                           </button>
@@ -1097,14 +1380,14 @@ const PropertyDetailPage = () => {
                           <div className="space-y-6">
                             {/* Descrição */}
                             <div>
-                              <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-3 sm:mb-4">
-                                Descrição do Imóvel
+                              <h2 className="text-base font-semibold text-gray-900 mb-3">
+                                Descrição
                               </h2>
                               <div className="prose max-w-none text-gray-700">
                                 {property.description ? (
-                                  <p className="whitespace-pre-wrap leading-relaxed text-sm sm:text-base">{property.description}</p>
+                                  <p className="whitespace-pre-wrap leading-relaxed text-sm">{property.description}</p>
                                 ) : (
-                                  <p className="text-gray-500 italic text-sm sm:text-base">Nenhuma descrição disponível.</p>
+                                  <p className="text-gray-500 italic text-sm">Nenhuma descrição disponível.</p>
                                 )}
                               </div>
                             </div>
@@ -1120,134 +1403,153 @@ const PropertyDetailPage = () => {
 
                         {activeTab === 'Características' && (
                           <div>
-                            <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-3 sm:mb-4">
+                            <h2 className="text-base font-semibold text-gray-900 mb-3">
                               Características
                             </h2>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
-                              {/* Itens vindos de features (texto livre) */}
-                              {property.features && property.features.length > 0 && property.features.map((feature, index) => (
-                                <div key={`feat-${index}`} className="flex items-center p-2 sm:p-3 bg-gray-50 rounded-lg border border-gray-200">
-                                  <div className="w-2 h-2 bg-gray-400 rounded-full mr-2 sm:mr-3 flex-shrink-0"></div>
-                                  <span className="text-gray-700 text-sm sm:text-base">{feature}</span>
+                            {/* Layout em duas colunas com linha separadora */}
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:divide-x lg:divide-gray-200">
+                              
+                              {/* Coluna Esquerda */}
+                              <div className="space-y-2 lg:pr-6">
+                                <div className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-3 pb-2 border-b border-gray-100">
+                                  Características Gerais
                                 </div>
-                              ))}
+                                
+                                {/* Itens vindos de features (texto livre) */}
+                                {property.features && property.features.length > 0 && property.features.map((feature, index) => (
+                                  <div key={`feat-${index}`} className="flex items-center py-2 text-sm text-gray-700">
+                                    <div className="w-1.5 h-1.5 bg-gray-400 rounded-full mr-3 flex-shrink-0"></div>
+                                    <span>{feature}</span>
+                                  </div>
+                                ))}
 
-                              {/* Itens estruturados (antes "Informações gerais") */}
+                                {/* Itens estruturados - primeira metade */}
                               {property.private_area_m2 && (
-                                <div className="p-3 rounded-lg border border-gray-200 bg-gray-50">
-                                  <div className="text-xs text-gray-500">Área útil</div>
-                                  <div className="text-gray-900 font-semibold">{property.private_area_m2} m²</div>
+                                <div className="flex items-center py-2 text-sm text-gray-700">
+                                  <div className="w-1.5 h-1.5 bg-gray-400 rounded-full mr-3 flex-shrink-0"></div>
+                                  <span>Área privativa: {property.private_area_m2}m²</span>
                                 </div>
                               )}
                               {property.total_area_m2 && (
-                                <div className="p-3 rounded-lg border border-gray-200 bg-gray-50">
-                                  <div className="text-xs text-gray-500">Área total</div>
-                                  <div className="text-gray-900 font-semibold">{property.total_area_m2} m²</div>
+                                <div className="flex items-center py-2 text-sm text-gray-700">
+                                  <div className="w-1.5 h-1.5 bg-gray-400 rounded-full mr-3 flex-shrink-0"></div>
+                                  <span>Área total: {property.total_area_m2}m²</span>
                                 </div>
                               )}
                               {property.suites != null && (
-                                <div className="p-3 rounded-lg border border-gray-200 bg-gray-50">
-                                  <div className="text-xs text-gray-500">Suítes</div>
-                                  <div className="text-gray-900 font-semibold">{property.suites}</div>
+                                <div className="flex items-center py-2 text-sm text-gray-700">
+                                  <div className="w-1.5 h-1.5 bg-gray-400 rounded-full mr-3 flex-shrink-0"></div>
+                                  <span>Suítes: {property.suites}</span>
                                 </div>
                               )}
                               {property.covered_parking_spaces != null && (
-                                <div className="p-3 rounded-lg border border-gray-200 bg-gray-50">
-                                  <div className="text-xs text-gray-500">Vagas cobertas</div>
-                                  <div className="text-gray-900 font-semibold">{property.covered_parking_spaces}</div>
+                                <div className="flex items-center py-2 text-sm text-gray-700">
+                                  <div className="w-1.5 h-1.5 bg-gray-400 rounded-full mr-3 flex-shrink-0"></div>
+                                  <span>Vagas cobertas: {property.covered_parking_spaces}</span>
                                 </div>
                               )}
                               {property.floor_number != null && (
-                                <div className="p-3 rounded-lg border border-gray-200 bg-gray-50">
-                                  <div className="text-xs text-gray-500">Andar</div>
-                                  <div className="text-gray-900 font-semibold">{property.floor_number}</div>
+                                <div className="flex items-center py-2 text-sm text-gray-700">
+                                  <div className="w-1.5 h-1.5 bg-gray-400 rounded-full mr-3 flex-shrink-0"></div>
+                                  <span>Andar: {property.floor_number}</span>
                                 </div>
                               )}
                               {property.total_floors != null && (
-                                <div className="p-3 rounded-lg border border-gray-200 bg-gray-50">
-                                  <div className="text-xs text-gray-500">Total de andares</div>
-                                  <div className="text-gray-900 font-semibold">{property.total_floors}</div>
+                                <div className="flex items-center py-2 text-sm text-gray-700">
+                                  <div className="w-1.5 h-1.5 bg-gray-400 rounded-full mr-3 flex-shrink-0"></div>
+                                  <span>Total de andares: {property.total_floors}</span>
                                 </div>
                               )}
                               {property.built_year && (
-                                <div className="p-3 rounded-lg border border-gray-200 bg-gray-50">
-                                  <div className="text-xs text-gray-500">Ano de construção</div>
-                                  <div className="text-gray-900 font-semibold">{property.built_year}</div>
+                                <div className="flex items-center py-2 text-sm text-gray-700">
+                                  <div className="w-1.5 h-1.5 bg-gray-400 rounded-full mr-3 flex-shrink-0"></div>
+                                  <span>Ano de construção: {property.built_year}</span>
                                 </div>
                               )}
                               {property.sunlight_orientation && (
-                                <div className="p-3 rounded-lg border border-gray-200 bg-gray-50">
-                                  <div className="text-xs text-gray-500">Face do sol</div>
-                                  <div className="text-gray-900 font-semibold">{property.sunlight_orientation}</div>
+                                <div className="flex items-center py-2 text-sm text-gray-700">
+                                  <div className="w-1.5 h-1.5 bg-gray-400 rounded-full mr-3 flex-shrink-0"></div>
+                                  <span>Face do sol: {property.sunlight_orientation}</span>
                                 </div>
                               )}
+                              </div>
+
+                              {/* Coluna Direita - Condições e comodidades */}
+                              <div className="space-y-2 lg:pl-6">
+                                <div className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-3 pb-2 border-b border-gray-100">
+                                  Condições & Comodidades
+                                </div>
+                                
                               {property.property_condition && (
-                                <div className="p-3 rounded-lg border border-gray-200 bg-gray-50">
-                                  <div className="text-xs text-gray-500">Condição</div>
-                                  <div className="text-gray-900 font-semibold">{property.property_condition}</div>
+                                <div className="flex items-center py-2 text-sm text-gray-700">
+                                  <div className="w-1.5 h-1.5 bg-gray-400 rounded-full mr-3 flex-shrink-0"></div>
+                                  <span>Condição: {property.property_condition}</span>
                                 </div>
                               )}
                               {property.water_cost != null && (
-                                <div className="p-3 rounded-lg border border-gray-200 bg-gray-50">
-                                  <div className="text-xs text-gray-500">Água</div>
-                                  <div className="text-gray-900 font-semibold">{formatPrice(property.water_cost)}</div>
+                                <div className="flex items-center py-2 text-sm text-gray-700">
+                                  <div className="w-1.5 h-1.5 bg-gray-400 rounded-full mr-3 flex-shrink-0"></div>
+                                  <span>Água: {formatPrice(property.water_cost)}</span>
                                 </div>
                               )}
                               {property.electricity_cost != null && (
-                                <div className="p-3 rounded-lg border border-gray-200 bg-gray-50">
-                                  <div className="text-xs text-gray-500">Luz</div>
-                                  <div className="text-gray-900 font-semibold">{formatPrice(property.electricity_cost)}</div>
+                                <div className="flex items-center py-2 text-sm text-gray-700">
+                                  <div className="w-1.5 h-1.5 bg-gray-400 rounded-full mr-3 flex-shrink-0"></div>
+                                  <span>Luz: {formatPrice(property.electricity_cost)}</span>
                                 </div>
                               )}
                               {typeof property.furnished === 'boolean' && (
-                                <div className="p-3 rounded-lg border border-gray-200 bg-gray-50">
-                                  <div className="text-xs text-gray-500">Mobiliado</div>
-                                  <div className="text-gray-900 font-semibold">{property.furnished ? 'Sim' : 'Não'}</div>
+                                <div className="flex items-center py-2 text-sm text-gray-700">
+                                  <div className="w-1.5 h-1.5 bg-gray-400 rounded-full mr-3 flex-shrink-0"></div>
+                                  <span>Mobiliado: {property.furnished ? 'Sim' : 'Não'}</span>
                                 </div>
                               )}
                               {typeof property.accepts_pets === 'boolean' && (
-                                <div className="p-3 rounded-lg border border-gray-200 bg-gray-50">
-                                  <div className="text-xs text-gray-500">Aceita pets</div>
-                                  <div className="text-gray-900 font-semibold">{property.accepts_pets ? 'Sim' : 'Não'}</div>
+                                <div className="flex items-center py-2 text-sm text-gray-700">
+                                  <div className="w-1.5 h-1.5 bg-gray-400 rounded-full mr-3 flex-shrink-0"></div>
+                                  <span>Aceita pets: {property.accepts_pets ? 'Sim' : 'Não'}</span>
                                 </div>
                               )}
                               {typeof property.elevator === 'boolean' && (
-                                <div className="p-3 rounded-lg border border-gray-200 bg-gray-50">
-                                  <div className="text-xs text-gray-500">Elevador</div>
-                                  <div className="text-gray-900 font-semibold">{property.elevator ? 'Sim' : 'Não'}</div>
+                                <div className="flex items-center py-2 text-sm text-gray-700">
+                                  <div className="w-1.5 h-1.5 bg-gray-400 rounded-full mr-3 flex-shrink-0"></div>
+                                  <span>Elevador: {property.elevator ? 'Sim' : 'Não'}</span>
                                 </div>
                               )}
                               {typeof property.portaria_24h === 'boolean' && (
-                                <div className="p-3 rounded-lg border border-gray-200 bg-gray-50">
-                                  <div className="text-xs text-gray-500">Portaria 24h</div>
-                                  <div className="text-gray-900 font-semibold">{property.portaria_24h ? 'Sim' : 'Não'}</div>
+                                <div className="flex items-center py-2 text-sm text-gray-700">
+                                  <div className="w-1.5 h-1.5 bg-gray-400 rounded-full mr-3 flex-shrink-0"></div>
+                                  <span>Portaria 24h: {property.portaria_24h ? 'Sim' : 'Não'}</span>
                                 </div>
                               )}
                               {typeof property.gas_included === 'boolean' && (
-                                <div className="p-3 rounded-lg border border-gray-200 bg-gray-50">
-                                  <div className="text-xs text-gray-500">Gás encanado incluso</div>
-                                  <div className="text-gray-900 font-semibold">{property.gas_included ? 'Sim' : 'Não'}</div>
+                                <div className="flex items-center py-2 text-sm text-gray-700">
+                                  <div className="w-1.5 h-1.5 bg-gray-400 rounded-full mr-3 flex-shrink-0"></div>
+                                  <span>Gás incluso: {property.gas_included ? 'Sim' : 'Não'}</span>
                                 </div>
                               )}
                               {typeof property.accessibility === 'boolean' && (
-                                <div className="p-3 rounded-lg border border-gray-200 bg-gray-50">
-                                  <div className="text-xs text-gray-500">Acessibilidade</div>
-                                  <div className="text-gray-900 font-semibold">{property.accessibility ? 'Sim' : 'Não'}</div>
+                                <div className="flex items-center py-2 text-sm text-gray-700">
+                                  <div className="w-1.5 h-1.5 bg-gray-400 rounded-full mr-3 flex-shrink-0"></div>
+                                  <span>Acessibilidade: {property.accessibility ? 'Sim' : 'Não'}</span>
                                 </div>
                               )}
                               {property.heating_type && (
-                                <div className="p-3 rounded-lg border border-gray-200 bg-gray-50">
-                                  <div className="text-xs text-gray-500">Aquecimento</div>
-                                  <div className="text-gray-900 font-semibold">{property.heating_type}</div>
+                                <div className="flex items-center py-2 text-sm text-gray-700">
+                                  <div className="w-1.5 h-1.5 bg-gray-400 rounded-full mr-3 flex-shrink-0"></div>
+                                  <span>Aquecimento: {property.heating_type}</span>
                                 </div>
                               )}
-                              {property.notes && (
-                                <div className="p-3 rounded-lg border border-gray-200 bg-gray-50 lg:col-span-3">
-                                  <div className="text-xs text-gray-500 mb-1">Observações</div>
-                                  <div className="text-sm text-gray-700 whitespace-pre-wrap">{property.notes}</div>
-                                </div>
-                              )}
+                              </div>
                             </div>
+
+                            {/* Observações ocupam toda a largura */}
+                            {property.notes && (
+                              <div className="mt-4 p-4 rounded-lg border border-gray-200 bg-gray-50">
+                                <div className="text-xs text-gray-500 mb-2 font-medium">Observações</div>
+                                <div className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">{property.notes}</div>
+                              </div>
+                            )}
                           </div>
                         )}
                       </div>
@@ -1325,10 +1627,18 @@ const PropertyDetailPage = () => {
             {/* Contact Sidebar - 1 coluna */}
             <div className="lg:col-span-1">
               <div className="sticky top-20 sm:top-24">
-                <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-4 sm:p-6 space-y-4">
+                <div className={`rounded-lg shadow-lg border p-4 sm:p-6 space-y-4 transition-colors duration-300 ${
+                  isDarkMode 
+                    ? 'bg-gray-800 border-gray-700' 
+                    : 'bg-white border-gray-200'
+                }`}>
                   <div className="text-center">
-                    <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2">Interessado?</h3>
-                    <p className="text-gray-600 text-sm sm:text-base">Entre em contato conosco</p>
+                    <h3 className={`text-lg sm:text-xl font-semibold mb-2 ${
+                      isDarkMode ? 'text-white' : 'text-gray-900'
+                    }`}>Interessado?</h3>
+                    <p className={`text-sm sm:text-base ${
+                      isDarkMode ? 'text-gray-300' : 'text-gray-600'
+                    }`}>Entre em contato conosco</p>
                   </div>
                   
                   <div className="space-y-3">
@@ -1348,7 +1658,11 @@ const PropertyDetailPage = () => {
                     <Button 
                       onClick={handleContactLead}
                       variant="outline"
-                      className="w-full py-2 sm:py-3 text-sm sm:text-base font-medium border-gray-300 hover:border-gray-400 hover:bg-gray-50 rounded-lg"
+                      className={`w-full py-2 sm:py-3 text-sm sm:text-base font-medium rounded-lg transition-colors duration-300 ${
+                        isDarkMode 
+                          ? 'border-gray-600 hover:border-gray-500 hover:bg-gray-700 text-gray-300 hover:text-white'
+                          : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50'
+                      }`}
                     >
                       Tenho Interesse
                     </Button>
@@ -1356,7 +1670,11 @@ const PropertyDetailPage = () => {
                     <Button 
                       onClick={handleShare}
                       variant="outline"
-                      className="w-full py-2 sm:py-3 text-sm sm:text-base font-medium border-gray-300 hover:border-gray-400 hover:bg-gray-50 rounded-lg"
+                      className={`w-full py-2 sm:py-3 text-sm sm:text-base font-medium rounded-lg transition-colors duration-300 ${
+                        isDarkMode 
+                          ? 'border-gray-600 hover:border-gray-500 hover:bg-gray-700 text-gray-300 hover:text-white'
+                          : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50'
+                      }`}
                     >
                       <Share2 className="h-4 w-4 mr-2" />
                       Compartilhar
@@ -1364,61 +1682,45 @@ const PropertyDetailPage = () => {
                   </div>
                   
                   {/* Broker/Realtor Info */}
-                  {(property.realtor_name || brokerProfile?.display_name) && (
-                    <div className="pt-4 border-t border-gray-200 space-y-3">
+
+
+                  {/* Property Stats - Design Minimalista Elegante */}
+                  <div className={`pt-4 border-t ${isDarkMode ? 'border-gray-700' : 'border-gray-100'} transition-colors duration-300`}>
+                    <div className={`flex items-center justify-between rounded-xl p-4 border transition-colors duration-300 ${
+                      isDarkMode 
+                        ? 'bg-gradient-to-r from-gray-700/50 to-gray-600/50 border-gray-600' 
+                        : 'bg-gradient-to-r from-gray-50/50 to-gray-100/50 border-gray-100'
+                    }`}>
                       <div className="flex items-center space-x-3">
-                        <div className="flex-shrink-0">
-                          {property.realtor_avatar_url ? (
-                            <img
-                              src={property.realtor_avatar_url}
-                              alt={property.realtor_name || brokerProfile?.display_name || 'Corretor'}
-                              className="h-10 w-10 sm:h-12 sm:w-12 rounded-lg object-cover border border-gray-200"
-                            />
-                          ) : (
-                            <div 
-                              className="h-10 w-10 sm:h-12 sm:w-12 rounded-lg flex items-center justify-center text-white font-semibold text-sm sm:text-base"
-                              style={{ backgroundColor: brokerProfile?.primary_color || '#374151' }}
-                            >
-                              {(property.realtor_name || brokerProfile?.display_name || 'C')?.charAt(0)}
-                            </div>
-                          )}
+                        <div className={`p-2 rounded-lg shadow-sm transition-colors duration-300 ${
+                          isDarkMode ? 'bg-gray-700' : 'bg-white'
+                        }`}>
+                          <Eye className={`h-4 w-4 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'} transition-colors duration-300`} />
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <h4 className="text-sm sm:text-base font-semibold text-gray-900 truncate">
-                            {property.realtor_name || brokerProfile?.display_name}
-                          </h4>
-                          {property.realtor_creci && (
-                            <p className="text-xs sm:text-sm text-gray-600">
-                              CRECI: {property.realtor_creci}
-                            </p>
-                          )}
-                          <p className="text-xs sm:text-sm text-gray-500">
-                            Corretor
-                          </p>
+                        <div>
+                          <div className={`text-lg font-semibold transition-colors duration-300 ${
+                            isDarkMode ? 'text-white' : 'text-gray-900'
+                          }`}>{viewsCount}</div>
+                          <div className={`text-xs font-medium transition-colors duration-300 ${
+                            isDarkMode ? 'text-gray-400' : 'text-gray-500'
+                          }`}>visualizações</div>
                         </div>
                       </div>
                       
-                      {property.realtor_bio && (
-                        <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
-                          <p className="text-xs sm:text-sm text-gray-700">
-                            {property.realtor_bio}
-                          </p>
+                      <div className="flex items-center space-x-3">
+                        <div className={`p-2 rounded-lg transition-colors duration-300 ${
+                          isDarkMode ? 'bg-green-900/50' : 'bg-green-50'
+                        }`}>
+                          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
                         </div>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Property Stats */}
-                  <div className="pt-4 border-t border-gray-200">
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="text-center bg-gray-50 rounded-lg p-3 border border-gray-200">
-                        <Eye className="h-4 w-4 sm:h-5 sm:w-5 text-gray-600 mx-auto mb-1" />
-                        <div className="text-base sm:text-lg font-semibold text-gray-900">{viewsCount}</div>
-                        <div className="text-xs text-gray-600">Visualizações</div>
-                      </div>
-                      <div className="text-center bg-gray-50 rounded-lg p-3 border border-gray-200">
-                        <div className="text-base sm:text-lg font-semibold text-gray-900">Online</div>
-                        <div className="text-xs text-gray-600">Disponível</div>
+                        <div className="text-right">
+                          <div className={`text-sm font-semibold transition-colors duration-300 ${
+                            isDarkMode ? 'text-white' : 'text-gray-900'
+                          }`}>Online</div>
+                          <div className={`text-xs font-medium transition-colors duration-300 ${
+                            isDarkMode ? 'text-green-400' : 'text-green-600'
+                          }`}>disponível</div>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -1472,16 +1774,10 @@ const PropertyDetailPage = () => {
             </div>
           </DialogContent>
         </Dialog>
+        
+        {/* Contact CTA Section with Full Width Background */}
+        </div>
       </div>
-
-      {/* Mobile Realtor Card */}
-      {isMobile && property.realtor_name && (
-        <MobileRealtorCard 
-          property={property}
-          brokerProfile={brokerProfile}
-          onWhatsAppClick={handleWhatsAppClick}
-        />
-      )}
 
       {/* Contact CTA */}
       <ContactCTA 

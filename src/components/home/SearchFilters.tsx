@@ -100,43 +100,35 @@ const SearchFilters = ({
   };
 
   return (
-    <div className="space-y-4">
+    <div className="bg-background dark:bg-card rounded-2xl shadow-soft-2 border dark:border-border p-6 md:p-8 space-y-6">
       {/* Barra de Busca Principal */}
-      <div className="flex flex-col sm:flex-row gap-3">
+      <div className="flex flex-col sm:flex-row gap-4">
         <div className="relative flex-1">
           <Input
             ref={searchInputRef}
             placeholder="Buscar por localização, tipo de imóvel, código..."
             value={searchTerm}
             onChange={(e) => handleSearchChange(e.target.value)}
-            className="h-11 sm:h-12 text-sm sm:text-base pr-10 sm:pr-4"
+            className="h-12 sm:h-14 text-base pl-12 pr-4 rounded-xl border-2 border-gray-200 focus:border-primary/50 shadow-sm"
             maxLength={200}
           />
-          {/* Ícone interno (mobile) */}
-          <button
-            type="button"
-            aria-label="Buscar"
-            className="sm:hidden absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-            onClick={() => searchInputRef.current?.focus()}
-          >
-            <Search className="h-5 w-5" />
-          </button>
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
         </div>
-        {/* Botão externo (desktop e acima) */}
+        {/* Botão de busca sempre visível */}
         <Button 
-          className="hidden sm:inline-flex h-11 sm:h-12 px-4 sm:px-6 md:px-8 text-sm sm:text-base"
+          className="h-12 sm:h-14 px-6 sm:px-8 text-base font-semibold rounded-xl shadow-sm hover:shadow-md transition-all duration-200"
           style={{ backgroundColor: primaryColor }}
         >
-          <Search className="h-4 w-4 mr-2" />
+          <Search className="h-5 w-5 mr-2" />
           <span>Buscar</span>
         </Button>
       </div>
 
       {/* Filtros Básicos */}
-      <div className="flex flex-wrap gap-2 sm:gap-3 items-center">
-        <div className="flex items-center gap-2">
-          <Filter className="h-4 w-4 text-muted-foreground" />
-          <span className="text-xs sm:text-sm font-medium">Filtros:</span>
+      <div className="flex flex-wrap gap-3 items-center">
+        <div className="flex items-center gap-3">
+          <Filter className="h-5 w-5 text-primary" />
+          <span className="text-sm font-semibold text-foreground">Filtros Rápidos:</span>
         </div>
         
         <Select 
@@ -146,10 +138,10 @@ const SearchFilters = ({
             transaction_type: value === 'all' ? '' : value 
           }))}
         >
-          <SelectTrigger className="w-24 sm:w-32 h-9 sm:h-10 text-xs sm:text-sm">
-            <SelectValue placeholder="Tipo" />
+          <SelectTrigger className="w-32 sm:w-36 h-11 text-sm font-medium rounded-xl border-2 border-gray-200 hover:border-primary/30 transition-colors">
+            <SelectValue placeholder="Transação" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="rounded-xl">
             <SelectItem value="all">Todos</SelectItem>
             <SelectItem value="sale">Venda</SelectItem>
             <SelectItem value="rent">Aluguel</SelectItem>
@@ -163,15 +155,15 @@ const SearchFilters = ({
             property_type: value === 'all' ? '' : value 
           }))}
         >
-          <SelectTrigger className="w-28 sm:w-40 h-9 sm:h-10 text-xs sm:text-sm">
-            <SelectValue placeholder="Imóvel" />
+          <SelectTrigger className="w-36 sm:w-44 h-11 text-sm font-medium rounded-xl border-2 border-gray-200 hover:border-primary/30 transition-colors">
+            <SelectValue placeholder="Tipo de Imóvel" />
           </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Todos</SelectItem>
+          <SelectContent className="rounded-xl">
+            <SelectItem value="all">Todos os Tipos</SelectItem>
             {propertyTypeGroups && propertyTypeGroups.length > 0 ? (
               propertyTypeGroups.map((group) => (
                 <SelectGroup key={group.label}>
-                  <SelectLabel>{group.label}</SelectLabel>
+                  <SelectLabel className="font-semibold text-primary">{group.label}</SelectLabel>
                   {group.options.map((opt) => (
                     <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
                   ))}
@@ -198,11 +190,9 @@ const SearchFilters = ({
           <CollapsibleTrigger asChild>
             <Button 
               variant="outline" 
-              size="sm" 
-              className="flex items-center gap-2 text-white border-0"
-              style={{ backgroundColor: secondaryColor }}
+              className="flex items-center gap-2 h-11 px-4 rounded-xl border-2 border-gray-200 dark:border-border hover:border-primary/30 bg-background dark:bg-muted hover:bg-gray-50 dark:hover:bg-muted/80 text-foreground hover:text-primary font-medium transition-all duration-200"
             >
-              <span>Avançado</span>
+              <span>Filtros Avançados</span>
               {isAdvancedOpen ? (
                 <ChevronUp className="h-4 w-4" />
               ) : (
@@ -211,10 +201,10 @@ const SearchFilters = ({
             </Button>
           </CollapsibleTrigger>
           
-          <CollapsibleContent className="mt-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 p-3 sm:p-4 bg-gray-50 rounded-lg">
-              <div>
-                <label className="text-sm font-medium text-gray-700 mb-1 block">
+          <CollapsibleContent className="mt-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 p-6 bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl border border-gray-200">
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-foreground block">
                   Código do Imóvel
                 </label>
                 <Input
@@ -222,11 +212,12 @@ const SearchFilters = ({
                   value={filters.property_code}
                   onChange={(e) => handleTextFieldChange('property_code', e.target.value, 50)}
                   maxLength={50}
+                  className="h-11 rounded-xl border-2 border-gray-200 focus:border-primary/50"
                 />
               </div>
 
-              <div>
-                <label className="text-sm font-medium text-gray-700 mb-1 block">
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-foreground block">
                   Cidade
                 </label>
                 <Input
@@ -234,11 +225,12 @@ const SearchFilters = ({
                   value={filters.city}
                   onChange={(e) => handleTextFieldChange('city', e.target.value, 100)}
                   maxLength={100}
+                  className="h-11 rounded-xl border-2 border-gray-200 focus:border-primary/50"
                 />
               </div>
               
-              <div>
-                <label className="text-sm font-medium text-gray-700 mb-1 block">
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-foreground block">
                   Bairro
                 </label>
                 <Input
@@ -246,11 +238,12 @@ const SearchFilters = ({
                   value={filters.neighborhood}
                   onChange={(e) => handleTextFieldChange('neighborhood', e.target.value, 100)}
                   maxLength={100}
+                  className="h-11 rounded-xl border-2 border-gray-200 focus:border-primary/50"
                 />
               </div>
 
-              <div>
-                <label className="text-sm font-medium text-gray-700 mb-1 block">
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-foreground block">
                   Estado (UF)
                 </label>
                 <Input
@@ -258,37 +251,40 @@ const SearchFilters = ({
                   value={filters.uf}
                   onChange={(e) => handleTextFieldChange('uf', e.target.value.toUpperCase(), 2)}
                   maxLength={2}
+                  className="h-11 rounded-xl border-2 border-gray-200 focus:border-primary/50"
                 />
               </div>
               
-              <div>
-                <label className="text-sm font-medium text-gray-700 mb-1 block">
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-foreground block">
                   Preço Mínimo
                 </label>
                 <Input
-                  placeholder="Valor mínimo"
+                  placeholder="R$ 0"
                   type="text"
                   value={filters.min_price}
                   onChange={(e) => handlePriceChange('min_price', e.target.value)}
                   maxLength={12}
+                  className="h-11 rounded-xl border-2 border-gray-200 focus:border-primary/50"
                 />
               </div>
               
-              <div>
-                <label className="text-sm font-medium text-gray-700 mb-1 block">
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-foreground block">
                   Preço Máximo
                 </label>
                 <Input
-                  placeholder="Valor máximo"
+                  placeholder="R$ 999.999"
                   type="text"
                   value={filters.max_price}
                   onChange={(e) => handlePriceChange('max_price', e.target.value)}
                   maxLength={12}
+                  className="h-11 rounded-xl border-2 border-gray-200 focus:border-primary/50"
                 />
               </div>
               
-              <div>
-                <label className="text-sm font-medium text-gray-700 mb-1 block">
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-foreground block">
                   Quartos
                 </label>
                 <Select 
@@ -298,15 +294,15 @@ const SearchFilters = ({
                     bedrooms: value === 'all' ? '' : value 
                   }))}
                 >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Quartos" />
+                  <SelectTrigger className="h-11 rounded-xl border-2 border-gray-200 hover:border-primary/30">
+                    <SelectValue placeholder="Nº de Quartos" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="rounded-xl">
                     <SelectItem value="all">Todos</SelectItem>
-                    <SelectItem value="1">1</SelectItem>
-                    <SelectItem value="2">2</SelectItem>
-                    <SelectItem value="3">3</SelectItem>
-                    <SelectItem value="4">4+</SelectItem>
+                    <SelectItem value="1">1 Quarto</SelectItem>
+                    <SelectItem value="2">2 Quartos</SelectItem>
+                    <SelectItem value="3">3 Quartos</SelectItem>
+                    <SelectItem value="4">4+ Quartos</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -317,14 +313,12 @@ const SearchFilters = ({
         {/* Botão Limpar Filtros */}
         {hasActiveFilters && (
           <Button 
-            variant="outline" 
-            size="sm"
+            variant="outline"
             onClick={clearAllFilters}
-            className="flex items-center gap-2 text-white border-0"
-            style={{ backgroundColor: secondaryColor }}
+            className="flex items-center gap-2 h-11 px-4 rounded-xl border-2 border-red-200 dark:border-red-800 hover:border-red-300 dark:hover:border-red-700 bg-background dark:bg-card hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 font-medium transition-all duration-200"
           >
             <X className="h-4 w-4" />
-            Limpar
+            Limpar Filtros
           </Button>
         )}
       </div>

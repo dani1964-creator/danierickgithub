@@ -86,14 +86,17 @@ const Settings = () => {
     } finally {
       setDomainsLoading(false);
     }
-  }, [toast]);
+  }, []); // Removido dependências desnecessárias
 
-  const fetchProfile = useCallback(async () => {
+  const fetchProfile = useCallback(async (currentUser?: typeof user) => {
+    const userToUse = currentUser || user;
+    if (!userToUse?.id) return;
+    
     try {
       const { data, error } = await supabase
         .from('brokers')
         .select('id, business_name, display_name, email, contact_email, phone, address, about_text, footer_text, whatsapp_number, creci')
-        .eq('user_id', user?.id)
+        .eq('user_id', userToUse.id)
         .single();
 
       if (error) throw error;
@@ -111,13 +114,13 @@ const Settings = () => {
     } finally {
       setLoading(false);
     }
-  }, [fetchDomains, toast, user?.id]);
+  }, []); // Removido dependências para evitar re-renders constantes
 
   useEffect(() => {
     if (user) {
-      fetchProfile();
+      fetchProfile(user);
     }
-  }, [user, fetchProfile]);
+  }, [user]); // Precisa depender do user para executar quando ele estiver disponível
 
   const saveProfile = async () => {
     if (!profile) return;

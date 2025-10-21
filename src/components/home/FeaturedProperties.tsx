@@ -84,7 +84,7 @@ const FeaturedProperties = ({
         <div className="content-container">
         <SectionHeader
           title="Imóveis em Destaque"
-          subtitle="Selecionamos os melhores imóveis para você"
+          subtitle="Propriedades selecionadas especialmente para você"
           className="mb-8"
         />
 

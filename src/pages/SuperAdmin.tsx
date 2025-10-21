@@ -51,7 +51,7 @@ export default function SuperAdminPage() {
   const [loginPassword, setLoginPassword] = useState("");
   const [loginLoading, setLoginLoading] = useState(false);
 
-  const fetchBrokers = useCallback(async () => {
+  const fetchBrokers = useCallback(async (shouldSetLoading = true) => {
     try {
       const { data, error } = await supabase.functions.invoke('admin-brokers', {
         body: {
@@ -71,9 +71,11 @@ export default function SuperAdminPage() {
         variant: "destructive",
       });
     } finally {
-      setLoading(false);
+      if (shouldSetLoading) {
+        setLoading(false);
+      }
     }
-  }, [toast, SUPER_ADMIN_EMAIL, SUPER_ADMIN_PASSWORD]);
+  }, []); // Removido dependências para evitar re-renders constantes
 
   // Check internal Super Admin token on mount and setup realtime
   useEffect(() => {
@@ -82,34 +84,63 @@ export default function SuperAdminPage() {
       setIsAuthorized(true);
       fetchBrokers();
       
-      // Setup realtime subscription for broker changes
+      // Debounce function to prevent excessive refreshes
+      let refreshTimeout: NodeJS.Timeout;
+      const debouncedRefresh = () => {
+        clearTimeout(refreshTimeout);
+        refreshTimeout = setTimeout(() => {
+          console.log('Broker data changed, refreshing after debounce...');
+          fetchBrokers(false); // false = não alterar loading state
+        }, 1500); // 1.5 second debounce (aumentado)
+      };
+      
+      // Setup realtime subscription for broker changes (only specific events)
       const channel = supabase
         .channel('admin-brokers-changes')
         .on('postgres_changes', 
           { 
-            event: '*', 
+            event: 'INSERT', 
             schema: 'public', 
             table: 'brokers' 
           }, 
-          () => {
-            console.log('Broker data changed, refreshing...');
-            fetchBrokers();
-          }
+          debouncedRefresh
         )
         .on('postgres_changes', 
           { 
-            event: '*', 
+            event: 'UPDATE', 
+            schema: 'public', 
+            table: 'brokers' 
+          }, 
+          debouncedRefresh
+        )
+        .on('postgres_changes', 
+          { 
+            event: 'DELETE', 
+            schema: 'public', 
+            table: 'brokers' 
+          }, 
+          debouncedRefresh
+        )
+        .on('postgres_changes', 
+          { 
+            event: 'INSERT', 
             schema: 'public', 
             table: 'properties' 
           }, 
-          () => {
-            console.log('Properties data changed, refreshing...');
-            fetchBrokers();
-          }
+          debouncedRefresh
+        )
+        .on('postgres_changes', 
+          { 
+            event: 'DELETE', 
+            schema: 'public', 
+            table: 'properties' 
+          }, 
+          debouncedRefresh
         )
         .subscribe();
 
       return () => {
+        clearTimeout(refreshTimeout);
         supabase.removeChannel(channel);
       };
     } else {
@@ -117,7 +148,7 @@ export default function SuperAdminPage() {
       setShowLoginDialog(true);
       setLoading(false);
     }
-  }, [fetchBrokers]);
+  }, []); // Array vazio para executar apenas no mount
 
   const toggleBrokerStatus = async (brokerId: string, currentStatus: boolean) => {
     try {
@@ -138,7 +169,7 @@ export default function SuperAdminPage() {
         description: `Imobiliária ${!currentStatus ? 'ativada' : 'desativada'} com sucesso.`,
       });
       
-  fetchBrokers();
+      // fetchBrokers() removido - realtime subscription irá atualizar automaticamente
     } catch (error) {
       console.error('Error toggling broker status:', error);
       toast({
@@ -167,7 +198,7 @@ export default function SuperAdminPage() {
         description: "A imobiliária foi removida com sucesso.",
       });
       
-  fetchBrokers();
+      // fetchBrokers() removido - realtime subscription irá atualizar automaticamente
     } catch (error) {
       console.error('Error deleting broker:', error);
       toast({
@@ -212,7 +243,7 @@ export default function SuperAdminPage() {
       setNewBrokerPassword("");
       setNewBrokerBusinessName("");
       setShowCreateDialog(false);
-      fetchBrokers();
+      // fetchBrokers() removido - realtime subscription irá atualizar automaticamente
     } catch (error) {
       console.error('Error creating broker:', error);
       toast({

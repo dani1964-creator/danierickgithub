@@ -1,0 +1,26 @@
+# Backend Dockerfile
+FROM node:18-alpine
+
+# Definir diretório de trabalho
+WORKDIR /app
+
+# Copiar package.json e package-lock.json
+COPY backend/package*.json ./
+
+# Instalar dependências
+RUN npm ci --only=production
+
+# Copiar código fonte do backend
+COPY backend/ .
+
+# Build da aplicação TypeScript
+RUN npm run build
+
+# Expor a porta
+EXPOSE 3000
+
+# Definir usuário não-root para segurança
+USER node
+
+# Comando para iniciar a aplicação
+CMD ["node", "dist/app.js"]

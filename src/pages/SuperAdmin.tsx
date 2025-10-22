@@ -10,10 +10,12 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Building2, Users, Globe, Trash2, Plus, Eye, EyeOff, ExternalLink, Settings } from "lucide-react";
+import { Building2, Users, Globe, Trash2, Plus, Eye, EyeOff, ExternalLink, Settings, RefreshCw, ChevronLeft, ChevronRight } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Helmet } from 'react-helmet-async';
+// ✅ IMPORT DO HOOK OTIMIZADO
+import { useOptimizedBrokers } from '@/hooks/useOptimizedQuery';
 
 interface BrokerData {
   id: string;
@@ -39,8 +41,28 @@ export default function SuperAdminPage() {
   const SUPER_ADMIN_PASSWORD = import.meta.env.VITE_SA_PASSWORD || "";
   const SUPER_ADMIN_TOKEN_KEY = "sa_auth";
   const { toast } = useToast();
-  const [brokers, setBrokers] = useState<BrokerData[]>([]);
-  const [loading, setLoading] = useState(true);
+  
+  // ✅ HOOK OTIMIZADO - SUBSTITUI fetchBrokers
+  const { 
+    data: brokers, 
+    loading, 
+    error: brokersError,
+    totalCount,
+    totalPages,
+    currentPage,
+    hasNextPage,
+    hasPrevPage,
+    refresh: refreshBrokers,
+    loadNextPage,
+    loadPrevPage
+  } = useOptimizedBrokers({}, {
+    limit: 20, // ✅ PAGINAÇÃO AUTOMÁTICA
+    enableCache: true,
+    memoryTTL: 10, // Cache maior para admin
+    sessionTTL: 30,
+    logQueries: true
+  });
+  
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [newBrokerEmail, setNewBrokerEmail] = useState("");
   const [newBrokerPassword, setNewBrokerPassword] = useState("");
@@ -51,38 +73,18 @@ export default function SuperAdminPage() {
   const [loginPassword, setLoginPassword] = useState("");
   const [loginLoading, setLoginLoading] = useState(false);
 
-  const fetchBrokers = useCallback(async (shouldSetLoading = true) => {
-    try {
-      const { data, error } = await supabase.functions.invoke('admin-brokers', {
-        body: {
-          action: 'list',
-          email: SUPER_ADMIN_EMAIL,
-          password: SUPER_ADMIN_PASSWORD
-        }
-      });
-      
-      if (error) throw error;
-      setBrokers(data?.brokers || []);
-    } catch (error) {
-      console.error('Error fetching brokers:', error);
-      toast({
-        title: "Erro ao carregar imobiliárias",
-        description: "Não foi possível carregar a lista de imobiliárias.",
-        variant: "destructive",
-      });
-    } finally {
-      if (shouldSetLoading) {
-        setLoading(false);
-      }
-    }
-  }, []); // Removido dependências para evitar re-renders constantes
+  // ✅ FUNÇÃO DE AUTENTICAÇÃO (mantida para backward compatibility)
+  const authenticateAdmin = useCallback(() => {
+    const token = localStorage.getItem(SUPER_ADMIN_TOKEN_KEY);
+    return token === "1";
+  }, [SUPER_ADMIN_TOKEN_KEY]);
 
   // Check internal Super Admin token on mount and setup realtime
   useEffect(() => {
     const token = localStorage.getItem(SUPER_ADMIN_TOKEN_KEY);
     if (token === "1") {
       setIsAuthorized(true);
-      fetchBrokers();
+      // ✅ Dados carregados automaticamente pelo hook otimizado
       
       // Debounce function to prevent excessive refreshes
       let refreshTimeout: NodeJS.Timeout;
@@ -90,7 +92,7 @@ export default function SuperAdminPage() {
         clearTimeout(refreshTimeout);
         refreshTimeout = setTimeout(() => {
           console.log('Broker data changed, refreshing after debounce...');
-          fetchBrokers(false); // false = não alterar loading state
+          refreshBrokers(); // ✅ Usar hook otimizado
         }, 1500); // 1.5 second debounce (aumentado)
       };
       
@@ -146,7 +148,7 @@ export default function SuperAdminPage() {
     } else {
       setIsAuthorized(false);
       setShowLoginDialog(true);
-      setLoading(false);
+      // ✅ Loading gerenciado pelo hook otimizado
     }
   }, []); // Array vazio para executar apenas no mount
 
@@ -276,8 +278,7 @@ export default function SuperAdminPage() {
           title: "Login realizado",
           description: "Bem-vindo ao painel Super Admin.",
         });
-        setLoading(true);
-  await fetchBrokers();
+        await refreshBrokers(); // ✅ Usar hook otimizado
       } else {
         throw new Error("Credenciais inválidas.");
       }
@@ -362,9 +363,9 @@ export default function SuperAdminPage() {
     );
   }
 
-  const totalBrokers = brokers.length;
+  const totalBrokers = totalCount || brokers.length;
   const activeBrokers = brokers.filter(b => b.is_active).length;
-  const totalProperties = brokers.reduce((sum, b) => sum + b.properties_count, 0);
+  const totalProperties = brokers.reduce((sum, b) => sum + (b.properties_count || 0), 0);
 
   return (
     <div className="min-h-screen bg-background">
@@ -426,7 +427,14 @@ export default function SuperAdminPage() {
 
         {/* Actions */}
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
-          <h2 className="text-lg sm:text-xl font-semibold">Gerenciar Imobiliárias</h2>
+          <div className="flex items-center gap-4">
+            <h2 className="text-lg sm:text-xl font-semibold">Gerenciar Imobiliárias</h2>
+            {totalPages > 1 && (
+              <span className="text-sm text-muted-foreground">
+                Página {currentPage} de {totalPages} ({totalBrokers} total)
+              </span>
+            )}
+          </div>
           
           <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
             <DialogTrigger asChild>
@@ -692,6 +700,50 @@ export default function SuperAdminPage() {
             </Card>
           ))}
         </div>
+        
+        {/* ✅ PAGINAÇÃO OTIMIZADA */}
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between bg-card rounded-lg p-4 mt-6">
+            <div className="text-sm text-muted-foreground">
+              Mostrando {((currentPage - 1) * 20) + 1} - {Math.min(currentPage * 20, totalBrokers)} de {totalBrokers} imobiliárias
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={loadPrevPage}
+                disabled={!hasPrevPage || loading}
+              >
+                <ChevronLeft className="h-4 w-4 mr-1" />
+                Anterior
+              </Button>
+              
+              <span className="text-sm px-3 py-1 bg-primary/10 rounded">
+                {currentPage} / {totalPages}
+              </span>
+              
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={loadNextPage}
+                disabled={!hasNextPage || loading}
+              >
+                Próxima
+                <ChevronRight className="h-4 w-4 ml-1" />
+              </Button>
+              
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={refreshBrokers}
+                disabled={loading}
+              >
+                <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -1,67 +1,42 @@
-# Arquivo para ignorar durante build do Dockernode_modules
+# Node.js
+node_modules
+npm-debug.log
+.npm
+.nyc_output
+.coverage
+.cache
+.parcel-cache
 
-node_modules/npm-debug.log
-
-npm-debug.log*.npm
-
-yarn-debug.log*.nyc_output
-
-yarn-error.log*.coverage
-
-pnpm-debug.log*.cache
-
-.pnpm-store/.parcel-cache
-
+# Build outputs
 .next
-
-# Build outputs.nuxt
-
-dist/.vuepress/dist
-
-build/.serverless
-
+.nuxt
+.vuepress/dist
+.serverless
 .fusebox
+dist
+build
 
-# Environment files.dynamodb
-
-.env.tern-project
-
-.env.local.tern-port
-
-.env.development.local.env
-
-.env.test.local.env.local
-
-.env.production.local.env.development.local
-
+# Environment files
+.env
+.env.local
+.env.development.local
 .env.test.local
+.env.production.local
 
-# IDE.env.production.local
-
-.vscode/dist
-
-.idea/build
-
+# IDE
+.vscode/
+.idea/
 .DS_Store
 
-# Git.git
+# Git
+.git
+.gitignore
 
-.git/.gitignore
-
-.gitignoreREADME.md
-
-README.md.dockerignore
-
-Dockerfile*
-
-# Dockerdocker-compose*
-Dockerfile*
-docker-compose*.yml
+# Docker
+README.md
 .dockerignore
-
-# Cache
-.cache/
-.parcel-cache/
+Dockerfile*
+docker-compose*
 
 # Temporary files
 *.tmp

@@ -1,0 +1,73 @@
+name: imobi-saas-multi-tenant
+region: nyc
+
+services:
+  # Backend API
+  - name: backend
+    source_dir: /backend
+    build_command: npm install && npm run build
+    run_command: npm start
+    environment_slug: node-js
+    instance_count: 1
+    instance_size_slug: basic-xxs
+    http_port: 8080
+    routes:
+      - path: /api
+    envs:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: "8080"
+      - key: SUPABASE_URL
+        value: ${SUPABASE_URL}
+      - key: SUPABASE_ANON_KEY
+        value: ${SUPABASE_ANON_KEY}
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        value: ${SUPABASE_SERVICE_ROLE_KEY}
+    alerts:
+      - rule: CPU_UTILIZATION
+        value: 85
+      - rule: MEM_UTILIZATION
+        value: 85
+
+  # Frontend Next.js
+  - name: frontend
+    source_dir: /frontend
+    build_command: npm install && npm run build
+    run_command: npm start
+    environment_slug: node-js
+    instance_count: 1
+    instance_size_slug: basic-xxs
+    http_port: 3000
+    routes:
+      - path: /
+    envs:
+      - key: NODE_ENV
+        value: production
+      - key: NEXT_PUBLIC_API_URL
+        value: ${backend.PRIVATE_URL}
+      - key: API_URL
+        value: ${backend.PRIVATE_URL}
+      - key: NEXT_PUBLIC_SUPABASE_URL
+        value: ${SUPABASE_URL}
+      - key: NEXT_PUBLIC_SUPABASE_ANON_KEY
+        value: ${SUPABASE_ANON_KEY}
+    alerts:
+      - rule: CPU_UTILIZATION
+        value: 85
+      - rule: MEM_UTILIZATION
+        value: 85
+
+# Domínios personalizados serão configurados via dashboard
+domains:
+  - domain: seu-app-principal.com
+    type: PRIMARY
+  - domain: "*.seu-app-principal.com"
+    type: ALIAS
+
+# Configurações globais
+features:
+  - buildpack-stack=ubuntu-22
+
+# Environment variables globais (configurar no dashboard)
+static_sites: []

@@ -1,6 +1,6 @@
 
 import { useState, useEffect, useCallback } from 'react';
-import { Search, Trash2, Eye, Filter } from 'lucide-react';
+import { Search, Trash2, Eye, Filter, RefreshCw, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -15,6 +15,8 @@ import PropertyViewToggle from '@/components/properties/PropertyViewToggle';
 import EditPropertyButton from '@/components/properties/EditPropertyButton';
 import { sanitizeInput } from '@/lib/security';
 import { getErrorMessage } from '@/lib/utils';
+// ✅ IMPORT DO HOOK OTIMIZADO
+import { useOptimizedProperties } from '@/hooks/useOptimizedQuery';
 
 interface Property {
   id: string;
@@ -45,18 +47,47 @@ interface Property {
 const Properties = () => {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [properties, setProperties] = useState<Property[]>([]);
-  const [loading, setLoading] = useState(true);
+  
+  // ✅ ESTADOS PARA FILTROS E PAGINAÇÃO
+  const [brokerId, setBrokerId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [propertyTypeFilter, setPropertyTypeFilter] = useState('all');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  
+  // ✅ HOOK OTIMIZADO - SUBSTITUI fetchProperties
+  const { 
+    data: properties, 
+    loading, 
+    error,
+    totalCount,
+    totalPages,
+    currentPage,
+    hasNextPage,
+    hasPrevPage,
+    refresh: refreshProperties,
+    loadNextPage,
+    loadPrevPage,
+    clearCache
+  } = useOptimizedProperties(brokerId || '', {
+    status: statusFilter !== 'all' ? statusFilter : undefined,
+    propertyType: propertyTypeFilter !== 'all' ? propertyTypeFilter : undefined,
+    search: searchTerm ? `%${searchTerm}%` : undefined
+  }, {
+    limit: 12, // ✅ PAGINAÇÃO AUTOMÁTICA
+    enableCache: true,
+    memoryTTL: 3, // Cache curto - dados mudam frequentemente
+    sessionTTL: 10,
+    logQueries: true,
+    realtime: true // ✅ REALTIME OTIMIZADO
+  });
 
-  const fetchProperties = useCallback(async (currentUser?: typeof user) => {
+  // ✅ FUNÇÃO PARA BUSCAR BROKER ID (simplificada)
+  const fetchBrokerData = useCallback(async (currentUser?: typeof user) => {
     const userToUse = currentUser || user;
     if (!userToUse?.id) return;
     
     try {
-      // First, get the broker_id for the current user
       const { data: brokerData, error: brokerError } = await supabase
         .from('brokers')
         .select('id')
@@ -65,49 +96,42 @@ const Properties = () => {
 
       if (brokerError) {
         console.error('Error fetching broker:', brokerError);
-        throw new Error('Erro ao identificar corretor');
+        toast({
+          title: "Erro ao identificar corretor",
+          description: getErrorMessage(brokerError),
+          variant: "destructive"
+        });
+        return;
       }
 
       if (!brokerData) {
-        throw new Error('Corretor não encontrado');
+        toast({
+          title: "Corretor não encontrado",
+          description: "Não foi possível encontrar seus dados de corretor.",
+          variant: "destructive"
+        });
+        return;
       }
 
-      // Then fetch only properties for this broker
-      const { data, error } = await supabase
-        .from('properties')
-        .select(`
-          *, 
-          slug,
-          realtors!realtor_id (
-            id,
-            name,
-            avatar_url,
-            creci
-          )
-        `)
-        .eq('broker_id', brokerData.id)
-        .order('is_featured', { ascending: false })
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setProperties(data || []);
+      // ✅ SETAR BROKER ID PARA ATIVAR O HOOK OTIMIZADO
+      setBrokerId(brokerData.id);
+      
     } catch (error: unknown) {
-      console.error('Error fetching properties:', error);
+      console.error('Error fetching broker data:', error);
       toast({
-        title: "Erro ao carregar imóveis",
+        title: "Erro ao carregar dados",
         description: getErrorMessage(error),
         variant: "destructive"
       });
-    } finally {
-      setLoading(false);
     }
-  }, []); // Removido dependências para evitar re-renders constantes
+  }, [toast]);
 
+  // ✅ BUSCAR BROKER ID QUANDO USER ESTIVER DISPONÍVEL
   useEffect(() => {
     if (user) {
-      fetchProperties(user);
+      fetchBrokerData(user);
     }
-  }, [user]);  // Precisa depender do user para executar quando ele estiver disponível
+  }, [user, fetchBrokerData]);
 
   // Sanitize search input to prevent XSS
   const sanitizedSearchTerm = sanitizeInput(searchTerm);
@@ -143,7 +167,7 @@ const Properties = () => {
         description: "O imóvel foi removido com sucesso."
       });
 
-      fetchProperties();
+      refreshProperties();
     } catch (error: unknown) {
       toast({
         title: "Erro ao excluir",
@@ -243,10 +267,10 @@ const Properties = () => {
                 Imóveis
               </h1>
               <p className="text-muted-foreground mt-1 text-lg">
-                Gerencie seus imóveis cadastrados ({properties.length} imóveis)
+                Gerencie seus imóveis cadastrados ({totalCount || properties.length} imóveis - Página {currentPage} de {totalPages})
               </p>
             </div>
-            <AddPropertyDialog onPropertyAdded={fetchProperties} />
+            <AddPropertyDialog onPropertyAdded={refreshProperties} />
           </div>
 
         {/* Search, Filters and View Toggle */}
@@ -336,7 +360,7 @@ const Properties = () => {
                   }
                 </p>
                 {!searchTerm && (
-                  <AddPropertyDialog onPropertyAdded={fetchProperties} />
+                  <AddPropertyDialog onPropertyAdded={refreshProperties} />
                 )}
               </div>
             </CardContent>
@@ -412,7 +436,7 @@ const Properties = () => {
                     </div>
                     
                      <div className="flex items-center gap-1">
-                       <EditPropertyButton property={property} onPropertyUpdated={fetchProperties} />
+                       <EditPropertyButton property={property} onPropertyUpdated={refreshProperties} />
                       <Button 
                         size="sm" 
                         variant="outline"
@@ -525,7 +549,7 @@ const Properties = () => {
                       </div>
                       
                        <div className="flex items-center gap-2">
-                         <EditPropertyButton property={property} onPropertyUpdated={fetchProperties} />
+                         <EditPropertyButton property={property} onPropertyUpdated={refreshProperties} />
                         <Button 
                           size="sm" 
                           variant="outline"
@@ -543,6 +567,52 @@ const Properties = () => {
           </div>
         )}
           </div>
+          {/* ✅ PAGINAÇÃO OTIMIZADA */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between bg-card/50 backdrop-blur-sm rounded-xl p-4 shadow-lg border border-border/50">
+              <div className="text-sm text-muted-foreground">
+                Mostrando {((currentPage - 1) * 12) + 1} - {Math.min(currentPage * 12, totalCount)} de {totalCount} imóveis
+              </div>
+              
+              <div className="flex items-center gap-2">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={loadPrevPage}
+                  disabled={!hasPrevPage || loading}
+                  className="h-8"
+                >
+                  <ChevronLeft className="h-3 w-3 mr-1" />
+                  Anterior
+                </Button>
+                
+                <span className="text-sm px-3 py-1 bg-primary/10 rounded">
+                  Página {currentPage} de {totalPages}
+                </span>
+                
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={loadNextPage}
+                  disabled={!hasNextPage || loading}
+                  className="h-8"
+                >
+                  Próxima
+                  <ChevronRight className="h-3 w-3 ml-1" />
+                </Button>
+                
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={refreshProperties}
+                  disabled={loading}
+                  className="h-8"
+                >
+                  <RefreshCw className={`h-3 w-3 ${loading ? 'animate-spin' : ''}`} />
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
       </DashboardLayout>
     );

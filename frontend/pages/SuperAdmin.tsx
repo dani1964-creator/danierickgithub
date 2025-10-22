@@ -429,7 +429,7 @@ export default function SuperAdminPage() {
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
           <div className="flex items-center gap-4">
             <h2 className="text-lg sm:text-xl font-semibold">Gerenciar Imobiliárias</h2>
-            {totalPages > 1 && (
+            {totalPages && totalPages > 1 && (
               <span className="text-sm text-muted-foreground">
                 Página {currentPage} de {totalPages} ({totalBrokers} total)
               </span>
@@ -702,7 +702,7 @@ export default function SuperAdminPage() {
         </div>
         
         {/* ✅ PAGINAÇÃO OTIMIZADA */}
-        {totalPages > 1 && (
+        {totalPages && totalPages > 1 && (
           <div className="flex items-center justify-between bg-card rounded-lg p-4 mt-6">
             <div className="text-sm text-muted-foreground">
               Mostrando {((currentPage - 1) * 20) + 1} - {Math.min(currentPage * 20, totalBrokers)} de {totalBrokers} imobiliárias

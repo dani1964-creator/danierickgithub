@@ -1,0 +1,43 @@
+# Frontend Dockerfile
+FROM node:18-alpine AS builder
+
+# Definir diretório de trabalho
+WORKDIR /app
+
+# Instalar pnpm
+RUN npm install -g pnpm
+
+# Copiar arquivos de dependências
+COPY package.json pnpm-lock.yaml* ./
+
+# Instalar dependências
+RUN pnpm install
+
+# Copiar apenas o código fonte necessário
+COPY src/ ./src/
+COPY public/ ./public/
+COPY index.html ./
+COPY vite.config.ts ./
+COPY tsconfig.json ./
+COPY tsconfig.*.json ./
+COPY tailwind.config.ts ./
+COPY postcss.config.js ./
+COPY components.json ./
+
+# Build da aplicação
+RUN pnpm build
+
+# Estágio de produção com Nginx
+FROM nginx:alpine
+
+# Copiar arquivos buildados
+COPY --from=builder /app/dist /usr/share/nginx/html
+
+# Copiar configuração customizada do Nginx
+COPY nginx.conf /etc/nginx/nginx.conf
+
+# Expor porta
+EXPOSE 80
+
+# Comando para iniciar
+CMD ["nginx", "-g", "daemon off;"]

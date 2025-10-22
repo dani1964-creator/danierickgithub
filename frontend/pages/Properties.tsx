@@ -568,10 +568,10 @@ const Properties = () => {
         )}
           </div>
           {/* ✅ PAGINAÇÃO OTIMIZADA */}
-          {totalPages > 1 && (
+          {totalPages && totalPages > 1 && (
             <div className="flex items-center justify-between bg-card/50 backdrop-blur-sm rounded-xl p-4 shadow-lg border border-border/50">
               <div className="text-sm text-muted-foreground">
-                Mostrando {((currentPage - 1) * 12) + 1} - {Math.min(currentPage * 12, totalCount)} de {totalCount} imóveis
+                Mostrando {((currentPage - 1) * 12) + 1} - {Math.min(currentPage * 12, totalCount || 0)} de {totalCount || 0} imóveis
               </div>
               
               <div className="flex items-center gap-2">

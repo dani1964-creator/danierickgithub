@@ -3,6 +3,11 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "engines": {
+    "node": ">=18.0.0",
+    "pnpm": ">=8.0.0"
+  },
+  "packageManager": "pnpm@10.19.0",
   "scripts": {
     "dev": "vite --port 3001 --host",
     "dev:8080": "vite --port 8080 --strictPort",

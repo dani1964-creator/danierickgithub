@@ -87,9 +87,9 @@ export function useOptimizedQuery<T = any>(
   const realtimeSubscription = useRef<any>();
 
   // Gerar chave de cache única
-  const getCacheKey = useCallback((pageNum: number = currentPage) => {
+  const getCacheKey = useCallback((pageNum: number) => {
     return `${tableName}_${selectFields}_${JSON.stringify(filters)}_${pageNum}_${limit}_${JSON.stringify(orderBy)}`;
-  }, [tableName, selectFields, filters, limit, orderBy, currentPage]);
+  }, [tableName, selectFields, filters, limit, orderBy]); // ✅ REMOVIDO currentPage da dependência
 
   // Função principal de carregamento
   const loadData = useCallback(async (pageNum: number = currentPage, showLoading = true) => {
@@ -200,8 +200,8 @@ export function useOptimizedQuery<T = any>(
     sessionTTL, 
     localTTL,
     logQueries,
-    currentPage,
-    getCacheKey
+    currentPage
+    // ✅ REMOVIDO getCacheKey para quebrar loop infinito
   ]);
 
   // ✅ SETUP REALTIME (OPCIONAL)
@@ -224,7 +224,7 @@ export function useOptimizedQuery<T = any>(
             }
             
             // Invalidar cache e recarregar
-            cache.invalidate(getCacheKey().split('_')[0]);
+            cache.invalidate(getCacheKey(currentPage).split('_')[0]);
             loadData(currentPage, false);
           }
         )
@@ -236,7 +236,7 @@ export function useOptimizedQuery<T = any>(
         }
       };
     }
-  }, [realtime, tableName, filters, loadData, logQueries, getCacheKey, currentPage]);
+  }, [realtime, tableName, filters, loadData, logQueries, currentPage]); // ✅ REMOVIDO getCacheKey
 
   // ✅ CARREGAR DADOS INICIAL
   useEffect(() => {
@@ -274,13 +274,13 @@ export function useOptimizedQuery<T = any>(
 
   const refresh = useCallback(async () => {
     // Limpar cache antes de recarregar
-    cache.invalidate(getCacheKey().split('_')[0]);
+    cache.invalidate(getCacheKey(currentPage).split('_')[0]);
     await loadData(currentPage);
   }, [loadData, currentPage, getCacheKey]);
 
   const clearCache = useCallback(() => {
-    cache.invalidate(getCacheKey().split('_')[0]);
-  }, [getCacheKey]);
+    cache.invalidate(getCacheKey(currentPage).split('_')[0]);
+  }, [getCacheKey, currentPage]);
 
   // Cálculos derivados
   const totalPages = Math.ceil(totalCount / limit);
@@ -383,7 +383,7 @@ export function useOptimizedBrokers(
 ) {
   return useOptimizedQuery(
     'brokers',
-    'id, user_id, business_name, display_name, email, website_slug, is_active, plan_type, created_at', // ✅ CAMPOS ESPECÍFICOS
+    'id, user_id, business_name, display_name, email, website_slug, is_active, plan_type, created_at', // ✅ CAMPOS ESPECÍFICOS (sem properties_count por enquanto)
     filters,
     {
       limit: 25,

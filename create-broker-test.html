@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Criar Broker de Teste</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 600px; margin: 50px auto; padding: 20px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input, textarea { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
+        button { background: #007bff; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        .result { margin-top: 20px; padding: 10px; border-radius: 4px; }
+        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+    </style>
+</head>
+<body>
+    <h1>Criar Broker de Teste</h1>
+    
+    <form id="brokerForm">
+        <div class="form-group">
+            <label for="email">Email:</label>
+            <input type="email" id="email" value="teste@imobiliaria.com" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="password">Senha:</label>
+            <input type="password" id="password" value="123456789" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="businessName">Nome da Imobiliária:</label>
+            <input type="text" id="businessName" value="Imobiliária Teste" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="websiteSlug">Slug do Site:</label>
+            <input type="text" id="websiteSlug" value="imobiliaria-teste" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="phone">Telefone:</label>
+            <input type="text" id="phone" value="(11) 99999-9999" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="city">Cidade:</label>
+            <input type="text" id="city" value="São Paulo" required>
+        </div>
+        
+        <button type="submit">Criar Broker</button>
+    </form>
+    
+    <div id="result"></div>
+
+    <script>
+        // Configuração do Supabase
+        const supabaseUrl = 'https://demcjskpwcxqohzlyjxb.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRlbWNqc2twd2N4cW9oemx5anhiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUwNDIxMzUsImV4cCI6MjA3MDYxODEzNX0.9p5j5yUKF-HAJCuo8A2BqNhB8JVV9Sgc2KdekRuR4Ww';
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+        document.getElementById('brokerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = '<p>Criando broker...</p>';
+            
+            try {
+                // Dados do formulário
+                const formData = {
+                    email: document.getElementById('email').value,
+                    password: document.getElementById('password').value,
+                    businessName: document.getElementById('businessName').value,
+                    websiteSlug: document.getElementById('websiteSlug').value,
+                    phone: document.getElementById('phone').value,
+                    city: document.getElementById('city').value
+                };
+                
+                // 1. Criar usuário
+                const { data: authData, error: authError } = await supabase.auth.signUp({
+                    email: formData.email,
+                    password: formData.password,
+                    options: {
+                        data: {
+                            nome: 'Admin Teste',
+                            email: formData.email
+                        }
+                    }
+                });
+                
+                if (authError) {
+                    throw new Error('Erro ao criar usuário: ' + authError.message);
+                }
+                
+                // 2. Fazer login para obter token
+                const { data: loginData, error: loginError } = await supabase.auth.signInWithPassword({
+                    email: formData.email,
+                    password: formData.password
+                });
+                
+                if (loginError) {
+                    throw new Error('Erro ao fazer login: ' + loginError.message);
+                }
+                
+                // 3. Criar broker
+                const { data: brokerData, error: brokerError } = await supabase
+                    .from('brokers')
+                    .insert({
+                        user_id: loginData.user.id,
+                        business_name: formData.businessName,
+                        website_slug: formData.websiteSlug,
+                        email: formData.email,
+                        phone: formData.phone,
+                        address: 'Rua das Flores, 123',
+                        city: formData.city,
+                        uf: 'SP',
+                        cep: '01234-567',
+                        primary_color: '#2563eb',
+                        secondary_color: '#64748b',
+                        is_active: true,
+                        subscription_status: 'active',
+                        subscription_tier: 'pro',
+                        site_title: formData.businessName + ' - Os Melhores Imóveis',
+                        site_description: 'Encontre o imóvel dos seus sonhos com ' + formData.businessName
+                    })
+                    .select()
+                    .single();
+                
+                if (brokerError) {
+                    throw new Error('Erro ao criar broker: ' + brokerError.message);
+                }
+                
+                // 4. Criar algumas propriedades de teste
+                const properties = [
+                    {
+                        broker_id: brokerData.id,
+                        title: 'Apartamento Moderno Centro',
+                        description: 'Lindo apartamento no centro da cidade, totalmente reformado.',
+                        price: 450000,
+                        property_type: 'Apartamento',
+                        transaction_type: 'Venda',
+                        address: 'Rua Central, 456',
+                        neighborhood: 'Centro',
+                        city: formData.city,
+                        uf: 'SP',
+                        bedrooms: 3,
+                        bathrooms: 2,
+                        area_m2: 85,
+                        parking_spaces: 1,
+                        is_featured: true,
+                        is_active: true,
+                        main_image_url: 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?ixlib=rb-4.0.3&auto=format&fit=crop&w=1470&q=80',
+                        images: [
+                            'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?ixlib=rb-4.0.3&auto=format&fit=crop&w=1470&q=80',
+                            'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?ixlib=rb-4.0.3&auto=format&fit=crop&w=1470&q=80'
+                        ],
+                        features: ['Varanda', 'Churrasqueira', 'Piscina'],
+                        status: 'available',
+                        slug: 'apartamento-moderno-centro'
+                    },
+                    {
+                        broker_id: brokerData.id,
+                        title: 'Casa Familiar Jardins',
+                        description: 'Ampla casa familiar em condomínio fechado.',
+                        price: 750000,
+                        property_type: 'Casa',
+                        transaction_type: 'Venda',
+                        address: 'Rua das Palmeiras, 789',
+                        neighborhood: 'Jardins',
+                        city: formData.city,
+                        uf: 'SP',
+                        bedrooms: 4,
+                        bathrooms: 3,
+                        area_m2: 150,
+                        parking_spaces: 2,
+                        is_featured: true,
+                        is_active: true,
+                        main_image_url: 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?ixlib=rb-4.0.3&auto=format&fit=crop&w=1470&q=80',
+                        images: [
+                            'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?ixlib=rb-4.0.3&auto=format&fit=crop&w=1470&q=80',
+                            'https://images.unsplash.com/photo-1493663284031-b7e3aaa4cab7?ixlib=rb-4.0.3&auto=format&fit=crop&w=1470&q=80'
+                        ],
+                        features: ['Área de lazer', 'Piscina', 'Academia', 'Segurança 24h'],
+                        status: 'available',
+                        slug: 'casa-familiar-jardins'
+                    }
+                ];
+                
+                const { error: propsError } = await supabase
+                    .from('properties')
+                    .insert(properties);
+                
+                if (propsError) {
+                    console.warn('Erro ao criar propriedades:', propsError.message);
+                }
+                
+                resultDiv.innerHTML = `
+                    <div class="success">
+                        <h3>✅ Broker criado com sucesso!</h3>
+                        <p><strong>ID:</strong> ${brokerData.id}</p>
+                        <p><strong>Nome:</strong> ${brokerData.business_name}</p>
+                        <p><strong>Slug:</strong> ${brokerData.website_slug}</p>
+                        <p><strong>Email:</strong> ${brokerData.email}</p>
+                        <hr>
+                        <p><strong>Teste a vitrine:</strong></p>
+                        <p><a href="http://localhost:3001/${brokerData.website_slug}" target="_blank">
+                            http://localhost:3001/${brokerData.website_slug}
+                        </a></p>
+                        <p><a href="https://adminimobiliaria-8cx7x.ondigitalocean.app/${brokerData.website_slug}" target="_blank">
+                            https://adminimobiliaria-8cx7x.ondigitalocean.app/${brokerData.website_slug}
+                        </a></p>
+                    </div>
+                `;
+                
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        <h3>❌ Erro ao criar broker</h3>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+            }
+        });
+    </script>
+</body>
+</html>

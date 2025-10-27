@@ -7,6 +7,14 @@ import AuthForm from '@/components/auth/AuthForm';
 export const DomainRouteHandler = () => {
   const { isAuthenticated, loading } = useAuth();
   const location = useLocation();
+  
+  // Detectar se é um subdomínio
+  const hostname = window.location.hostname;
+  const isSubdomain = hostname.includes('.adminimobiliaria.site') && 
+                      !hostname.startsWith('www.') && 
+                      hostname !== 'adminimobiliaria.site';
+  
+  const subdomain = isSubdomain ? hostname.split('.')[0] : null;
 
   // Loading state
   if (loading) {
@@ -20,12 +28,30 @@ export const DomainRouteHandler = () => {
     );
   }
 
-  // Comportamento simplificado: na raiz, mostra dashboard se autenticado, senão tela de login
+  // Se é um subdomínio (ex: danierick.adminimobiliaria.site), mostrar PublicSite
+  if (isSubdomain && subdomain) {
+    return <PublicSite />;
+  }
+
+  // Comportamento para diferentes rotas
   if (location.pathname === '/') {
     if (!isAuthenticated) {
       return <AuthForm />;
     }
     return <Dashboard />;
+  }
+
+  // Rota /auth sempre mostra o formulário de auth
+  if (location.pathname === '/auth') {
+    return <AuthForm />;
+  }
+
+  // Verificar se a primeira parte do path é um slug de broker
+  const pathParts = location.pathname.split('/').filter(Boolean);
+  const systemRoutes = ['dashboard', 'auth', 'admin', 'super-admin', 'debug'];
+  
+  if (pathParts.length > 0 && !systemRoutes.includes(pathParts[0])) {
+    return <PublicSite />;
   }
 
   // Let the router handle other routes normally

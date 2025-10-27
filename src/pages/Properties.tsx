@@ -15,8 +15,8 @@ import PropertyViewToggle from '@/components/properties/PropertyViewToggle';
 import EditPropertyButton from '@/components/properties/EditPropertyButton';
 import { sanitizeInput } from '@/lib/security';
 import { getErrorMessage } from '@/lib/utils';
-// ✅ IMPORT DO HOOK OTIMIZADO
-import { useOptimizedProperties } from '@/hooks/useOptimizedQuery';
+// Comentado temporariamente para evitar re-renders
+// import { useOptimizedProperties } from '@/hooks/useOptimizedQuery';
 
 interface Property {
   id: string;
@@ -48,41 +48,16 @@ const Properties = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   
-  // ✅ ESTADOS PARA FILTROS E PAGINAÇÃO
+  // Estados simplificados para evitar re-renders
   const [brokerId, setBrokerId] = useState<string | null>(null);
+  const [properties, setProperties] = useState<Property[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [propertyTypeFilter, setPropertyTypeFilter] = useState('all');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  
-  // ✅ HOOK OTIMIZADO - SUBSTITUI fetchProperties
-  const { 
-    data: properties, 
-    loading, 
-    error,
-    totalCount,
-    totalPages,
-    currentPage,
-    hasNextPage,
-    hasPrevPage,
-    refresh: refreshProperties,
-    loadNextPage,
-    loadPrevPage,
-    clearCache
-  } = useOptimizedProperties(brokerId || '', {
-    status: statusFilter !== 'all' ? statusFilter : undefined,
-    propertyType: propertyTypeFilter !== 'all' ? propertyTypeFilter : undefined,
-    search: searchTerm ? `%${searchTerm}%` : undefined
-  }, {
-    limit: 12, // ✅ PAGINAÇÃO AUTOMÁTICA
-    enableCache: true,
-    memoryTTL: 3, // Cache curto - dados mudam frequentemente
-    sessionTTL: 10,
-    logQueries: true,
-    realtime: true // ✅ REALTIME OTIMIZADO
-  });
 
-  // ✅ FUNÇÃO PARA BUSCAR BROKER ID (simplificada)
+  // Função simplificada para buscar broker ID
   const fetchBrokerData = useCallback(async (currentUser?: typeof user) => {
     const userToUse = currentUser || user;
     if (!userToUse?.id) return;
@@ -113,7 +88,6 @@ const Properties = () => {
         return;
       }
 
-      // ✅ SETAR BROKER ID PARA ATIVAR O HOOK OTIMIZADO
       setBrokerId(brokerData.id);
       
     } catch (error: unknown) {
@@ -126,12 +100,48 @@ const Properties = () => {
     }
   }, [toast]);
 
-  // ✅ BUSCAR BROKER ID QUANDO USER ESTIVER DISPONÍVEL
+  // Função para buscar propriedades
+  const fetchProperties = useCallback(async () => {
+    if (!brokerId) return;
+    
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('properties')
+        .select('*')
+        .eq('broker_id', brokerId)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setProperties(data || []);
+    } catch (error: unknown) {
+      console.error('Error fetching properties:', error);
+      toast({
+        title: "Erro ao carregar imóveis",
+        description: getErrorMessage(error),
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  }, [brokerId, toast]);
+
+  // Função para refresh
+  const refreshProperties = useCallback(async () => {
+    await fetchProperties();
+  }, [fetchProperties]);
+
   useEffect(() => {
     if (user) {
       fetchBrokerData(user);
     }
   }, [user, fetchBrokerData]);
+
+  useEffect(() => {
+    if (brokerId) {
+      fetchProperties();
+    }
+  }, [brokerId, fetchProperties]);
 
   // Sanitize search input to prevent XSS
   const sanitizedSearchTerm = sanitizeInput(searchTerm);
@@ -267,7 +277,7 @@ const Properties = () => {
                 Imóveis
               </h1>
               <p className="text-muted-foreground mt-1 text-lg">
-                Gerencie seus imóveis cadastrados ({totalCount || properties.length} imóveis - Página {currentPage} de {totalPages})
+                Gerencie seus imóveis cadastrados ({properties.length} imóveis)
               </p>
             </div>
             <AddPropertyDialog onPropertyAdded={refreshProperties} />
@@ -567,52 +577,6 @@ const Properties = () => {
           </div>
         )}
           </div>
-          {/* ✅ PAGINAÇÃO OTIMIZADA */}
-          {totalPages > 1 && (
-            <div className="flex items-center justify-between bg-card/50 backdrop-blur-sm rounded-xl p-4 shadow-lg border border-border/50">
-              <div className="text-sm text-muted-foreground">
-                Mostrando {((currentPage - 1) * 12) + 1} - {Math.min(currentPage * 12, totalCount)} de {totalCount} imóveis
-              </div>
-              
-              <div className="flex items-center gap-2">
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={loadPrevPage}
-                  disabled={!hasPrevPage || loading}
-                  className="h-8"
-                >
-                  <ChevronLeft className="h-3 w-3 mr-1" />
-                  Anterior
-                </Button>
-                
-                <span className="text-sm px-3 py-1 bg-primary/10 rounded">
-                  Página {currentPage} de {totalPages}
-                </span>
-                
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={loadNextPage}
-                  disabled={!hasNextPage || loading}
-                  className="h-8"
-                >
-                  Próxima
-                  <ChevronRight className="h-3 w-3 ml-1" />
-                </Button>
-                
-                <Button 
-                  variant="ghost" 
-                  size="sm"
-                  onClick={refreshProperties}
-                  disabled={loading}
-                  className="h-8"
-                >
-                  <RefreshCw className={`h-3 w-3 ${loading ? 'animate-spin' : ''}`} />
-                </Button>
-              </div>
-            </div>
-          )}
         </div>
       </DashboardLayout>
     );

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 import { useToast } from "@/hooks/use-toast";
@@ -10,7 +10,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Building2, Users, Globe, Trash2, Plus, Eye, EyeOff, ExternalLink, Settings, RefreshCw, ChevronLeft, ChevronRight, LogOut } from "lucide-react";
+import { Building2, Users, Globe, Trash2, Plus, Eye, EyeOff, ExternalLink, Settings, RefreshCw, ChevronLeft, ChevronRight } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Helmet } from 'react-helmet-async';
@@ -43,7 +43,7 @@ function AdminContent() {
   
   // ✅ HOOK OTIMIZADO - SUBSTITUI fetchBrokers - SÓ EXECUTA QUANDO COMPONENTE ESTÁ MONTADO
   const { 
-    data: allBrokers, 
+    data: brokers, 
     loading, 
     error: brokersError,
     totalCount,
@@ -54,80 +54,71 @@ function AdminContent() {
     refresh: refreshBrokers,
     loadNextPage,
     loadPrevPage
-  } = useOptimizedBrokers(useMemo(() => ({}), []), {
-    limit: 50, // Aumentar limite para pegar todos
-    enableCache: false, // ✅ DESABILITADO PARA DEBUG
+  } = useOptimizedBrokers({}, {
+    limit: 20,
+    enableCache: true,
     memoryTTL: 10,
     sessionTTL: 30,
     logQueries: true
   });
   
-  // ✅ DEBUG - LOGS DETALHADOS
-  console.log('🔍 SuperAdmin DEBUG:', {
-    allBrokers_length: allBrokers?.length,
-    allBrokers_data: allBrokers?.map(b => ({ name: b.business_name, email: b.email })),
-    loading,
-    brokersError: brokersError,
-    SUPER_ADMIN_EMAIL
-  });
-  
-  // ✅ FILTRAR SUPER ADMIN DA LISTA - SÓ MOSTRAR IMOBILIÁRIAS REAIS
-  const brokers = allBrokers.filter(broker => 
-    broker.email !== SUPER_ADMIN_EMAIL && 
-    broker.business_name !== 'Super Admin'
-  );
-  
-  console.log('📊 Brokers filtrados:', brokers?.length, brokers?.map(b => b.business_name));
-  
   const [newBrokerEmail, setNewBrokerEmail] = useState("");
   const [newBrokerPassword, setNewBrokerPassword] = useState("");
   const [newBrokerBusinessName, setNewBrokerBusinessName] = useState("");
   const [showCreateDialog, setShowCreateDialog] = useState(false);
-  const [togglingBrokers, setTogglingBrokers] = useState<Set<string>>(new Set());
 
-  // ✅ DESABILITADO REALTIME PARA EVITAR PISCAR - Refresh manual nos botões
   // Setup realtime subscription for broker changes (SÓ DEPOIS DE AUTORIZADO)
-  // useEffect(() => {
-  //   let refreshTimeout: NodeJS.Timeout;
-  //   const debouncedRefresh = () => {
-  //     clearTimeout(refreshTimeout);
-  //     refreshTimeout = setTimeout(() => {
-  //       console.log('Broker data changed, refreshing after debounce...');
-  //       refreshBrokers();
-  //     }, 1500);
-  //   };
-  //   
-  //   const channel = supabase
-  //     .channel('admin-brokers-changes')
-  //     .on('postgres_changes', 
-  //       { event: 'INSERT', schema: 'public', table: 'brokers' }, 
-  //       debouncedRefresh
-  //     )
-  //     .on('postgres_changes', 
-  //       { event: 'UPDATE', schema: 'public', table: 'brokers' }, 
-  //       debouncedRefresh
-  //     )
-  //     .on('postgres_changes', 
-  //       { event: 'DELETE', schema: 'public', table: 'brokers' }, 
-  //       debouncedRefresh
-  //     )
-  //     .subscribe();
+  useEffect(() => {
+    let refreshTimeout: NodeJS.Timeout;
+    const debouncedRefresh = () => {
+      clearTimeout(refreshTimeout);
+      refreshTimeout = setTimeout(() => {
+        console.log('Broker data changed, refreshing after debounce...');
+        refreshBrokers();
+      }, 1500);
+    };
+    
+    const channel = supabase
+      .channel('admin-brokers-changes')
+      .on('postgres_changes', 
+        { event: 'INSERT', schema: 'public', table: 'brokers' }, 
+        debouncedRefresh
+      )
+      .on('postgres_changes', 
+        { event: 'UPDATE', schema: 'public', table: 'brokers' }, 
+        debouncedRefresh
+      )
+      .on('postgres_changes', 
+        { event: 'DELETE', schema: 'public', table: 'brokers' }, 
+        debouncedRefresh
+      )
+      .on('postgres_changes', 
+        { event: 'INSERT', schema: 'public', table: 'properties' }, 
+        debouncedRefresh
+      )
+      .on('postgres_changes', 
+        { event: 'DELETE', schema: 'public', table: 'properties' }, 
+        debouncedRefresh
+      )
+      .subscribe();
 
-  //   return () => {
-  //     clearTimeout(refreshTimeout);
-  //     supabase.removeChannel(channel);
-  //   };
-  // }, [refreshBrokers]);
+    return () => {
+      clearTimeout(refreshTimeout);
+      supabase.removeChannel(channel);
+    };
+  }, [refreshBrokers]);
 
   const toggleBrokerStatus = async (brokerId: string, currentStatus: boolean) => {
-    // Adicionar broker ao estado de loading
-    setTogglingBrokers(prev => new Set(prev).add(brokerId));
-    
     try {
-      const { error } = await supabase
-        .from('brokers')
-        .update({ is_active: !currentStatus })
-        .eq('id', brokerId);
+      const { data, error } = await supabase.functions.invoke('admin-brokers', {
+        body: {
+          action: 'toggle',
+          brokerId,
+          newStatus: !currentStatus,
+          email: SUPER_ADMIN_EMAIL,
+          password: SUPER_ADMIN_PASSWORD
+        }
+      });
       
       if (error) throw error;
       
@@ -135,9 +126,6 @@ function AdminContent() {
         title: "Status atualizado",
         description: `Imobiliária ${!currentStatus ? 'ativada' : 'desativada'} com sucesso.`,
       });
-      
-      // ✅ Refresh IMEDIATO sem delay para evitar piscar
-      await refreshBrokers();
     } catch (error) {
       console.error('Error toggling broker status:', error);
       toast({
@@ -145,51 +133,26 @@ function AdminContent() {
         description: "Não foi possível atualizar o status da imobiliária.",
         variant: "destructive",
       });
-    } finally {
-      // Remover broker do estado de loading
-      setTogglingBrokers(prev => {
-        const newSet = new Set(prev);
-        newSet.delete(brokerId);
-        return newSet;
-      });
     }
   };
 
   const deleteBroker = async (brokerId: string) => {
     try {
-      // 1. Buscar o broker para pegar o user_id
-      const { data: brokerData, error: brokerError } = await supabase
-        .from('brokers')
-        .select('user_id')
-        .eq('id', brokerId)
-        .single();
+      const { data, error } = await supabase.functions.invoke('admin-brokers', {
+        body: {
+          action: 'delete',
+          brokerId,
+          email: SUPER_ADMIN_EMAIL,
+          password: SUPER_ADMIN_PASSWORD
+        }
+      });
       
-      if (brokerError) throw brokerError;
-      
-      // 2. Deletar primeiro o registro na tabela brokers
-      const { error: deleteBrokerError } = await supabase
-        .from('brokers')
-        .delete()
-        .eq('id', brokerId);
-      
-      if (deleteBrokerError) throw deleteBrokerError;
-      
-      // 3. Deletar o usuário do Auth (opcional, pode falhar se não tivermos permissão)
-      try {
-        await supabase.auth.admin.deleteUser(brokerData.user_id);
-      } catch (authError) {
-        console.warn('Aviso: Não foi possível deletar o usuário do Auth:', authError);
-      }
+      if (error) throw error;
       
       toast({
         title: "Imobiliária excluída",
         description: "A imobiliária foi removida com sucesso.",
       });
-      
-      // ✅ Refresh com delay para evitar piscar
-      setTimeout(() => {
-        refreshBrokers();
-      }, 300);
     } catch (error) {
       console.error('Error deleting broker:', error);
       toast({
@@ -233,11 +196,6 @@ function AdminContent() {
       setNewBrokerPassword("");
       setNewBrokerBusinessName("");
       setShowCreateDialog(false);
-      
-      // ✅ Refresh com delay para evitar piscar
-      setTimeout(() => {
-        refreshBrokers();
-      }, 500);
     } catch (error) {
       console.error('Error creating broker:', error);
       toast({
@@ -248,8 +206,7 @@ function AdminContent() {
     }
   };
 
-  // ✅ SÓ MOSTRAR SPINNER FULL-SCREEN SE NÃO HÁ DADOS (primeiro carregamento)
-  if (loading && (!allBrokers || allBrokers.length === 0)) {
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -260,11 +217,9 @@ function AdminContent() {
     );
   }
 
-  // ✅ USAR APENAS IMOBILIÁRIAS REAIS (sem Super Admin) para estatísticas
-  const totalBrokers = brokers.length;
+  const totalBrokers = totalCount || brokers.length;
   const activeBrokers = brokers.filter(b => b.is_active).length;
-  // ✅ TEMPORÁRIO: Como properties_count pode não existir, mostrar 0
-  const totalProperties = 0; // Será implementado com agregação correta
+  const totalProperties = brokers.reduce((sum, b) => sum + (b.properties_count || 0), 0);
 
   return (
     <div className="min-h-screen bg-background">
@@ -275,34 +230,11 @@ function AdminContent() {
         <meta name="robots" content="noindex, nofollow" />
       </Helmet>
       <div className="container mx-auto p-3 sm:p-6">
-        <div className="mb-6 sm:mb-8 flex justify-between items-start">
-          <div className="flex items-center gap-3">
-            <div>
-              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Painel Super Admin</h1>
-              <p className="text-sm sm:text-base text-muted-foreground">
-                Gerencie todas as imobiliárias e seus acessos no sistema
-              </p>
-            </div>
-            {/* Indicador sutil de loading quando há refresh */}
-            {loading && allBrokers && allBrokers.length > 0 && (
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <RefreshCw className="h-3 w-3 animate-spin" />
-                Atualizando...
-              </div>
-            )}
-          </div>
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={() => {
-              localStorage.removeItem("sa_auth");
-              window.location.reload();
-            }}
-            className="flex items-center gap-2"
-          >
-            <LogOut className="h-4 w-4" />
-            Sair
-          </Button>
+        <div className="mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Painel Super Admin</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">
+            Gerencie todas as imobiliárias e seus acessos no sistema
+          </p>
         </div>
 
         {/* Stats Cards */}
@@ -482,11 +414,8 @@ function AdminContent() {
                                 size="sm"
                                 onClick={() => toggleBrokerStatus(broker.id, broker.is_active)}
                                 className="h-8 w-8 p-0"
-                                disabled={togglingBrokers.has(broker.id)}
                               >
-                                {togglingBrokers.has(broker.id) ? (
-                                  <RefreshCw className="h-3 w-3 animate-spin" />
-                                ) : broker.is_active ? (
+                                {broker.is_active ? (
                                   <EyeOff className="h-3 w-3" />
                                 ) : (
                                   <Eye className="h-3 w-3" />
@@ -566,14 +495,8 @@ function AdminContent() {
                         size="sm"
                         className="h-8 px-3 text-xs"
                         onClick={() => toggleBrokerStatus(broker.id, broker.is_active)}
-                        disabled={togglingBrokers.has(broker.id)}
                       >
-                        {togglingBrokers.has(broker.id) ? (
-                          <>
-                            <RefreshCw className="h-3 w-3 mr-1 animate-spin" />
-                            Aguarde...
-                          </>
-                        ) : broker.is_active ? (
+                        {broker.is_active ? (
                           <>
                             <EyeOff className="h-3 w-3 mr-1" />
                             Desativar
@@ -660,17 +583,6 @@ function AdminContent() {
                     disabled={loading}
                   >
                     <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-                  </Button>
-                  
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => {
-                      console.log('🔄 DEBUG: Forçando refresh completo...');
-                      window.location.reload();
-                    }}
-                  >
-                    🔧 Debug
                   </Button>
                 </div>
               </div>

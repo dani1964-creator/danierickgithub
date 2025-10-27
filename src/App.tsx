@@ -21,6 +21,9 @@ import SuperAdminPage from "./pages/SuperAdmin";
 import AboutUs from "./pages/AboutUs";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfUse from "./pages/TermsOfUse";
+import DebugPage from "./pages/DebugPage";
+import SetupBrokerPage from "./pages/SetupBrokerPage";
+import SystemDiagnosticPage from "./pages/SystemDiagnostic";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -99,6 +102,30 @@ const router = createBrowserRouter([
       {
         path: "admin",
         element: <SuperAdminPage />
+      },
+      {
+        path: "super-admin",
+        element: <SuperAdminPage />
+      },
+      {
+        path: "dashboard/admin",
+        element: <SuperAdminPage />
+      },
+      {
+        path: "debug/:slug",
+        element: <DebugPage />
+      },
+      {
+        path: "setup-broker",
+        element: <SetupBrokerPage />
+      },
+      {
+        path: "super",
+        element: <SuperAdminPage />
+      },
+      {
+        path: "diagnostico",
+        element: <SystemDiagnosticPage />
       },
   // Rotas públicas por slug
       {

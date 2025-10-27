@@ -74,14 +74,21 @@ const Realtors = () => {
   }, []); // Removido dependências desnecessárias
 
   const fetchRealtors = useCallback(async () => {
+    if (!brokerInfo?.id) {
+      console.log('Broker info not available yet, skipping fetch realtors');
+      return;
+    }
+    
     try {
       const { data, error } = await supabase
         .from('realtors')
         .select('*')
+        .eq('broker_id', brokerInfo.id)  // FILTRO ESSENCIAL POR BROKER
         .order('created_at', { ascending: false });
 
       if (error) throw error;
       setRealtors((data || []) as Realtor[]);
+      console.log(`Loaded ${(data || []).length} realtors for broker ${brokerInfo.id}`);
     } catch (error: unknown) {
       console.error('Error fetching realtors:', error);
       toast({
@@ -92,14 +99,19 @@ const Realtors = () => {
     } finally {
       setLoading(false);
     }
-  }, []); // Removido dependências desnecessárias
+  }, [brokerInfo?.id, toast]); // Dependências corretas
 
   useEffect(() => {
     if (user) {
       fetchBrokerInfo(user);
+    }
+  }, [user, fetchBrokerInfo]); // Precisa depender do user para executar quando ele estiver disponível
+
+  useEffect(() => {
+    if (brokerInfo?.id) {
       fetchRealtors();
     }
-  }, [user]); // Precisa depender do user para executar quando ele estiver disponível
+  }, [brokerInfo?.id, fetchRealtors]); // Executa fetchRealtors apenas quando brokerInfo estiver disponível
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

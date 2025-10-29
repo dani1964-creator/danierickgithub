@@ -104,7 +104,8 @@ export const DomainRouteHandler = () => {
 
   // Para outras rotas, deixar o router tratar normalmente
   // mas se não há broker válido e é uma rota que requer broker, mostrar 404
-  const routesRequiringBroker = ['/dashboard', '/admin'];
+  // NOTA: /admin (SuperAdmin) não requer broker específico - funciona globalmente
+  const routesRequiringBroker = ['/dashboard'];
   const requiresBroker = routesRequiringBroker.some(route => 
     location.pathname.startsWith(route)
   );

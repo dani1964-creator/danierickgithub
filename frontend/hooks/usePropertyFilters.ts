@@ -1,6 +1,6 @@
 
 import { useState, useMemo } from 'react';
-import { Property } from '@/types/tenant';
+import { Property } from '@shared/types/tenant';
 
 interface Filters {
   transaction_type: string;

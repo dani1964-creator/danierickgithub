@@ -1,9 +1,9 @@
-import type { BrokerProfile } from '@/types/broker';
+import type { BrokerProfile } from '@src/types/broker';
 import { getErrorMessage } from '@/lib/utils';
 import type { Json } from '@/integrations/supabase/types';
 import { useState, useEffect, useCallback } from 'react';
 import { Save, Globe, Palette, Code, Share2, FileText, Search } from 'lucide-react';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@shared/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';

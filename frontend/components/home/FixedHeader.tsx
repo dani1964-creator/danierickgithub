@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import type { BrokerProfile } from '@/types/broker';
+import type { BrokerProfile } from '@src/types/broker';
 
 interface FixedHeaderProps {
   brokerProfile: BrokerProfile;

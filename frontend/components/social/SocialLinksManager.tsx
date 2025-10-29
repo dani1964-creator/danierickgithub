@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Plus, Edit, Trash2, ArrowUp, ArrowDown, Facebook, Instagram, Youtube, Linkedin, Twitter, Globe } from 'lucide-react';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@shared/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';

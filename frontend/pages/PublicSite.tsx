@@ -1,4 +1,4 @@
-import type { BrokerProfile, BrokerContact } from '@/types/broker';
+import type { BrokerProfile, BrokerContact } from '@src/types/broker';
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
@@ -25,7 +25,7 @@ import { SEODebugPanel } from '@/components/debug/SEODebugPanel';
 import { getCanonicalBase, applyTemplate } from '@/lib/seo';
 import { usePropertyTypes } from '@/hooks/usePropertyTypes';
 import { getErrorMessage } from '@/lib/utils';
-import { Property } from '@/types/tenant';
+import { Property } from '@shared/types/tenant';
 
 // BrokerContact importado do tipo compartilhado
 

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Phone, Mail, MapPin, Globe, Twitter, Linkedin, Youtube } from 'lucide-react';
 import { FaFacebookF, FaInstagram, FaTwitter, FaLinkedinIn, FaYoutube, FaGlobe } from 'react-icons/fa';
-import type { BrokerProfile, BrokerContact } from '@/types/broker';
+import type { BrokerProfile, BrokerContact } from '@src/types/broker';
 import { useCallback } from 'react';
 
 type SocialLink = {

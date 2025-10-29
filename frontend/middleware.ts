@@ -81,6 +81,6 @@ export async function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     // Aplicar middleware a todas as rotas exceto recursos estáticos
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(svg|png|jpg|jpeg|gif|webp|ico|css|js)$).*)',
+    '/((?!_next|favicon.ico).*)',
   ],
 };

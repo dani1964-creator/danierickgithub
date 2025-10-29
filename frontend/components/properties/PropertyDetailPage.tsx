@@ -74,7 +74,7 @@ interface Property {
   notes?: string | null;
 }
 
-import type { BrokerProfile, BrokerContact } from '@/types/broker';
+import type { BrokerProfile, BrokerContact } from '@src/types/broker';
 
 const PropertyDetailPage = () => {
   const { slug, propertySlug: propertySlugParam } = useParams();

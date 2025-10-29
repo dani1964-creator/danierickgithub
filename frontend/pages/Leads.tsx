@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Mail, Phone, MessageSquare, User, Clock, CheckCircle, XCircle, Edit, Trash2, Check, X, DollarSign, TrendingUp, Calendar, UserCheck, LayoutGrid, List } from 'lucide-react';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@shared/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';

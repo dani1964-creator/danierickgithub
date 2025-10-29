@@ -1,5 +1,5 @@
 import { useLocation } from 'react-router-dom';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@shared/hooks/useAuth';
 import PublicSite from '@/pages/PublicSite';
 import Dashboard from '@/pages/Dashboard';
 import AuthForm from '@/components/auth/AuthForm';

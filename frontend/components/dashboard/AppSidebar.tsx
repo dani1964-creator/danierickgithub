@@ -14,7 +14,7 @@ import {
   SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@shared/hooks/useAuth';
 
 const AppSidebar = () => {
   const navigate = useNavigate();

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { TenantData } from '../types/tenant';
+import { TenantData } from '@shared/types/tenant';
 
 interface TenantContextType {
   tenant: TenantData | null;

@@ -1,5 +1,5 @@
 import { useEffect, useMemo } from 'react';
-import type { BrokerProfile } from '@/types/broker';
+import type { BrokerProfile } from '@src/types/broker';
 
 type Props = {
   broker?: Partial<BrokerProfile> | null;

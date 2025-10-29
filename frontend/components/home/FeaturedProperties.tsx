@@ -3,7 +3,8 @@ import { SwipeableCarousel } from '@/components/ui/swipeable-carousel';
 import PropertyCard from '@/components/properties/PropertyCard';
 import BackgroundRenderer from '@/components/backgrounds/BackgroundRenderer';
 import SectionHeader from '@/components/common/SectionHeader';
-import { Property, BrokerProfile } from '@/types/tenant';
+import { Property } from '@shared/types/tenant';
+import { BrokerProfile } from '@src/types/broker';
 
 interface FeaturedPropertiesProps {
   properties: Property[];

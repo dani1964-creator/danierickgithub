@@ -1,5 +1,5 @@
 import { Navigate, useNavigate } from 'react-router-dom';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@shared/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
@@ -9,7 +9,7 @@ import { supabase } from '@/integrations/supabase/client';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import { getErrorMessage } from '@/lib/utils';
 // ✅ IMPORT DO HOOK OTIMIZADO
-import { useDashboardData } from '@/hooks/useDashboardData';
+import { useDashboardData } from '@shared/hooks/useDashboardData';
 
 
 const Dashboard = () => {

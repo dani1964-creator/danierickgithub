@@ -8,7 +8,8 @@ import { SwipeableCarousel } from '@/components/ui/swipeable-carousel';
 import { setPrefetchedDetail } from '@/lib/detail-prefetch';
 import { supabase } from '@/integrations/supabase/client';
 import { useDomainAware } from '@/hooks/useDomainAware';
-import { Property, BrokerProfile } from '@/types/tenant';
+import { Property } from '@shared/types/tenant';
+import { BrokerProfile } from '@src/types/broker';
 
 interface PropertyCardProps {
   id?: string;

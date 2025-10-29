@@ -55,32 +55,81 @@ const Properties = () => {
   const [propertyTypeFilter, setPropertyTypeFilter] = useState('all');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   
-  // ✅ HOOK OTIMIZADO - SUBSTITUI fetchProperties
-  const { 
-    data: properties, 
-    loading, 
-    error,
-    totalCount,
-    totalPages,
-    currentPage,
-    hasNextPage,
-    hasPrevPage,
-    refresh: refreshProperties,
-    loadNextPage,
-    loadPrevPage,
-    clearCache
-  } = useOptimizedProperties(brokerId || '', {
-    status: statusFilter !== 'all' ? statusFilter : undefined,
-    propertyType: propertyTypeFilter !== 'all' ? propertyTypeFilter : undefined,
-    search: searchTerm ? `%${searchTerm}%` : undefined
-  }, {
-    limit: 12, // ✅ PAGINAÇÃO AUTOMÁTICA
-    enableCache: true,
-    memoryTTL: 3, // Cache curto - dados mudam frequentemente
-    sessionTTL: 10,
-    logQueries: true,
-    realtime: true // ✅ REALTIME OTIMIZADO
-  });
+  // ✅ ESTADOS LOCAIS PARA CONTROLAR DADOS
+  const [properties, setProperties] = useState<Property[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [totalCount, setTotalCount] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
+
+  // ✅ FUNÇÃO DE CARREGAMENTO (como na página de corretores)
+  const fetchProperties = useCallback(async () => {
+    if (!brokerId) return; // ✅ NÃO FAZ QUERY SEM BROKER_ID
+    
+    try {
+      setLoading(true);
+      setError(null);
+
+      let query = supabase
+        .from('properties')
+        .select('*', { count: 'exact' })
+        .eq('broker_id', brokerId)
+        .order('created_at', { ascending: false })
+        .range((currentPage - 1) * 12, currentPage * 12 - 1);
+
+      // Aplicar filtros
+      if (statusFilter !== 'all') {
+        query = query.eq('status', statusFilter);
+      }
+      if (propertyTypeFilter !== 'all') {
+        query = query.eq('property_type', propertyTypeFilter);
+      }
+      if (searchTerm) {
+        query = query.or(`title.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%`);
+      }
+
+      const { data, error: queryError, count } = await query;
+
+      if (queryError) throw queryError;
+
+      setProperties(data || []);
+      setTotalCount(count || 0);
+      setTotalPages(Math.ceil((count || 0) / 12));
+    } catch (err: any) {
+      console.error('Error fetching properties:', err);
+      setError(err.message || 'Erro ao carregar propriedades');
+    } finally {
+      setLoading(false);
+    }
+  }, [brokerId, statusFilter, propertyTypeFilter, searchTerm, currentPage]);
+
+  const refreshProperties = useCallback(() => {
+    fetchProperties();
+  }, [fetchProperties]);
+
+  // ✅ MÉTODOS DE NAVEGAÇÃO DE PÁGINAS
+  const loadNextPage = useCallback(() => {
+    if (currentPage < totalPages) {
+      setCurrentPage(prev => prev + 1);
+    }
+  }, [currentPage, totalPages]);
+
+  const loadPrevPage = useCallback(() => {
+    if (currentPage > 1) {
+      setCurrentPage(prev => prev - 1);
+    }
+  }, [currentPage]);
+
+  const hasNextPage = currentPage < totalPages;
+  const hasPrevPage = currentPage > 1;
+
+  // ✅ CARREGAR PROPRIEDADES QUANDO BROKER_ID ESTIVER DISPONÍVEL
+  useEffect(() => {
+    if (brokerId) {
+      fetchProperties();
+    }
+  }, [brokerId, fetchProperties]);
 
   // ✅ FUNÇÃO PARA BUSCAR BROKER ID (simplificada)
   const fetchBrokerData = useCallback(async (currentUser?: typeof user) => {

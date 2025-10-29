@@ -16,6 +16,7 @@ import WebsiteSettings from "./pages/WebsiteSettings";
 import Leads from "./pages/Leads";
 import Realtors from "./pages/Realtors";
 import NotFound from "./pages/NotFound";
+import BrokerNotFound from "./pages/BrokerNotFound";
 import PublicSite from "./pages/PublicSite";
 import SuperAdminPage from "./pages/SuperAdmin";
 import AboutUs from "./pages/AboutUs";
@@ -137,6 +138,10 @@ const router = createBrowserRouter([
       {
         path: "404",
         element: <NotFound />
+      },
+      {
+        path: "broker-not-found",
+        element: <BrokerNotFound />
       },
       {
         path: "*",

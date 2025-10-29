@@ -202,11 +202,12 @@ const PublicSite = () => {
   const fetchBrokerData = useCallback(async () => {
     try {
       const effectiveSlug = isCustomDomain() ? undefined : slug;
-      console.log('Fetching broker data - Custom domain:', isCustomDomain(), 'Slug:', effectiveSlug);
+      // Debug logs silenciados para reduzir poluição no console
+      // console.log('Fetching broker data - Custom domain:', isCustomDomain(), 'Slug:', effectiveSlug);
       const brokerData = await getBrokerByDomainOrSlug(effectiveSlug);
-      console.log('Broker data from domain-aware hook:', brokerData);
+      // console.log('Broker data from domain-aware hook:', brokerData);
       if (!brokerData) {
-        console.log('No broker found for slug/domain:', effectiveSlug);
+        console.warn('No broker found for slug/domain:', effectiveSlug);
         setBrokerProfile(null);
         return;
       }

@@ -74,10 +74,13 @@ const Realtors = () => {
   }, []); // Removido dependências desnecessárias
 
   const fetchRealtors = useCallback(async () => {
+    if (!brokerInfo?.id) return;
+    
     try {
       const { data, error } = await supabase
         .from('realtors')
         .select('*')
+        .eq('broker_id', brokerInfo.id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -92,14 +95,19 @@ const Realtors = () => {
     } finally {
       setLoading(false);
     }
-  }, []); // Removido dependências desnecessárias
+  }, [brokerInfo?.id]); // Adicionada dependência do brokerInfo.id
 
   useEffect(() => {
     if (user) {
       fetchBrokerInfo(user);
+    }
+  }, [user, fetchBrokerInfo]); // Buscar broker info quando user estiver disponível
+
+  useEffect(() => {
+    if (brokerInfo?.id) {
       fetchRealtors();
     }
-  }, [user]); // Precisa depender do user para executar quando ele estiver disponível
+  }, [brokerInfo?.id, fetchRealtors]); // Buscar realtors quando brokerInfo estiver disponível
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

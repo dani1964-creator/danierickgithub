@@ -20,6 +20,7 @@ import Footer from '@/components/home/Footer';
 import LeadModal from '@/components/leads/LeadModal';
 import { getErrorMessage } from '@/lib/utils';
 import { getPrefetchedDetail, setPrefetchedDetail } from '@/lib/detail-prefetch';
+import { getCachedUserIP, getUserAgent, getReferrer } from '@/lib/ip-tracking';
 
 interface Property {
   id: string;
@@ -133,11 +134,7 @@ const PropertyDetailPage = () => {
     setError(null);
     
     try {
-      console.log('🏠 Fetching property data...', { 
-        propertySlug: effectivePropertySlug, 
-        slug, 
-        retryCount 
-      });
+      // console.log('🏠 Fetching property data...', { propertySlug: effectivePropertySlug, slug, retryCount });
       
       // Teste básico de conectividade
       try {
@@ -185,10 +182,7 @@ const PropertyDetailPage = () => {
       }
 
       // Executa consultas em paralelo para reduzir TTFB
-      console.log('Calling RPC functions with params:', { 
-        broker_slug: effectiveSlug, 
-        property_slug: effectivePropertySlug 
-      });
+      // console.log('Calling RPC functions with params:', { broker_slug: effectiveSlug, property_slug: effectivePropertySlug });
       
       const [propertyResult, brokerResult] = await Promise.all([
         supabase.rpc('get_public_property_detail_with_realtor', {
@@ -200,14 +194,14 @@ const PropertyDetailPage = () => {
         })
       ]);
       
-      console.log('Property RPC result:', propertyResult);
-      console.log('Broker RPC result:', brokerResult);
+      // console.log('Property RPC result:', propertyResult);
+      // console.log('Broker RPC result:', brokerResult);
 
       const { data: propertyDataArray, error: propertyError } = propertyResult;
       const { data: brokerDataArray, error: brokerError } = brokerResult;
 
-      console.log('Property data from RPC:', propertyDataArray);
-      console.log('Broker data from RPC:', brokerDataArray);
+      // console.log('Property data from RPC:', propertyDataArray);
+      // console.log('Broker data from RPC:', brokerDataArray);
 
       if (propertyError) {
         console.error('Property RPC error:', propertyError);
@@ -305,18 +299,58 @@ const PropertyDetailPage = () => {
       setSocialLinks(socialData || []);
       setViewsCount(propertyData.views_count || 0);
 
-      // Atualiza contador de views sem bloquear a UI
-      const updatedViews = (propertyData.views_count || 0) + 1;
-      setViewsCount(updatedViews);
+      // ✅ Rastrear visualização única por sessão/IP (evita inflação de contadores)
       (async () => {
         try {
-          const { error: updateError } = await supabase
-            .from('properties')
-            .update({ views_count: updatedViews })
-            .eq('id', propertyData.id);
-          if (updateError) console.warn('views_count update error:', updateError.message || updateError);
+          const propertyId = propertyData.id;
+          const today = new Date().toDateString();
+          const viewKey = `property_view_${propertyId}_${today}`;
+          
+          // Verificar se já visualizou hoje (usando localStorage como proxy para IP único)
+          const alreadyViewed = localStorage.getItem(viewKey);
+          
+          if (!alreadyViewed) {
+            console.log('✅ New unique view for property:', propertyId);
+            
+            // Marcar como visualizado hoje
+            localStorage.setItem(viewKey, 'true');
+            
+            // Atualizar contador de views no banco
+            const currentViews = propertyData.views_count || 0;
+            const updatedViews = currentViews + 1;
+            
+            // Atualizar na UI imediatamente
+            setViewsCount(updatedViews);
+            
+            // Atualizar no banco de forma assíncrona
+            const { error: updateError } = await supabase
+              .from('properties')
+              .update({ views_count: updatedViews })
+              .eq('id', propertyId);
+              
+            if (updateError) {
+              console.warn('Error updating view count:', updateError);
+              // Resetar UI em caso de erro
+              setViewsCount(currentViews);
+            } else {
+              console.log('📊 View count updated:', updatedViews);
+            }
+          } else {
+            console.log('🔄 Property already viewed today');
+          }
+          
+          // Obter IP para logs (opcional, não bloqueia a funcionalidade)
+          getCachedUserIP().then(ip => {
+            console.log('🔍 User session view tracking:', { 
+              propertyId, 
+              userIP: ip.length > 8 ? ip.substring(0, 8) + '...' : ip,
+              alreadyViewed: !!alreadyViewed
+            });
+          }).catch(e => console.log('IP detection failed (non-critical):', e));
+          
         } catch (e) {
-          console.warn('views_count update failed:', e);
+          console.warn('Failed to record property view:', e);
+          // Fallback: continuar sem contar view adicional para não inflar
         }
       })();
 
@@ -1682,7 +1716,55 @@ const PropertyDetailPage = () => {
                   </div>
                   
                   {/* Broker/Realtor Info */}
-
+                  {property?.realtor_name && (
+                    <div className={`pt-4 border-t space-y-3 ${isDarkMode ? 'border-gray-700' : 'border-gray-100'} transition-colors duration-300`}>
+                      <div className="flex items-start space-x-3">
+                        {/* Foto do Corretor */}
+                        <div className="flex-shrink-0">
+                          {property.realtor_avatar_url ? (
+                            <img 
+                              src={property.realtor_avatar_url} 
+                              alt={property.realtor_name}
+                              className="w-12 h-12 rounded-full object-cover border-2 border-gray-200 dark:border-gray-600"
+                            />
+                          ) : (
+                            <div className={`w-12 h-12 rounded-full flex items-center justify-center border-2 transition-colors duration-300 ${
+                              isDarkMode 
+                                ? 'bg-gray-700 border-gray-600 text-gray-300' 
+                                : 'bg-gray-100 border-gray-200 text-gray-600'
+                            }`}>
+                              <Users className="h-6 w-6" />
+                            </div>
+                          )}
+                        </div>
+                        
+                        {/* Informações do Corretor */}
+                        <div className="flex-1 min-w-0">
+                          <div className={`font-semibold text-sm transition-colors duration-300 ${
+                            isDarkMode ? 'text-white' : 'text-gray-900'
+                          }`}>
+                            {property.realtor_name}
+                          </div>
+                          
+                          {property.realtor_creci && (
+                            <div className={`text-xs transition-colors duration-300 ${
+                              isDarkMode ? 'text-gray-400' : 'text-gray-500'
+                            }`}>
+                              CRECI: {property.realtor_creci}
+                            </div>
+                          )}
+                          
+                          {property.realtor_bio && (
+                            <p className={`text-xs mt-1 line-clamp-2 transition-colors duration-300 ${
+                              isDarkMode ? 'text-gray-300' : 'text-gray-600'
+                            }`}>
+                              {property.realtor_bio}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
 
                   {/* Property Stats - Design Minimalista Elegante */}
                   <div className={`pt-4 border-t ${isDarkMode ? 'border-gray-700' : 'border-gray-100'} transition-colors duration-300`}>

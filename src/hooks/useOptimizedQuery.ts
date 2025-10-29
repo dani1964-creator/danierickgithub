@@ -94,9 +94,11 @@ export function useOptimizedQuery<T = any>(
   // Função principal de carregamento
   const loadData = useCallback(async (pageNum: number = currentPage, showLoading = true) => {
     try {
-      // ✅ CANCELAR REQUISIÇÃO ANTERIOR
+      // ✅ CANCELAR REQUISIÇÃO ANTERIOR (com delay para evitar abort imediato)
       if (abortController.current) {
         abortController.current.abort();
+        // Pequeno delay para evitar abort muito rápido
+        await new Promise(resolve => setTimeout(resolve, 10));
       }
       abortController.current = new AbortController();
 
@@ -116,14 +118,14 @@ export function useOptimizedQuery<T = any>(
           setCurrentPage(pageNum);
           setLoading(false);
           
-          if (logQueries) {
+          if (logQueries && process.env.NODE_ENV === 'development') {
             console.log(`🚀 CACHE HIT: ${cacheKey} - ${cached.data.length} items`);
           }
           return;
         }
       }
 
-      if (logQueries) {
+      if (logQueries && process.env.NODE_ENV === 'development') {
         console.log(`📡 QUERY START: ${tableName} - Page ${pageNum}, Limit ${limit}`);
         console.time(`query_${cacheKey}`);
       }
@@ -172,16 +174,30 @@ export function useOptimizedQuery<T = any>(
       setTotalCount(queryResult.count || 0);
       setCurrentPage(pageNum);
 
-      if (logQueries) {
+      if (logQueries && process.env.NODE_ENV === 'development') {
         console.timeEnd(`query_${cacheKey}`);
         console.log(`✅ QUERY SUCCESS: ${queryResult.data.length}/${queryResult.count} items`);
       }
 
     } catch (err: any) {
-      if (err.name !== 'AbortError') {
-        const errorMsg = err.message || 'Erro ao carregar dados';
-        setError(errorMsg);
-        
+      // Alguns ambientes retornam objetos/strings sem `name` ao abortar.
+      const isAbort = err && (
+        err.name === 'AbortError' ||
+        (err.message && String(err.message).includes('AbortError')) ||
+        (typeof err === 'string' && err.includes('AbortError')) ||
+        (err?.details && String(err.details).includes('signal is aborted'))
+      );
+
+      if (isAbort) {
+        // Abort é esperado quando cancelamos requisições anteriores.
+        if (logQueries) {
+          console.log(`⚠️ QUERY ABORTED: ${tableName}`, err?.message || err);
+        }
+        // Não setamos `error` nem mostramos `console.error` — trata-se de fluxo normal.
+      } else {
+        const errorMsg = (err && (err.message || err.details)) || JSON.stringify(err) || 'Erro ao carregar dados';
+        setError(errorMsg as string);
+
         if (logQueries) {
           console.error(`❌ QUERY ERROR: ${tableName}`, err);
         }
@@ -204,9 +220,23 @@ export function useOptimizedQuery<T = any>(
     getCacheKey
   ]);
 
-  // ✅ SETUP REALTIME (OPCIONAL)
+    // ✅ SETUP REALTIME (OPCIONAL) - Com debounce para evitar refresh loops
   useEffect(() => {
     if (realtime) {
+      // Debounce function para evitar refresh loops
+      let refreshTimeout: NodeJS.Timeout;
+      const debouncedRefresh = (payload: any) => {
+        clearTimeout(refreshTimeout);
+        refreshTimeout = setTimeout(() => {
+          if (logQueries) {
+            console.log(`🔄 REALTIME REFRESH: ${tableName} changed`, payload);
+          }
+          // Invalidar cache e recarregar sem mostrar loading
+          cache.invalidate(getCacheKey().split('_')[0]);
+          loadData(currentPage, false);
+        }, 2000); // 2 segundos de debounce
+      };
+      
       realtimeSubscription.current = supabase
         .channel(`${tableName}_changes_${Date.now()}`)
         .on('postgres_changes', 
@@ -218,19 +248,12 @@ export function useOptimizedQuery<T = any>(
               Object.entries(filters).map(([key, value]) => `${key}=eq.${value}`).join(',') :
               undefined
           }, 
-          (payload) => {
-            if (logQueries) {
-              console.log(`🔄 REALTIME: ${tableName} changed`, payload);
-            }
-            
-            // Invalidar cache e recarregar
-            cache.invalidate(getCacheKey().split('_')[0]);
-            loadData(currentPage, false);
-          }
+          debouncedRefresh
         )
         .subscribe();
 
       return () => {
+        clearTimeout(refreshTimeout);
         if (realtimeSubscription.current) {
           supabase.removeChannel(realtimeSubscription.current);
         }
@@ -320,6 +343,25 @@ export function useOptimizedProperties(
   } = {},
   options: UseOptimizedQueryOptions = {}
 ) {
+  // ✅ PREVENIR QUERY SEM BROKER_ID (exatamente como na página de corretores)
+  if (!brokerId || brokerId.trim() === '') {
+    return {
+      data: [],
+      loading: true, // Mantém loading enquanto aguarda brokerId
+      error: null,
+      totalCount: 0,
+      totalPages: 0,
+      currentPage: 1,
+      hasNextPage: false,
+      hasPrevPage: false,
+      refresh: async () => {},
+      loadNextPage: async () => {},
+      loadPrevPage: async () => {},
+      goToPage: async () => {},
+      clearCache: () => {}
+    };
+  }
+
   const baseFilters = { broker_id: brokerId };
   
   // Aplicar filtros específicos - usando Record para flexibilidade
@@ -357,6 +399,25 @@ export function useOptimizedLeads(
   } = {},
   options: UseOptimizedQueryOptions = {}
 ) {
+  // ✅ PREVENIR QUERY SEM BROKER_ID (consistência com Properties)
+  if (!brokerId || brokerId.trim() === '') {
+    return {
+      data: [],
+      loading: true,
+      error: null,
+      totalCount: 0,
+      totalPages: 0,
+      currentPage: 1,
+      hasNextPage: false,
+      hasPrevPage: false,
+      refresh: async () => {},
+      loadNextPage: async () => {},
+      loadPrevPage: async () => {},
+      goToPage: async () => {},
+      clearCache: () => {}
+    };
+  }
+
   return useOptimizedQuery(
     'leads',
     'id, name, email, phone, message, status, source, property_id, created_at', // ✅ CAMPOS ESPECÍFICOS
@@ -381,18 +442,33 @@ export function useOptimizedBrokers(
   } = {},
   options: UseOptimizedQueryOptions = {}
 ) {
-  return useOptimizedQuery(
+  // ✅ Para SuperAdmin, buscar dados básicos primeiro
+  const result = useOptimizedQuery(
     'brokers',
-    'id, user_id, business_name, display_name, email, website_slug, is_active, plan_type, created_at', // ✅ CAMPOS ESPECÍFICOS
+    `id, user_id, business_name, display_name, email, website_slug, is_active, plan_type, created_at, updated_at, phone, whatsapp_number, contact_email, max_properties`,
     filters,
     {
       limit: 25,
       memoryTTL: 10, // Cache maior para admin
       sessionTTL: 30,
       localTTL: 120,
+      realtime: true, // ✅ REALTIME REABILITADO com debounce seguro
+      enableCache: true, // ✅ CACHE REABILITADO
+      logQueries: true, // ✅ LOGS REABILITADOS para debug
       ...options
     }
   );
+
+  // ✅ Processar dados para adicionar contagem de propriedades
+  const processedData = result.data?.map((broker: any) => ({
+    ...broker,
+    properties_count: 0 // Inicializar com 0, será atualizado por função separada
+  })) || [];
+
+  return {
+    ...result,
+    data: processedData
+  };
 }
 
 export default useOptimizedQuery;

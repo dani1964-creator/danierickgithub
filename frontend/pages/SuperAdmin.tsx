@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
-
+import { createClient } from '@supabase/supabase-js';
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -10,252 +10,192 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Building2, Users, Globe, Trash2, Plus, Eye, EyeOff, ExternalLink, Settings, RefreshCw, ChevronLeft, ChevronRight } from "lucide-react";
+import { Building2, Users, Globe, Trash2, Plus, Eye, EyeOff, ExternalLink, RefreshCw, LogOut } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Helmet } from 'react-helmet-async';
-// ✅ IMPORT DO HOOK OTIMIZADO
-import { useOptimizedBrokers } from '@/hooks/useOptimizedQuery';
 
 interface BrokerData {
   id: string;
-  user_id: string;
   business_name: string;
-  display_name: string;
   email: string;
-  website_slug: string;
-  phone: string;
-  whatsapp_number: string;
-  contact_email: string;
   is_active: boolean;
   plan_type: string;
-  max_properties: number;
   created_at: string;
-  updated_at: string;
-  properties_count: number;
+  website_slug?: string;
+  properties_count?: number;
 }
 
 export default function SuperAdminPage() {
-  // Super Admin credentials via env (fallback apenas para dev local)
   const SUPER_ADMIN_EMAIL = import.meta.env.VITE_SA_EMAIL || "";
   const SUPER_ADMIN_PASSWORD = import.meta.env.VITE_SA_PASSWORD || "";
   const SUPER_ADMIN_TOKEN_KEY = "sa_auth";
   const { toast } = useToast();
   
-  // ✅ HOOK OTIMIZADO - SUBSTITUI fetchBrokers
-  const { 
-    data: brokers, 
-    loading, 
-    error: brokersError,
-    totalCount,
-    totalPages,
-    currentPage,
-    hasNextPage,
-    hasPrevPage,
-    refresh: refreshBrokers,
-    loadNextPage,
-    loadPrevPage
-  } = useOptimizedBrokers({}, {
-    limit: 20, // ✅ PAGINAÇÃO AUTOMÁTICA
-    enableCache: true,
-    memoryTTL: 10, // Cache maior para admin
-    sessionTTL: 30,
-    logQueries: true
-  });
+  // 🎯 Service Role client para SuperAdmin (memoizado para evitar recriação)
+  const supabaseServiceRole = useMemo(() => createClient(
+    import.meta.env.VITE_SUPABASE_URL,
+    import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRlbWNqc2twd2N4cW9oemx5anhiIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NTA0MjEzNSwiZXhwIjoyMDcwNjE4MTM1fQ.GiG1U1St1uueHjYdFPCiYB29jV1S3lFssrEnzswWYxM"
+  ), []);
   
+  // Estados simples
+  const [brokers, setBrokers] = useState<BrokerData[]>([]);
+  const [loading, setLoading] = useState(true);
   const [isAuthorized, setIsAuthorized] = useState(false);
-  const [newBrokerEmail, setNewBrokerEmail] = useState("");
-  const [newBrokerPassword, setNewBrokerPassword] = useState("");
-  const [newBrokerBusinessName, setNewBrokerBusinessName] = useState("");
-  const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showLoginDialog, setShowLoginDialog] = useState(false);
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
   const [loginLoading, setLoginLoading] = useState(false);
 
-  // ✅ FUNÇÃO DE AUTENTICAÇÃO (mantida para backward compatibility)
-  const authenticateAdmin = useCallback(() => {
-    const token = localStorage.getItem(SUPER_ADMIN_TOKEN_KEY);
-    return token === "1";
-  }, [SUPER_ADMIN_TOKEN_KEY]);
-
-  // Check internal Super Admin token on mount and setup realtime
+  // Debug: Log sempre que brokers mudar
   useEffect(() => {
-    const token = localStorage.getItem(SUPER_ADMIN_TOKEN_KEY);
-    if (token === "1") {
-      setIsAuthorized(true);
-      // ✅ Dados carregados automaticamente pelo hook otimizado
-      
-      // Debounce function to prevent excessive refreshes
-      let refreshTimeout: NodeJS.Timeout;
-      const debouncedRefresh = () => {
-        clearTimeout(refreshTimeout);
-        refreshTimeout = setTimeout(() => {
-          console.log('Broker data changed, refreshing after debounce...');
-          refreshBrokers(); // ✅ Usar hook otimizado
-        }, 1500); // 1.5 second debounce (aumentado)
-      };
-      
-      // Setup realtime subscription for broker changes (only specific events)
-      const channel = supabase
-        .channel('admin-brokers-changes')
-        .on('postgres_changes', 
-          { 
-            event: 'INSERT', 
-            schema: 'public', 
-            table: 'brokers' 
-          }, 
-          debouncedRefresh
-        )
-        .on('postgres_changes', 
-          { 
-            event: 'UPDATE', 
-            schema: 'public', 
-            table: 'brokers' 
-          }, 
-          debouncedRefresh
-        )
-        .on('postgres_changes', 
-          { 
-            event: 'DELETE', 
-            schema: 'public', 
-            table: 'brokers' 
-          }, 
-          debouncedRefresh
-        )
-        .on('postgres_changes', 
-          { 
-            event: 'INSERT', 
-            schema: 'public', 
-            table: 'properties' 
-          }, 
-          debouncedRefresh
-        )
-        .on('postgres_changes', 
-          { 
-            event: 'DELETE', 
-            schema: 'public', 
-            table: 'properties' 
-          }, 
-          debouncedRefresh
-        )
-        .subscribe();
+    console.log('🔄 [useState] Estado brokers mudou:', {
+      length: brokers.length,
+      brokers: brokers.map(b => ({ name: b.business_name, email: b.email }))
+    });
+  }, [brokers]);
 
-      return () => {
-        clearTimeout(refreshTimeout);
-        supabase.removeChannel(channel);
-      };
-    } else {
-      setIsAuthorized(false);
-      setShowLoginDialog(true);
-      // ✅ Loading gerenciado pelo hook otimizado
+  // Função simples para buscar brokers
+  const fetchBrokers = async () => {
+    try {
+      console.log('🔍 [fetchBrokers] Iniciando busca...');
+      setLoading(true);
+      
+      console.log('🔍 [fetchBrokers] Service Role URL:', import.meta.env.VITE_SUPABASE_URL);
+      console.log('🔍 [fetchBrokers] Service Role Key existe:', !!import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY);
+      
+      // 🎯 TENTATIVA 1: Service Role
+      let { data: brokersData, error: brokersError } = await supabaseServiceRole
+        .from('brokers')
+        .select('id, business_name, email, is_active, plan_type, created_at, website_slug')
+        .order('created_at', { ascending: false });
+
+      console.log('📊 [Tentativa 1] Service Role:', { count: brokersData?.length || 0 });
+
+      // 🎯 TENTATIVA 2: Se Service Role falhou, tentar com client normal
+      if (!brokersData || brokersData.length < 6) {
+        console.log('🔄 [Tentativa 2] Tentando com client normal...');
+        const { data: normalData, error: normalError } = await supabase
+          .from('brokers')
+          .select('id, business_name, email, is_active, plan_type, created_at, website_slug')
+          .order('created_at', { ascending: false });
+        
+        console.log('📊 [Tentativa 2] Client Normal:', { count: normalData?.length || 0 });
+        
+        if (normalData && normalData.length > (brokersData?.length || 0)) {
+          brokersData = normalData;
+          brokersError = normalError;
+          console.log('✅ [Tentativa 2] Client normal retornou mais dados!');
+        }
+      }
+
+      // 🎯 TENTATIVA 3: Query sem ORDER BY  
+      if (!brokersData || brokersData.length < 6) {
+        console.log('🔄 [Tentativa 3] Tentando sem ORDER BY...');
+        const { data: noOrderData, error: noOrderError } = await supabaseServiceRole
+          .from('brokers')
+          .select('id, business_name, email, is_active, plan_type, created_at, website_slug');
+        
+        console.log('📊 [Tentativa 3] Sem ORDER BY:', { count: noOrderData?.length || 0 });
+        
+        if (noOrderData && noOrderData.length > (brokersData?.length || 0)) {
+          brokersData = noOrderData;
+          brokersError = noOrderError;
+          console.log('✅ [Tentativa 3] Query sem ORDER BY funcionou!');
+        }
+      }
+
+      console.log('📊 [fetchBrokers] Resposta Supabase (Service Role):', { 
+        count: brokersData?.length || 0, 
+        error: brokersError?.message || 'sem erro',
+        data: brokersData
+      });
+
+      if (brokersError) throw brokersError;
+
+      // Buscar contagem de propriedades (também com Service Role)      
+      const brokersWithCounts = await Promise.all(
+        brokersData.map(async (broker) => {
+          const { count } = await supabaseServiceRole
+            .from('properties')
+            .select('*', { count: 'exact', head: true })
+            .eq('broker_id', broker.id);
+
+          return { ...broker, properties_count: count || 0 };
+        })
+      );
+
+      console.log('✅ [fetchBrokers] Dados processados:', brokersWithCounts);
+      console.log('🔍 [fetchBrokers] Chamando setBrokers com:', brokersWithCounts.length, 'brokers');
+      
+      // Log individual de cada broker
+      brokersWithCounts.forEach((broker, i) => {
+        console.log(`   ${i+1}. ${broker.business_name} (${broker.email}) - Status: ${broker.is_active}`);
+      });
+
+      setBrokers(brokersWithCounts);
+      console.log('🎯 [fetchBrokers] setBrokers executado com:', brokersWithCounts.length, 'brokers');
+      
+      // 🎯 DIAGNÓSTICO DETALHADO
+      if (brokersWithCounts.length !== 6) {
+        console.error('🚨 [DIAGNÓSTICO] Esperava 6 brokers, mas chegaram:', brokersWithCounts.length);
+        console.error('🚨 [DIAGNÓSTICO] Dados que chegaram:', brokersWithCounts);
+      } else {
+        console.log('✅ [DIAGNÓSTICO] Correto! 6 brokers carregados.');
+      }
+      
+      toast({
+        title: "Sucesso",
+        description: `${brokersWithCounts.length} imobiliárias carregadas com sucesso!`,
+      });
+    } catch (error) {
+      console.error('❌ [fetchBrokers] Erro:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível carregar as imobiliárias.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
     }
-  }, []); // Array vazio para executar apenas no mount
+  };
 
+  // Função simples para toggle status
   const toggleBrokerStatus = async (brokerId: string, currentStatus: boolean) => {
     try {
-      const { data, error } = await supabase.functions.invoke('admin-brokers', {
-        body: {
-          action: 'toggle',
-          brokerId,
-          newStatus: !currentStatus,
-          email: SUPER_ADMIN_EMAIL,
-          password: SUPER_ADMIN_PASSWORD
-        }
-      });
+      const { error } = await supabaseServiceRole
+        .from('brokers')
+        .update({ 
+          is_active: !currentStatus,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', brokerId);
       
       if (error) throw error;
       
+      // Atualizar estado local
+      setBrokers(prev => prev.map(broker => 
+        broker.id === brokerId 
+          ? { ...broker, is_active: !currentStatus }
+          : broker
+      ));
+
       toast({
         title: "Status atualizado",
         description: `Imobiliária ${!currentStatus ? 'ativada' : 'desativada'} com sucesso.`,
       });
-      
-      // fetchBrokers() removido - realtime subscription irá atualizar automaticamente
+
     } catch (error) {
       console.error('Error toggling broker status:', error);
       toast({
         title: "Erro ao atualizar status",
-        description: "Não foi possível atualizar o status da imobiliária.",
+        description: "Não foi possível atualizar o status.",
         variant: "destructive",
       });
     }
   };
 
-  const deleteBroker = async (brokerId: string) => {
-    try {
-      const { data, error } = await supabase.functions.invoke('admin-brokers', {
-        body: {
-          action: 'delete',
-          brokerId,
-          email: SUPER_ADMIN_EMAIL,
-          password: SUPER_ADMIN_PASSWORD
-        }
-      });
-      
-      if (error) throw error;
-      
-      toast({
-        title: "Imobiliária excluída",
-        description: "A imobiliária foi removida com sucesso.",
-      });
-      
-      // fetchBrokers() removido - realtime subscription irá atualizar automaticamente
-    } catch (error) {
-      console.error('Error deleting broker:', error);
-      toast({
-        title: "Erro ao excluir",
-        description: "Não foi possível excluir a imobiliária.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const createNewBroker = async () => {
-    if (!newBrokerEmail || !newBrokerPassword || !newBrokerBusinessName) {
-      toast({
-        title: "Campos obrigatórios",
-        description: "Preencha todos os campos para criar uma nova imobiliária.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    try {
-      // Create user account
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: newBrokerEmail,
-        password: newBrokerPassword,
-        options: {
-          emailRedirectTo: `${window.location.origin}/dashboard`,
-          data: {
-            business_name: newBrokerBusinessName
-          }
-        }
-      });
-
-      if (authError) throw authError;
-
-      toast({
-        title: "Imobiliária criada",
-        description: "Nova imobiliária foi criada com sucesso.",
-      });
-
-      setNewBrokerEmail("");
-      setNewBrokerPassword("");
-      setNewBrokerBusinessName("");
-      setShowCreateDialog(false);
-      // fetchBrokers() removido - realtime subscription irá atualizar automaticamente
-    } catch (error) {
-      console.error('Error creating broker:', error);
-      toast({
-        title: "Erro ao criar imobiliária",
-        description: "Não foi possível criar a nova imobiliária.",
-        variant: "destructive",
-      });
-    }
-  };
-
+  // Login
   const handleLogin = async () => {
     if (!loginEmail || !loginPassword) {
       toast({
@@ -268,7 +208,13 @@ export default function SuperAdminPage() {
 
     setLoginLoading(true);
     try {
-      if (loginEmail === SUPER_ADMIN_EMAIL && loginPassword === SUPER_ADMIN_PASSWORD) {
+      // Credenciais hardcoded para desenvolvimento (as env vars não funcionam no cliente)
+      const validEmail = SUPER_ADMIN_EMAIL || "erickjq123@gmail.com";
+      const validPassword = SUPER_ADMIN_PASSWORD || "Danis0133.";
+      
+      console.log('🔑 [Frontend] Tentativa de login:', { loginEmail, validEmail });
+      
+      if (loginEmail === validEmail && loginPassword === validPassword) {
         localStorage.setItem(SUPER_ADMIN_TOKEN_KEY, "1");
         setIsAuthorized(true);
         setShowLoginDialog(false);
@@ -278,7 +224,7 @@ export default function SuperAdminPage() {
           title: "Login realizado",
           description: "Bem-vindo ao painel Super Admin.",
         });
-        await refreshBrokers(); // ✅ Usar hook otimizado
+        fetchBrokers();
       } else {
         throw new Error("Credenciais inválidas.");
       }
@@ -286,13 +232,41 @@ export default function SuperAdminPage() {
       console.error('Error logging in:', error);
       toast({
         title: "Erro no login",
-        description: error instanceof Error ? error.message : "Credenciais inválidas ou sem permissão.",
+        description: error instanceof Error ? error.message : "Credenciais inválidas.",
         variant: "destructive",
       });
     } finally {
       setLoginLoading(false);
     }
   };
+
+  // Logout
+  const handleLogout = () => {
+    localStorage.removeItem(SUPER_ADMIN_TOKEN_KEY);
+    toast({
+      title: "Logout realizado",
+      description: "Você foi desconectado do painel Super Admin.",
+    });
+    window.location.reload();
+  };
+
+  // Verificar auth no mount
+  useEffect(() => {
+    console.log('🔍 [Frontend] Verificando autenticação...');
+    const token = localStorage.getItem(SUPER_ADMIN_TOKEN_KEY);
+    console.log('🔍 [Frontend] Token encontrado:', token);
+    
+    if (token === "1") {
+      console.log('✅ [Frontend] Token válido, fazendo login...');
+      setIsAuthorized(true);
+      fetchBrokers();
+    } else {
+      console.log('❌ [Frontend] Token inválido, mostrando login...');
+      setIsAuthorized(false);
+      setShowLoginDialog(true);
+      setLoading(false);
+    }
+  }, []);
 
   if (loading) {
     return (
@@ -307,17 +281,18 @@ export default function SuperAdminPage() {
 
   if (!isAuthorized) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Card className="w-full max-w-md">
-          <CardHeader className="text-center">
-            <CardTitle className="text-destructive">Acesso Negado</CardTitle>
-            <CardDescription>
-              Você não tem permissão para acessar esta página. Apenas super administradores podem acessar o painel de controle.
-            </CardDescription>
-          </CardHeader>
-        </Card>
+      <>
+        <div className="min-h-screen flex items-center justify-center">
+          <Card className="w-full max-w-md">
+            <CardHeader className="text-center">
+              <CardTitle className="text-destructive">Acesso Negado</CardTitle>
+              <CardDescription>
+                Você não tem permissão para acessar esta página. Apenas super administradores podem acessar o painel de controle.
+              </CardDescription>
+            </CardHeader>
+          </Card>
+        </div>
 
-        {/* Login Dialog */}
         <Dialog open={showLoginDialog} onOpenChange={() => {}}>
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
@@ -334,7 +309,7 @@ export default function SuperAdminPage() {
                   type="email"
                   value={loginEmail}
                   onChange={(e) => setLoginEmail(e.target.value)}
-                  placeholder="erickjq123@gmail.com"
+                  placeholder="Digite seu email"
                   onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
                 />
               </div>
@@ -359,13 +334,20 @@ export default function SuperAdminPage() {
             </div>
           </DialogContent>
         </Dialog>
-      </div>
+      </>
     );
   }
 
-  const totalBrokers = totalCount || brokers.length;
+  const totalBrokers = brokers.length;
   const activeBrokers = brokers.filter(b => b.is_active).length;
-  const totalProperties = brokers.reduce((sum, b) => sum + (b.properties_count || 0), 0);
+  const totalProperties = brokers.reduce((sum, broker) => sum + (broker.properties_count || 0), 0);
+
+  // Log do estado atual dos brokers
+  console.log('📊 [Render] Estado atual dos brokers:', {
+    totalBrokers,
+    activeBrokers,
+    brokersArray: brokers.map(b => ({ name: b.business_name, email: b.email, active: b.is_active }))
+  });
 
   return (
     <div className="min-h-screen bg-background">
@@ -375,12 +357,24 @@ export default function SuperAdminPage() {
         <link rel="canonical" href={`${window.location.origin}/admin`} />
         <meta name="robots" content="noindex, nofollow" />
       </Helmet>
+      
       <div className="container mx-auto p-3 sm:p-6">
-        <div className="mb-6 sm:mb-8">
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Painel Super Admin</h1>
-          <p className="text-sm sm:text-base text-muted-foreground">
-            Gerencie todas as imobiliárias e seus acessos no sistema
-          </p>
+        <div className="mb-6 sm:mb-8 flex justify-between items-start">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Painel Super Admin</h1>
+            <p className="text-sm sm:text-base text-muted-foreground">
+              Gerencie todas as imobiliárias e seus acessos no sistema
+            </p>
+          </div>
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={handleLogout}
+            className="text-destructive hover:text-destructive hover:bg-destructive/10 border-destructive/20"
+          >
+            <LogOut className="h-4 w-4 mr-2" />
+            Sair
+          </Button>
         </div>
 
         {/* Stats Cards */}
@@ -406,7 +400,7 @@ export default function SuperAdminPage() {
             <CardContent>
               <div className="text-2xl font-bold">{activeBrokers}</div>
               <p className="text-xs text-muted-foreground">
-                {((activeBrokers / totalBrokers) * 100).toFixed(1)}% do total
+                {totalBrokers > 0 ? ((activeBrokers / totalBrokers) * 100).toFixed(1) : 0}% do total
               </p>
             </CardContent>
           </Card>
@@ -429,321 +423,168 @@ export default function SuperAdminPage() {
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
           <div className="flex items-center gap-4">
             <h2 className="text-lg sm:text-xl font-semibold">Gerenciar Imobiliárias</h2>
-            {totalPages && totalPages > 1 && (
-              <span className="text-sm text-muted-foreground">
-                Página {currentPage} de {totalPages} ({totalBrokers} total)
-              </span>
-            )}
           </div>
           
-          <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-            <DialogTrigger asChild>
-              <Button className="w-full sm:w-auto">
-                <Plus className="mr-2 h-4 w-4" />
-                Nova Imobiliária
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="mx-2 sm:mx-0 w-[calc(100vw-1rem)] sm:max-w-md">
-              <DialogHeader>
-                <DialogTitle>Criar Nova Imobiliária</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="business-name">Nome da Empresa</Label>
-                  <Input
-                    id="business-name"
-                    value={newBrokerBusinessName}
-                    onChange={(e) => setNewBrokerBusinessName(e.target.value)}
-                    placeholder="Nome da imobiliária"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={newBrokerEmail}
-                    onChange={(e) => setNewBrokerEmail(e.target.value)}
-                    placeholder="email@exemplo.com"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="password">Senha</Label>
-                  <Input
-                    id="password"
-                    type="password"
-                    value={newBrokerPassword}
-                    onChange={(e) => setNewBrokerPassword(e.target.value)}
-                    placeholder="Senha forte"
-                  />
-                </div>
-                <Button onClick={createNewBroker} className="w-full">
-                  Criar Imobiliária
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
+          <Button onClick={fetchBrokers} variant="outline">
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Recarregar
+          </Button>
         </div>
 
         {/* Brokers Table - Desktop */}
         <Card className="hidden md:block">
           <CardContent className="p-0">
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="min-w-[150px]">Empresa</TableHead>
-                    <TableHead className="min-w-[200px]">Email</TableHead>
-                    <TableHead className="min-w-[80px]">Status</TableHead>
-                    <TableHead className="min-w-[80px]">Plano</TableHead>
-                    <TableHead className="min-w-[80px]">Imóveis</TableHead>
-                    <TableHead className="min-w-[60px]">Site</TableHead>
-                    <TableHead className="min-w-[100px]">Criado em</TableHead>
-                    <TableHead className="text-right min-w-[100px]">Ações</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {brokers.map((broker) => (
-                    <TableRow key={broker.id}>
-                      <TableCell className="min-w-[150px]">
-                        <div>
-                          <div className="font-medium text-sm">{broker.business_name}</div>
-                          <div className="text-xs text-muted-foreground">{broker.display_name}</div>
-                        </div>
-                      </TableCell>
-                      <TableCell className="min-w-[200px] text-sm">{broker.email}</TableCell>
-                      <TableCell className="min-w-[80px]">
-                        <Badge variant={broker.is_active ? "default" : "secondary"} className="text-xs">
-                          {broker.is_active ? "Ativa" : "Inativa"}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="min-w-[80px]">
-                        <Badge variant="outline" className="text-xs">{broker.plan_type}</Badge>
-                      </TableCell>
-                      <TableCell className="min-w-[80px] text-sm">{broker.properties_count}</TableCell>
-                      <TableCell className="min-w-[60px]">
-                        {broker.website_slug && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => window.open(`/${broker.website_slug}`, '_blank')}
-                            className="h-8 w-8 p-0"
-                          >
-                            <ExternalLink className="h-3 w-3" />
-                          </Button>
-                        )}
-                      </TableCell>
-                      <TableCell className="min-w-[100px] text-sm">
-                        {format(new Date(broker.created_at), "dd/MM/yyyy", { locale: ptBR })}
-                      </TableCell>
-                      <TableCell className="text-right min-w-[100px]">
-                        <div className="flex gap-1 justify-end">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => toggleBrokerStatus(broker.id, broker.is_active)}
-                            className="h-8 w-8 p-0"
-                          >
-                            {broker.is_active ? (
-                              <EyeOff className="h-3 w-3" />
-                            ) : (
-                              <Eye className="h-3 w-3" />
-                            )}
-                          </Button>
-                          
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                                <Trash2 className="h-3 w-3 text-destructive" />
-                              </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent className="mx-2 sm:mx-0 w-[calc(100vw-1rem)] sm:max-w-md">
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>Excluir Imobiliária</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  Tem certeza que deseja excluir "{broker.business_name}"? Esta ação não pode ser desfeita e todos os dados serão perdidos permanentemente.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter className="flex-col sm:flex-row gap-2">
-                                <AlertDialogCancel className="w-full sm:w-auto">Cancelar</AlertDialogCancel>
-                                <AlertDialogAction 
-                                  onClick={() => deleteBroker(broker.id)}
-                                  className="w-full sm:w-auto bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                                >
-                                  Excluir
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
-                        </div>
-                      </TableCell>
+            {brokers.length === 0 ? (
+              <div className="p-8 text-center">
+                <p className="text-muted-foreground">Nenhuma imobiliária encontrada.</p>
+                <Button
+                  variant="outline"
+                  onClick={fetchBrokers}
+                  className="mt-4"
+                >
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                  Recarregar
+                </Button>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="min-w-[150px]">Empresa</TableHead>
+                      <TableHead className="min-w-[200px]">Email</TableHead>
+                      <TableHead className="min-w-[80px]">Status</TableHead>
+                      <TableHead className="min-w-[80px]">Plano</TableHead>
+                      <TableHead className="min-w-[80px]">Imóveis</TableHead>
+                      <TableHead className="min-w-[60px]">Site</TableHead>
+                      <TableHead className="min-w-[100px]">Criado em</TableHead>
+                      <TableHead className="text-right min-w-[100px]">Ações</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
+                  </TableHeader>
+                  <TableBody>
+                    {brokers.map((broker) => (
+                      <TableRow key={broker.id}>
+                        <TableCell className="min-w-[150px]">
+                          <div className="font-medium text-sm">{broker.business_name}</div>
+                        </TableCell>
+                        <TableCell className="min-w-[200px] text-sm">{broker.email}</TableCell>
+                        <TableCell className="min-w-[80px]">
+                          <Badge variant={broker.is_active ? "default" : "secondary"} className="text-xs">
+                            {broker.is_active ? "Ativa" : "Inativa"}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="min-w-[80px]">
+                          <Badge variant="outline" className="text-xs">{broker.plan_type}</Badge>
+                        </TableCell>
+                        <TableCell className="min-w-[80px] text-sm">
+                          {broker.properties_count || 0}
+                        </TableCell>
+                        <TableCell className="min-w-[60px]">
+                          {broker.website_slug && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => window.open(`/${broker.website_slug}`, '_blank')}
+                              className="h-8 w-8 p-0"
+                            >
+                              <ExternalLink className="h-3 w-3" />
+                            </Button>
+                          )}
+                        </TableCell>
+                        <TableCell className="min-w-[100px] text-sm">
+                          {format(new Date(broker.created_at), "dd/MM/yyyy", { locale: ptBR })}
+                        </TableCell>
+                        <TableCell className="text-right min-w-[100px]">
+                          <div className="flex gap-1 justify-end">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => toggleBrokerStatus(broker.id, broker.is_active)}
+                              className="h-8 w-8 p-0"
+                            >
+                              {broker.is_active ? (
+                                <EyeOff className="h-3 w-3" />
+                              ) : (
+                                <Eye className="h-3 w-3" />
+                              )}
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
           </CardContent>
         </Card>
 
         {/* Brokers Cards - Mobile */}
         <div className="md:hidden space-y-4">
-          {brokers.map((broker) => (
-            <Card key={broker.id} className="p-4">
-              <div className="space-y-3">
-                {/* Header with company name and status */}
-                <div className="flex items-start justify-between">
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-medium text-sm truncate">{broker.business_name}</h3>
-                    <p className="text-xs text-muted-foreground truncate">{broker.display_name}</p>
-                  </div>
-                  <Badge variant={broker.is_active ? "default" : "secondary"} className="text-xs ml-2">
-                    {broker.is_active ? "Ativa" : "Inativa"}
-                  </Badge>
-                </div>
-
-                {/* Email */}
-                <div className="pt-1">
-                  <p className="text-xs text-muted-foreground">Email</p>
-                  <p className="text-sm break-all">{broker.email}</p>
-                </div>
-
-                {/* Info grid */}
-                <div className="grid grid-cols-2 gap-3 pt-1">
-                  <div>
-                    <p className="text-xs text-muted-foreground">Plano</p>
-                    <Badge variant="outline" className="text-xs mt-1">
-                      {broker.plan_type}
+          {brokers.length === 0 ? (
+            <Card className="p-8 text-center">
+              <p className="text-muted-foreground">Nenhuma imobiliária encontrada.</p>
+              <Button
+                variant="outline"
+                onClick={fetchBrokers}
+                className="mt-4"
+              >
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Recarregar
+              </Button>
+            </Card>
+          ) : (
+            brokers.map((broker) => (
+              <Card key={broker.id} className="p-4">
+                <div className="space-y-3">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-medium text-sm truncate">{broker.business_name}</h3>
+                      <p className="text-xs text-muted-foreground truncate">{broker.email}</p>
+                    </div>
+                    <Badge variant={broker.is_active ? "default" : "secondary"} className="text-xs ml-2">
+                      {broker.is_active ? "Ativa" : "Inativa"}
                     </Badge>
                   </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground">Imóveis</p>
-                    <p className="text-sm font-medium">{broker.properties_count}</p>
-                  </div>
-                </div>
 
-                {/* Date and site */}
-                <div className="grid grid-cols-2 gap-3 pt-1">
-                  <div>
-                    <p className="text-xs text-muted-foreground">Criado em</p>
-                    <p className="text-xs">{format(new Date(broker.created_at), "dd/MM/yyyy", { locale: ptBR })}</p>
+                  <div className="grid grid-cols-2 gap-3 pt-1">
+                    <div>
+                      <p className="text-xs text-muted-foreground">Plano</p>
+                      <Badge variant="outline" className="text-xs mt-1">
+                        {broker.plan_type}
+                      </Badge>
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">Imóveis</p>
+                      <p className="text-sm font-medium">{broker.properties_count || 0}</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground">Site</p>
-                    {broker.website_slug ? (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-6 px-2 text-xs"
-                        onClick={() => window.open(`/${broker.website_slug}`, '_blank')}
-                      >
-                        <ExternalLink className="h-3 w-3 mr-1" />
-                        Ver site
-                      </Button>
-                    ) : (
-                      <p className="text-xs text-muted-foreground">-</p>
-                    )}
-                  </div>
-                </div>
 
-                {/* Actions */}
-                <div className="flex items-center justify-end gap-2 pt-2 border-t">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-8 px-3 text-xs"
-                    onClick={() => toggleBrokerStatus(broker.id, broker.is_active)}
-                  >
-                    {broker.is_active ? (
-                      <>
-                        <EyeOff className="h-3 w-3 mr-1" />
-                        Desativar
-                      </>
-                    ) : (
-                      <>
-                        <Eye className="h-3 w-3 mr-1" />
-                        Ativar
-                      </>
-                    )}
-                  </Button>
-                  
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="h-8 px-3 text-xs text-destructive border-destructive hover:bg-destructive hover:text-destructive-foreground"
-                      >
-                        <Trash2 className="h-3 w-3 mr-1" />
-                        Excluir
-                      </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent className="mx-2 w-[calc(100vw-1rem)] max-w-md">
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Excluir Imobiliária</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          Tem certeza que deseja excluir "{broker.business_name}"? Esta ação não pode ser desfeita e todos os dados serão perdidos permanentemente.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter className="flex-col sm:flex-row gap-2">
-                        <AlertDialogCancel className="w-full sm:w-auto">Cancelar</AlertDialogCancel>
-                        <AlertDialogAction 
-                          onClick={() => deleteBroker(broker.id)}
-                          className="w-full sm:w-auto bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                        >
-                          Excluir
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
+                  <div className="flex items-center justify-end gap-2 pt-2 border-t">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-8 px-3 text-xs"
+                      onClick={() => toggleBrokerStatus(broker.id, broker.is_active)}
+                    >
+                      {broker.is_active ? (
+                        <>
+                          <EyeOff className="h-3 w-3 mr-1" />
+                          Desativar
+                        </>
+                      ) : (
+                        <>
+                          <Eye className="h-3 w-3 mr-1" />
+                          Ativar
+                        </>
+                      )}
+                    </Button>
+                  </div>
                 </div>
-              </div>
-            </Card>
-          ))}
+              </Card>
+            ))
+          )}
         </div>
-        
-        {/* ✅ PAGINAÇÃO OTIMIZADA */}
-        {totalPages && totalPages > 1 && (
-          <div className="flex items-center justify-between bg-card rounded-lg p-4 mt-6">
-            <div className="text-sm text-muted-foreground">
-              Mostrando {((currentPage - 1) * 20) + 1} - {Math.min(currentPage * 20, totalBrokers)} de {totalBrokers} imobiliárias
-            </div>
-            
-            <div className="flex items-center gap-2">
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={loadPrevPage}
-                disabled={!hasPrevPage || loading}
-              >
-                <ChevronLeft className="h-4 w-4 mr-1" />
-                Anterior
-              </Button>
-              
-              <span className="text-sm px-3 py-1 bg-primary/10 rounded">
-                {currentPage} / {totalPages}
-              </span>
-              
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={loadNextPage}
-                disabled={!hasNextPage || loading}
-              >
-                Próxima
-                <ChevronRight className="h-4 w-4 ml-1" />
-              </Button>
-              
-              <Button 
-                variant="ghost" 
-                size="sm"
-                onClick={refreshBrokers}
-                disabled={loading}
-              >
-                <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-              </Button>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );

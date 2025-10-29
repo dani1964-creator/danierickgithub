@@ -30,13 +30,39 @@ export default function SuperAdminPage() {
   const SUPER_ADMIN_PASSWORD = import.meta.env.VITE_SA_PASSWORD || "Danis0133.";
   const SUPER_ADMIN_TOKEN_KEY = "sa_auth";
   
-  // Service Role client para SuperAdmin (bypass total do RLS)
-  const supabaseServiceRole = useMemo(() => createClient(
-    import.meta.env.VITE_SUPABASE_URL,
-    import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRlbWNqc2twd2N4cW9oemx5anhiIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NTA0MjEzNSwiZXhwIjoyMDcwNjE4MTM1fQ.GiG1U1St1uueHjYdFPCiYB29jV1S3lFssrEnzswWYxM"
-  ), []);
-  
-  // Estados
+  // Service Role SUPER ISOLADO - instância completamente separada
+  const supabaseServiceRole = useMemo(() => {
+    const url = import.meta.env.VITE_SUPABASE_URL;
+    const serviceKey = import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRlbWNqc2twd2N4cW9oemx5anhiIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NTA0MjEzNSwiZXhwIjoyMDcwNjE4MTM1fQ.GiG1U1St1uueHjYdFPCiYB29jV1S3lFssrEnzswWYxM";
+    
+    console.log('� SuperAdmin Service Role SUPER ISOLADO:');
+    console.log('  URL:', url ? '✅ Definida' : '❌ Não definida');
+    console.log('  Service Key:', serviceKey ? '✅ Definida (' + serviceKey.substring(0, 20) + '...)' : '❌ Não definida');
+    
+    // Instância COMPLETAMENTE separada do Supabase global
+    const client = createClient(url, serviceKey, {
+      auth: {
+        persistSession: false,    // Nunca persistir sessão
+        autoRefreshToken: false,  // Nunca fazer refresh automático
+        detectSessionInUrl: false, // Nunca detectar sessão na URL
+        storage: undefined,       // Não usar storage (localStorage)
+        storageKey: undefined     // Sem chave de storage
+      },
+      global: {
+        headers: {
+          'X-SuperAdmin': 'true',  // Header identificador
+          'Authorization': `Bearer ${serviceKey}` // Forçar Service Role
+        }
+      }
+    });
+    
+    // Garantir que não há sessão ativa interferindo
+    client.auth.signOut().catch(() => {}); // Limpar qualquer sessão residual
+    
+    console.log('  ✅ Cliente Service Role SUPER ISOLADO criado');
+    console.log('  🧹 Sessão limpa, sem interferência de contexto global');
+    return client;
+  }, []);  // Estados
   const [brokers, setBrokers] = useState<BrokerData[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAuthorized, setIsAuthorized] = useState(false);
@@ -50,10 +76,19 @@ export default function SuperAdminPage() {
     try {
       setLoading(true);
       
+      console.log('🚀 SuperAdmin fetchBrokers iniciado...');
+      
       const { data: brokersData, error: brokersError } = await supabaseServiceRole
         .from('brokers')
         .select('id, business_name, email, is_active, plan_type, created_at, website_slug')
         .order('created_at', { ascending: false });
+
+      console.log('📊 Resultado da query brokers:');
+      console.log('  Data:', brokersData?.length || 0, 'brokers encontrados');
+      console.log('  Error:', brokersError);
+      if (brokersData) {
+        brokersData.forEach((b, i) => console.log(`  ${i+1}. ${b.business_name} (${b.email})`));
+      }
 
       if (brokersError) throw brokersError;
 
@@ -143,12 +178,16 @@ export default function SuperAdminPage() {
 
   // Verificar auth
   useEffect(() => {
+    console.log('🔐 SuperAdmin useEffect iniciado...');
     const token = localStorage.getItem(SUPER_ADMIN_TOKEN_KEY);
+    console.log('  Token encontrado:', token);
     
     if (token === "1") {
+      console.log('  ✅ Token válido - autenticando e carregando brokers...');
       setIsAuthorized(true);
       fetchBrokers();
     } else {
+      console.log('  ❌ Token inválido ou ausente - mostrando login');
       setIsAuthorized(false);
       setShowLoginDialog(true);
       setLoading(false);

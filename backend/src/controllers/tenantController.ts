@@ -184,4 +184,83 @@ export class TenantController {
       });
     }
   }
+
+  // Atualizar website_slug e/ou custom_domain do broker (usuário autenticado)
+  static async updateSettings(req: Request, res: Response) {
+    try {
+      const user = (req as any).user;
+      if (!user || !user.id) {
+        res.status(401).json({ error: 'Unauthorized' });
+        return;
+      }
+
+      // Buscar broker pelo user_id (perfil)
+      const { data: broker, error: brokerErr } = await supabase
+        .from('brokers')
+        .select('id, website_slug, custom_domain')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (brokerErr) throw brokerErr;
+      if (!broker) {
+        res.status(404).json({ error: 'Broker not found' });
+        return;
+      }
+
+      const { website_slug, custom_domain } = req.body as { website_slug?: string; custom_domain?: string };
+
+      // Validações básicas
+      if (website_slug && !/^[a-z0-9-]{1,50}$/.test(website_slug)) {
+        res.status(400).json({ error: 'Invalid slug. Only lowercase letters, numbers and hyphens allowed, max 50 chars.' });
+        return;
+      }
+
+      // Checar unicidade do website_slug
+      if (website_slug) {
+        const { data: existing } = await supabase
+          .from('brokers')
+          .select('id')
+          .eq('website_slug', website_slug)
+          .maybeSingle();
+
+        if (existing && existing.id !== broker.id) {
+          res.status(409).json({ error: 'Slug already in use' });
+          return;
+        }
+      }
+
+      // Checar unicidade do custom_domain
+      if (custom_domain) {
+        const domain = custom_domain.replace(/https?:\/\//, '').replace(/\/.*$/, '');
+        const { data: existingDomain } = await supabase
+          .from('brokers')
+          .select('id')
+          .eq('custom_domain', domain)
+          .maybeSingle();
+
+        if (existingDomain && existingDomain.id !== broker.id) {
+          res.status(409).json({ error: 'Custom domain already in use' });
+          return;
+        }
+      }
+
+      // Executar update
+      const updatePayload: any = {};
+      if (website_slug !== undefined) updatePayload.website_slug = website_slug;
+      if (custom_domain !== undefined) updatePayload.custom_domain = custom_domain ? custom_domain.replace(/https?:\/\//, '').replace(/\/$/, '') : null;
+
+      const { error: updateErr } = await supabase
+        .from('brokers')
+        .update(updatePayload)
+        .eq('id', broker.id);
+
+      if (updateErr) throw updateErr;
+
+      res.json({ success: true, message: 'Configurações atualizadas com sucesso' });
+
+    } catch (error: any) {
+      console.error('Error updating broker settings:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  }
 }

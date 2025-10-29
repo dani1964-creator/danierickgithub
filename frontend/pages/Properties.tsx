@@ -250,7 +250,8 @@ const Properties = () => {
     }).format(price);
   };
 
-  if (loading) {
+  // Mostrar skeleton completo apenas quando estiver carregando e ainda não houver propriedades
+  if (loading && properties.length === 0) {
     return (
       <DashboardLayout>
         <div className="min-h-screen bg-gradient-to-br from-background via-background/95 to-muted/20">

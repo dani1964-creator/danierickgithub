@@ -70,8 +70,10 @@ const Realtors = () => {
       setBrokerInfo(data as BrokerInfo);
     } catch (error: unknown) {
       console.error('Error fetching broker info:', error);
+      // Garantir que o skeleton não fique preso em caso de erro
+      setLoading(false);
     }
-  }, []); // Removido dependências desnecessárias
+  }, [user]); // manter user como dependência para evitar closure stale
 
   const fetchRealtors = useCallback(async () => {
     if (!brokerInfo?.id) return;
@@ -283,7 +285,8 @@ const Realtors = () => {
   const getActiveRealtors = () => realtors.filter(realtor => realtor.is_active);
   const getInactiveRealtors = () => realtors.filter(realtor => !realtor.is_active);
 
-  if (loading) {
+  // Mostrar skeleton apenas quando estiver carregando e não houver corretores já carregados
+  if (loading && realtors.length === 0) {
     return (
       <DashboardLayout>
         <div className="space-y-6 animate-fade-in">

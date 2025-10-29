@@ -17,6 +17,7 @@ const Dashboard = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const [websiteSlug, setWebsiteSlug] = useState<string | null>(null);
+  const [customDomain, setCustomDomain] = useState<string | null>(null);
   const [brokerId, setBrokerId] = useState<string | null>(null);
 
   // ✅ HOOK OTIMIZADO - SUBSTITUI TODAS AS CONSULTAS PESADAS
@@ -41,15 +42,16 @@ const Dashboard = () => {
     try {
       const { data, error } = await supabase
         .from('brokers')
-        .select('id, website_slug') // ✅ BUSCAR ID E SLUG JUNTOS
+        .select('id, website_slug, custom_domain') // buscar id, slug e domínio personalizado
         .eq('user_id', currentUser.id)
         .maybeSingle();
 
       if (error) throw error;
       
       // ✅ SETAR ID DO BROKER PARA ATIVAR O HOOK
-      setBrokerId(data?.id || null);
-      setWebsiteSlug(data?.website_slug || null);
+  setBrokerId(data?.id || null);
+  setWebsiteSlug(data?.website_slug || null);
+  setCustomDomain(data?.custom_domain || null);
     } catch (error: unknown) {
       console.error('Error fetching broker profile:', error);
     }
@@ -180,12 +182,35 @@ const Dashboard = () => {
   };
 
   const handleViewPublicSite = () => {
+    // Prioridade: domínio personalizado -> subdomínio -> path
+    if (customDomain) {
+      const hasProtocol = customDomain.startsWith('http://') || customDomain.startsWith('https://');
+      const url = hasProtocol ? customDomain : `https://${customDomain}`;
+      window.open(url, '_blank', 'noopener,noreferrer');
+      return;
+    }
+
     if (websiteSlug) {
-      const url = `${window.location.origin}/${websiteSlug}`;
+      // usar subdomínio padrão
+      const url = `https://${websiteSlug}.adminimobiliaria.site`;
       window.open(url, '_blank', 'noopener,noreferrer');
     } else {
       toast({
         title: "URL não configurada",
+        description: "Configure sua URL nas configurações do site primeiro.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleViewDashboardSite = () => {
+    // Abre o painel via subdomínio painel.{slug}.adminimobiliaria.site
+    if (websiteSlug) {
+      const url = `https://${websiteSlug}.painel.adminimobiliaria.site`;
+      window.open(url, '_blank', 'noopener,noreferrer');
+    } else {
+      toast({
+        title: "URL do painel não configurada",
         description: "Configure sua URL nas configurações do site primeiro.",
         variant: "destructive"
       });
@@ -331,6 +356,15 @@ const Dashboard = () => {
             >
               <Globe className="h-6 w-6 group-hover:scale-110 transition-transform duration-200" />
               <span className="font-medium">Ver Site Público</span>
+            </Button>
+            
+            <Button 
+              variant="outline" 
+              className="h-auto p-6 flex flex-col items-center gap-3 text-sm group hover:scale-105 transition-all duration-200 border-2"
+              onClick={handleViewDashboardSite}
+            >
+              <Settings className="h-6 w-6 group-hover:rotate-90 transition-transform duration-200" />
+              <span className="font-medium">Abrir Painel (subdomínio)</span>
             </Button>
           </div>
         </div>

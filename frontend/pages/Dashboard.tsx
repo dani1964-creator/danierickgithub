@@ -1,5 +1,13 @@
 import { Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '@shared/hooks/useAuth';
+Dashboard.tsx
+tenantController.ts
+frontend
+pages
+Dashboard.tsx
+…
+78910111213141516171819561234
+import { useState, useEffect, useCallback } from 'react';import { supabase } from '@/integrations/supabase/client';import DashboardLayout from '@/components/dashboard/DashboardLayout';import { getErrorMessage } from '@/lib/utils';// ✅ IMPORT DO HOOK OTIMIZADOimport { useDashboardData } from '@shared/hooks/useDashboardData';const Dashboard = () => {  const { user, signOut, loading } = useAuth();  const { toast } = useToast();
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';

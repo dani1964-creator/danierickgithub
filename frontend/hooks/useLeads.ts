@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { logger } from '@/lib/logger';
 import { useTenant } from '../contexts/TenantContext';
 
 interface LeadData {
@@ -56,13 +57,13 @@ export function useLeads(): UseLeadsReturn {
       
       const data = await response.json();
       
-      setSuccess(true);
-      console.log(`✅ Lead submitted successfully for ${tenant.business_name}`);
+  setSuccess(true);
+  logger.info(`✅ Lead submitted successfully for ${tenant.business_name}`);
       
       return true;
       
     } catch (err: any) {
-      console.error('Error submitting lead:', err);
+      logger.error('Error submitting lead:', err);
       setError(err.message || 'Erro ao enviar contato');
       return false;
     } finally {

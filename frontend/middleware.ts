@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from '@/lib/logger';
 
 export async function middleware(request: NextRequest) {
   const hostname = request.headers.get('host') || '';
   const pathname = request.nextUrl.pathname;
   
-  console.log(`🔍 Middleware: ${hostname}${pathname}`);
+  logger.info(`🔍 Middleware: ${hostname}${pathname}`);
   
   // Identificar tipo de rota
   const isSuperAdmin = pathname.startsWith('/super-admin');
@@ -14,7 +15,7 @@ export async function middleware(request: NextRequest) {
   
   // Para super admin, manter rota normal (sem identificação de tenant)
   if (isSuperAdmin) {
-    console.log('📋 Super admin route - bypassing tenant identification');
+    logger.info('📋 Super admin route - bypassing tenant identification');
     return NextResponse.next();
   }
   
@@ -39,7 +40,7 @@ export async function middleware(request: NextRequest) {
     });
     
     if (!tenantResponse.ok) {
-      console.log(`❌ Tenant not found for domain: ${hostname}`);
+      logger.warn(`❌ Tenant not found for domain: ${hostname}`);
       
       // Se for rota admin sem tenant, redirecionar para erro
       if (isAdmin) {
@@ -50,8 +51,8 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(new URL('/site-not-found', request.url));
     }
     
-    const tenantData = await tenantResponse.json();
-    console.log(`✅ Tenant identified: ${tenantData.tenant.business_name}`);
+  const tenantData = await tenantResponse.json();
+  logger.info(`✅ Tenant identified: ${tenantData.tenant.business_name}`);
     
     // Adicionar dados do tenant aos headers para uso na aplicação
     const response = NextResponse.next();
@@ -67,7 +68,7 @@ export async function middleware(request: NextRequest) {
     return response;
     
   } catch (error) {
-    console.error('❌ Middleware error:', error);
+    logger.error('❌ Middleware error:', error);
     
     // Em caso de erro, permitir acesso mas sem dados de tenant
     // A aplicação deve lidar com a ausência de tenant

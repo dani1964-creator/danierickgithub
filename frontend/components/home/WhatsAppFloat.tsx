@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { logger } from '@/lib/logger';
 import { useToast } from '@/hooks/use-toast';
 
 interface BrokerProfile {
@@ -59,7 +60,7 @@ const WhatsAppFloat = ({ brokerProfile, onContactRequest }: WhatsAppFloatProps) 
       try {
         window.open(whatsappUrl, '_blank');
       } catch (error) {
-        console.error('Erro ao abrir WhatsApp:', error);
+        logger.error('Erro ao abrir WhatsApp:', error);
         // Fallback para web WhatsApp
         window.open(`https://wa.me/${currentContactInfo.whatsapp_number}?text=${message}`, '_blank');
       }
@@ -70,7 +71,7 @@ const WhatsAppFloat = ({ brokerProfile, onContactRequest }: WhatsAppFloatProps) 
         description: "Tente novamente em alguns instantes.",
         variant: "destructive"
       });
-      console.warn('Contact information access denied or rate limited');
+      logger.warn('Contact information access denied or rate limited');
     }
   };
 

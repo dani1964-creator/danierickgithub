@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { supabase } from '../config/supabase';
+import { logger } from '../lib/logger';
 
 export interface AuthenticatedRequest extends Request {
   user?: {
@@ -53,7 +54,7 @@ export async function authMiddleware(req: Request, res: Response, next: NextFunc
     next();
     
   } catch (error) {
-    console.error('Auth middleware error:', error);
+    logger.error('Auth middleware error:', error);
     res.status(500).json({
       error: 'Internal server error',
       message: 'Erro interno de autenticação'

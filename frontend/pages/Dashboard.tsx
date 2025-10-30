@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '@shared/hooks/useAuth';
 Dashboard.tsx
@@ -61,7 +62,7 @@ const Dashboard = () => {
   setWebsiteSlug(data?.website_slug || null);
   setCustomDomain(data?.custom_domain || null);
     } catch (error: unknown) {
-      console.error('Error fetching broker profile:', error);
+      logger.error('Error fetching broker profile:', error);
     }
   }, []);
 

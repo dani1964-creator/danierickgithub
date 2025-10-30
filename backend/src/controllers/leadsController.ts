@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { supabase } from '../config/supabase';
 import { TenantRequest, ApiResponse } from '../types/tenant';
+import { logger } from '../lib/logger';
 
 export class LeadsController {
   
@@ -26,7 +27,7 @@ export class LeadsController {
         return;
       }
       
-      console.log(`📝 Creating lead for ${tenant.business_name}: ${name}`);
+  logger.info(`📝 Creating lead for ${tenant.business_name}: ${name}`);
       
       // Rate limiting básico - verificar se já existe lead recente do mesmo email
       const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
@@ -63,9 +64,9 @@ export class LeadsController {
         .select()
         .single();
       
-      if (error) throw error;
-      
-      console.log(`✅ Lead created: ${lead.id} for ${name}`);
+  if (error) throw error;
+
+  logger.info(`✅ Lead created: ${lead.id} for ${name}`);
       
       // Incrementar contador na propriedade se especificada
       if (property_id) {
@@ -73,15 +74,15 @@ export class LeadsController {
           .rpc('increment_property_leads', { property_id });
       }
       
-      const response: ApiResponse<any> = {
+      const response: ApiResponse<unknown> = {
         data: lead,
         message: 'Lead criado com sucesso! Entraremos em contato em breve.'
       };
       
       res.status(201).json(response);
       
-    } catch (error: any) {
-      console.error('Error creating lead:', error);
+    } catch (error: unknown) {
+      logger.error('Error creating lead:', error);
       res.status(500).json({
         error: 'Internal server error',
         message: 'Erro ao criar contato'
@@ -137,8 +138,8 @@ export class LeadsController {
       const { data, error, count } = await query;
       
       if (error) throw error;
-      
-      const response: ApiResponse<any[]> = {
+
+      const response: ApiResponse<unknown[]> = {
         data: data || [],
         pagination: {
           page: pageNum,
@@ -150,8 +151,8 @@ export class LeadsController {
       
       res.json(response);
       
-    } catch (error: any) {
-      console.error('Error loading admin leads:', error);
+    } catch (error: unknown) {
+      logger.error('Error loading admin leads:', error);
       res.status(500).json({
         error: 'Internal server error',
         message: 'Erro ao carregar leads'

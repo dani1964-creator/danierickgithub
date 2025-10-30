@@ -1,6 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { logger } from '@/lib/logger';
 import { TenantData } from '@shared/types/tenant';
 
 interface TenantContextType {
@@ -37,14 +38,14 @@ export function TenantProvider({ children, initialTenant }: TenantProviderProps)
       
       if (tenantHeader) {
         try {
-          const tenantFromHeader = JSON.parse(tenantHeader);
-          setTenant(tenantFromHeader);
-          applyTenantTheme(tenantFromHeader);
-          setLoading(false);
-          return;
-        } catch (e) {
-          console.warn('Failed to parse tenant from header');
-        }
+            const tenantFromHeader = JSON.parse(tenantHeader);
+            setTenant(tenantFromHeader);
+            applyTenantTheme(tenantFromHeader);
+            setLoading(false);
+            return;
+          } catch (e) {
+            logger.warn('Failed to parse tenant from header');
+          }
       }
       
       // Fallback: fazer requisição para API
@@ -67,7 +68,7 @@ export function TenantProvider({ children, initialTenant }: TenantProviderProps)
       applyTenantTheme(data.tenant);
       
     } catch (err: any) {
-      console.error('Error loading tenant:', err);
+      logger.error('Error loading tenant:', err);
       setError(err.message || 'Erro ao carregar dados da imobiliária');
     } finally {
       setLoading(false);
@@ -107,7 +108,7 @@ export function TenantProvider({ children, initialTenant }: TenantProviderProps)
       favicon.href = tenantData.site_favicon_url;
     }
     
-    console.log(`🎨 Applied theme for: ${tenantData.business_name}`);
+  logger.info(`🎨 Applied theme for: ${tenantData.business_name}`);
   };
   
   const refetchTenant = () => {

@@ -23,6 +23,8 @@ export function isCustomDomainHost(host?: string): boolean {
  */
 import type { SupabaseClient } from '@supabase/supabase-js';
 
+import { logger } from '@/lib/logger';
+
 export async function resolveBrokerSlug(supabase: SupabaseClient): Promise<string | null> {
   const host = getHost();
   const base = baseDomain();
@@ -42,7 +44,7 @@ export async function resolveBrokerSlug(supabase: SupabaseClient): Promise<strin
     .maybeSingle();
 
   if (error) {
-    console.warn('resolveBrokerSlug error', error);
+    logger.warn('resolveBrokerSlug error', error);
     return null;
   }
   // Quando usa join com brokers!inner(...), o Supabase retorna um array de brokers

@@ -1,5 +1,6 @@
 
 import { useNavigate, useLocation } from 'react-router-dom';
+import { logger } from '@/lib/logger';
 import { Home, Building2, Users, Settings, BarChart3, Globe, UserCheck } from 'lucide-react';
 import { useSidebar } from '@/components/ui/sidebar-context';
 import {
@@ -62,7 +63,7 @@ const AppSidebar = () => {
       await signOut();
       navigate('/auth');
     } catch (error) {
-      console.error('Error signing out:', error);
+      logger.error('Error signing out:', error);
     }
   };
 

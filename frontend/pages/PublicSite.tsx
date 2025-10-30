@@ -25,6 +25,7 @@ import { SEODebugPanel } from '@/components/debug/SEODebugPanel';
 import { getCanonicalBase, applyTemplate } from '@/lib/seo';
 import { usePropertyTypes } from '@/hooks/usePropertyTypes';
 import { getErrorMessage } from '@/lib/utils';
+import { logger } from '@/lib/logger';
 import { Property } from '@shared/types/tenant';
 
 // BrokerContact importado do tipo compartilhado
@@ -50,31 +51,31 @@ const PublicSite = () => {
 
   const fetchContactInfo = useCallback(async () => {
     try {
-      console.log('Fetching contact info for:', brokerProfile?.website_slug);
+      logger.debug('Fetching contact info for:', brokerProfile?.website_slug);
       const { data, error } = await supabase.rpc('get_public_broker_contact', {
         broker_website_slug: brokerProfile?.website_slug
       });
-      console.log('Contact RPC response:', { data, error });
+      logger.debug('Contact RPC response:', { data, error });
       if (error) {
-        console.error('Error fetching contact info:', error);
+        logger.error('Error fetching contact info:', error);
         return null;
       }
       const contactInfo = data && data.length > 0 ? data[0] : null;
-      console.log('Parsed contact info:', contactInfo);
+      logger.debug('Parsed contact info:', contactInfo);
       if (contactInfo) {
         setBrokerContact(contactInfo);
         return contactInfo;
       }
       return null;
     } catch (error: unknown) {
-      console.error('Error fetching contact info:', error);
+      logger.error('Error fetching contact info:', error);
       return null;
     }
   }, [brokerProfile?.website_slug]);
 
   // Função para contato de lead
   const handleContactLead = async (propertyId: string) => {
-    console.log('Contact lead for property:', propertyId);
+    logger.debug('Contact lead for property:', propertyId);
     if (!brokerContact) {
       await fetchContactInfo();
     }
@@ -177,11 +178,11 @@ const PublicSite = () => {
   const fetchBrokerData = useCallback(async () => {
     try {
       const effectiveSlug = isCustomDomain() ? undefined : slug;
-      console.log('Fetching broker data - Custom domain:', isCustomDomain(), 'Slug:', effectiveSlug);
+      logger.debug('Fetching broker data - Custom domain:', isCustomDomain(), 'Slug:', effectiveSlug);
       const brokerData = await getBrokerByDomainOrSlug(effectiveSlug);
-      console.log('Broker data from domain-aware hook:', brokerData);
+      logger.debug('Broker data from domain-aware hook:', brokerData);
       if (!brokerData) {
-        console.log('No broker found for slug/domain:', effectiveSlug);
+        logger.warn('No broker found for slug/domain:', effectiveSlug);
         setBrokerProfile(null);
         return;
       }
@@ -199,7 +200,7 @@ const PublicSite = () => {
         setSocialLinks((socialLinksData || []) as SocialLink[]);
       }
     } catch (error: unknown) {
-      console.error('Error fetching data:', error);
+      logger.error('Error fetching data:', error);
       toast({
         title: 'Erro ao carregar dados',
         description: getErrorMessage(error),
@@ -236,7 +237,7 @@ const PublicSite = () => {
   // Fetch contact info when broker profile is loaded
   useEffect(() => {
     if (brokerProfile?.website_slug) {
-      console.log('Broker profile loaded, fetching contact info...');
+      logger.info('Broker profile loaded, fetching contact info...');
       fetchContactInfo();
     }
   }, [brokerProfile?.website_slug, fetchContactInfo]);

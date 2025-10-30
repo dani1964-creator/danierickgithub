@@ -15,6 +15,7 @@ import PropertyViewToggle from '@/components/properties/PropertyViewToggle';
 import EditPropertyButton from '@/components/properties/EditPropertyButton';
 import { sanitizeInput } from '@/lib/security';
 import { getErrorMessage } from '@/lib/utils';
+import { logger } from '@/lib/logger';
 // ✅ IMPORT DO HOOK OTIMIZADO
 import { useOptimizedProperties } from '@/hooks/useOptimizedQuery';
 
@@ -97,7 +98,7 @@ const Properties = () => {
       setTotalCount(count || 0);
       setTotalPages(Math.ceil((count || 0) / 12));
     } catch (err: any) {
-      console.error('Error fetching properties:', err);
+      logger.error('Error fetching properties:', err);
       setError(err.message || 'Erro ao carregar propriedades');
     } finally {
       setLoading(false);
@@ -166,7 +167,7 @@ const Properties = () => {
       setBrokerId(brokerData.id);
       
     } catch (error: unknown) {
-      console.error('Error fetching broker data:', error);
+      logger.error('Error fetching broker data:', error);
       toast({
         title: "Erro ao carregar dados",
         description: getErrorMessage(error),

@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { supabase } from '../config/supabase';
 import { TenantRequest, ApiResponse, TenantData } from '../types/tenant';
+import { logger } from '../lib/logger';
 
 export class TenantController {
   
@@ -21,7 +22,7 @@ export class TenantController {
         site_favicon_url: tenant.site_favicon_url,
       };
       
-      const response: ApiResponse<any> = {
+        const response: ApiResponse<unknown> = {
         data: publicTenantData,
         tenant: tenant
       };
@@ -29,7 +30,7 @@ export class TenantController {
       res.json(response);
       
     } catch (error: any) {
-      console.error('Error getting tenant info:', error);
+      logger.error('Error getting tenant info:', error);
       res.status(500).json({
         error: 'Internal server error',
         message: 'Erro ao obter informações do tenant'
@@ -49,7 +50,7 @@ export class TenantController {
         return;
       }
       
-      console.log(`🔍 Identifying tenant by domain: ${domain}`);
+  logger.info(`🔍 Identifying tenant by domain: ${domain}`);
       
       let tenantData = null;
       
@@ -116,8 +117,8 @@ export class TenantController {
         tenant: tenantData
       });
       
-    } catch (error: any) {
-      console.error('Error identifying tenant by domain:', error);
+    } catch (error: unknown) {
+      logger.error('Error identifying tenant by domain:', error);
       res.status(500).json({
         error: 'Internal server error'
       });
@@ -170,14 +171,14 @@ export class TenantController {
         new_leads_week: newLeadsCount.count || 0
       };
       
-      const response: ApiResponse<any> = {
+        const response: ApiResponse<unknown> = {
         data: stats
       };
       
       res.json(response);
       
     } catch (error: any) {
-      console.error('Error getting tenant stats:', error);
+      logger.error('Error getting tenant stats:', error);
       res.status(500).json({
         error: 'Internal server error',
         message: 'Erro ao obter estatísticas'
@@ -188,7 +189,7 @@ export class TenantController {
   // Atualizar website_slug e/ou custom_domain do broker (usuário autenticado)
   static async updateSettings(req: Request, res: Response) {
     try {
-      const user = (req as any).user;
+      const user = (req as unknown as TenantRequest).user;
       if (!user || !user.id) {
         res.status(401).json({ error: 'Unauthorized' });
         return;
@@ -245,9 +246,9 @@ export class TenantController {
       }
 
       // Executar update
-      const updatePayload: any = {};
-      if (website_slug !== undefined) updatePayload.website_slug = website_slug;
-      if (custom_domain !== undefined) updatePayload.custom_domain = custom_domain ? custom_domain.replace(/https?:\/\//, '').replace(/\/$/, '') : null;
+  const updatePayload: Record<string, unknown> = {};
+  if (website_slug !== undefined) updatePayload['website_slug'] = website_slug;
+  if (custom_domain !== undefined) updatePayload['custom_domain'] = custom_domain ? custom_domain.replace(/https?:\/\//, '').replace(/\/$/, '') : null;
 
       const { error: updateErr } = await supabase
         .from('brokers')
@@ -258,8 +259,8 @@ export class TenantController {
 
       res.json({ success: true, message: 'Configurações atualizadas com sucesso' });
 
-    } catch (error: any) {
-      console.error('Error updating broker settings:', error);
+    } catch (error: unknown) {
+      logger.error('Error updating broker settings:', error);
       res.status(500).json({ error: 'Internal server error' });
     }
   }

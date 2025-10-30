@@ -4,6 +4,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import LeadModal from '@/components/leads/LeadModal';
 import type { BrokerProfile, BrokerContact } from '@/types/broker';
+import { logger } from '@/lib/logger';
 interface ContactCTAProps {
   brokerProfile: BrokerProfile;
 }
@@ -19,34 +20,31 @@ const ContactCTA = ({
   // Fetch contact information using public RPC (no authentication required)
   const fetchContactInfo = useCallback(async () => {
     if (!brokerProfile?.website_slug) {
-      console.log('No broker profile or website_slug available for ContactCTA');
+      logger.debug('No broker profile or website_slug available for ContactCTA');
       return null;
     }
     try {
-      console.log('ContactCTA fetching contact info for:', brokerProfile.website_slug);
+      logger.debug('ContactCTA fetching contact info for:', brokerProfile.website_slug);
       const {
         data,
         error
       } = await supabase.rpc('get_public_broker_contact', {
         broker_website_slug: brokerProfile.website_slug
       });
-      console.log('ContactCTA Contact RPC response:', {
-        data,
-        error
-      });
+      logger.debug('ContactCTA Contact RPC response:', { data, error });
       if (error) {
-        console.error('ContactCTA Error fetching contact info:', error);
+        logger.error('ContactCTA Error fetching contact info:', error);
         return null;
       }
       const contactInfo = data && data.length > 0 ? data[0] : null;
-      console.log('ContactCTA Parsed contact info:', contactInfo);
+      logger.debug('ContactCTA Parsed contact info:', contactInfo);
       if (contactInfo) {
         setContactInfo(contactInfo);
         return contactInfo;
       }
       return null;
     } catch (error) {
-      console.error('ContactCTA Error fetching contact info:', error);
+      logger.error('ContactCTA Error fetching contact info:', error);
       return null;
     }
   }, [brokerProfile?.website_slug]);
@@ -54,7 +52,7 @@ const ContactCTA = ({
   // Fetch contact info when component mounts
   useEffect(() => {
     if (brokerProfile?.website_slug) {
-      console.log('ContactCTA component loaded, fetching contact info...');
+      logger.debug('ContactCTA component loaded, fetching contact info...');
       fetchContactInfo();
     }
   }, [brokerProfile?.website_slug, fetchContactInfo]);
@@ -73,7 +71,7 @@ const ContactCTA = ({
       try {
         window.open(whatsappUrl, '_blank');
       } catch (error) {
-        console.error('Erro ao abrir WhatsApp:', error);
+        logger.error('Erro ao abrir WhatsApp:', error);
         // Fallback para web WhatsApp
         window.open(`https://wa.me/${currentContactInfo.whatsapp_number}?text=${message}`, '_blank');
       }
@@ -84,7 +82,7 @@ const ContactCTA = ({
         description: "Tente novamente em alguns instantes.",
         variant: "destructive"
       });
-      console.warn('ContactCTA: Contact information access denied or not available');
+      logger.warn('ContactCTA: Contact information access denied or not available');
     }
   };
   const handleLeadSuccess = async (_leadData: unknown) => {

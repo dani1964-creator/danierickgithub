@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { SecurityMonitor } from "./security-monitor";
+import { logger } from '@/lib/logger';
 
 export interface ContactAccessResult {
   whatsapp_number: string | null;
@@ -57,7 +58,7 @@ export class EnhancedSecurity {
       });
 
       if (error) {
-        console.error('Error fetching broker contact:', error);
+        logger.error('Error fetching broker contact:', error);
         SecurityMonitor.logSuspiciousActivity('contact_fetch_error', {
           broker_slug: brokerSlug,
           error: error.message,
@@ -99,7 +100,7 @@ export class EnhancedSecurity {
 
       return null;
     } catch (error) {
-      console.error('Security error accessing broker contact:', error);
+      logger.error('Security error accessing broker contact:', error);
       SecurityMonitor.logSuspiciousActivity('contact_access_exception', {
         broker_slug: brokerSlug,
         error: error instanceof Error ? error.message : 'Unknown error'
@@ -118,13 +119,13 @@ export class EnhancedSecurity {
       });
 
       if (error) {
-        console.error('Error fetching broker branding:', error);
+        logger.error('Error fetching broker branding:', error);
         return null;
       }
 
       return data && data.length > 0 ? data[0] : null;
     } catch (error) {
-      console.error('Error accessing broker branding:', error);
+      logger.error('Error accessing broker branding:', error);
       return null;
     }
   }
@@ -140,7 +141,7 @@ export class EnhancedSecurity {
       });
 
       if (error) {
-        console.error('Error fetching public properties:', error);
+        logger.error('Error fetching public properties:', error);
         SecurityMonitor.logSuspiciousActivity('property_fetch_error', {
           error: error.message,
           limit,
@@ -151,7 +152,7 @@ export class EnhancedSecurity {
 
       return data || [];
     } catch (error) {
-      console.error('Security error accessing properties:', error);
+      logger.error('Security error accessing properties:', error);
       SecurityMonitor.logSuspiciousActivity('property_access_exception', {
         error: error instanceof Error ? error.message : 'Unknown error',
         limit,
@@ -226,7 +227,7 @@ export class EnhancedSecurity {
 
       return filteredProperties.slice(0, limit);
     } catch (error) {
-      console.error('Security error in property search:', error);
+      logger.error('Security error in property search:', error);
       SecurityMonitor.logSuspiciousActivity('property_search_exception', {
         search_term: searchTerm.substring(0, 20),
         error: error instanceof Error ? error.message : 'Unknown error'
@@ -255,7 +256,7 @@ export class EnhancedSecurity {
 
       return result.allowed;
     } catch (error) {
-      console.error('Rate limit check failed:', error);
+      logger.error('Rate limit check failed:', error);
       // On error, allow the operation but log it
       SecurityMonitor.logSuspiciousActivity('rate_limit_check_failed', {
         operation,
@@ -304,7 +305,7 @@ export class EnhancedSecurity {
       };
 
     } catch (error) {
-      console.error(`Secure form submission failed for ${formType}:`, error);
+  logger.error(`Secure form submission failed for ${formType}:`, error);
       
       // Log failure
       SecurityMonitor.logFormSubmission(formType, false);

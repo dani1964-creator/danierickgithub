@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { supabase } from '../config/supabase';
 import { TenantContext, TenantData, TenantRequest } from '../types/tenant';
+import { logger } from '../lib/logger';
 
 
 
@@ -9,14 +10,14 @@ export async function identifyTenant(req: Request, res: Response, next: NextFunc
     const host = req.get('host') || req.get('x-forwarded-host') || '';
     const hostname = host.split(':')[0];
     
-    console.log(`🔍 Identifying tenant for hostname: ${hostname}`);
+  logger.info(`🔍 Identifying tenant for hostname: ${hostname}`);
     
     let tenantData: TenantData | null = null;
     let tenantContext: TenantContext | null = null;
     
     // 1. Primeiro, tentar identificar por domínio personalizado
     if (hostname && !hostname.includes('localhost') && !hostname.includes('127.0.0.1')) {
-      console.log(`🌐 Checking custom domain: ${hostname}`);
+    logger.debug(`🌐 Checking custom domain: ${hostname}`);
       
       const { data: customDomainTenant, error: customError } = await supabase
         .from('brokers')
@@ -42,7 +43,7 @@ export async function identifyTenant(req: Request, res: Response, next: NextFunc
         .single();
       
       if (!customError && customDomainTenant) {
-        console.log(`✅ Found tenant by custom domain: ${customDomainTenant.business_name}`);
+        logger.info(`✅ Found tenant by custom domain: ${customDomainTenant.business_name}`);
         tenantData = customDomainTenant;
         tenantContext = {
           tenantId: customDomainTenant.id,
@@ -59,7 +60,7 @@ export async function identifyTenant(req: Request, res: Response, next: NextFunc
       
       // Ignorar subdomínios reservados
       if (!['www', 'api', 'admin', 'app', 'mail'].includes(subdomain)) {
-        console.log(`🌐 Checking subdomain: ${subdomain}`);
+    logger.debug(`🌐 Checking subdomain: ${subdomain}`);
         
         const { data: subdomainTenant, error: subError } = await supabase
           .from('brokers')
@@ -85,7 +86,7 @@ export async function identifyTenant(req: Request, res: Response, next: NextFunc
           .single();
         
         if (!subError && subdomainTenant) {
-          console.log(`✅ Found tenant by subdomain: ${subdomainTenant.business_name}`);
+          logger.info(`✅ Found tenant by subdomain: ${subdomainTenant.business_name}`);
           tenantData = subdomainTenant;
           tenantContext = {
             tenantId: subdomainTenant.id,
@@ -102,7 +103,7 @@ export async function identifyTenant(req: Request, res: Response, next: NextFunc
       const defaultTenantId = process.env.DEFAULT_TENANT_ID;
       
       if (defaultTenantId) {
-        console.log(`🏠 Using default tenant for local development: ${defaultTenantId}`);
+    logger.debug(`🏠 Using default tenant for local development: ${defaultTenantId}`);
         
         const { data: defaultTenant, error: defaultError } = await supabase
           .from('brokers')
@@ -138,8 +139,8 @@ export async function identifyTenant(req: Request, res: Response, next: NextFunc
     }
     
     // 4. Se ainda não encontrou, retornar erro
-    if (!tenantContext) {
-      console.log(`❌ Tenant not found for hostname: ${hostname}`);
+      if (!tenantContext) {
+        logger.warn(`❌ Tenant not found for hostname: ${hostname}`);
       res.status(404).json({
         error: 'Tenant not found',
         message: `Nenhuma imobiliária encontrada para o domínio: ${hostname}`,
@@ -149,8 +150,8 @@ export async function identifyTenant(req: Request, res: Response, next: NextFunc
     }
     
     // 5. Verificar se tenant está ativo
-    if (!tenantContext.tenant.is_active) {
-      console.log(`🚫 Tenant inactive: ${tenantContext.tenant.business_name}`);
+      if (!tenantContext.tenant.is_active) {
+        logger.warn(`🚫 Tenant inactive: ${tenantContext.tenant.business_name}`);
       res.status(403).json({
         error: 'Tenant inactive',
         message: 'Esta imobiliária está temporariamente indisponível'
@@ -161,12 +162,12 @@ export async function identifyTenant(req: Request, res: Response, next: NextFunc
     // 6. Adicionar contexto do tenant à requisição
     (req as TenantRequest).tenant = tenantContext;
     
-    console.log(`✅ Tenant identified successfully: ${tenantContext.tenant.business_name} (${tenantContext.tenantId})`);
+    logger.info(`✅ Tenant identified successfully: ${tenantContext.tenant.business_name} (${tenantContext.tenantId})`);
     
     next();
     
-  } catch (error) {
-    console.error('❌ Tenant identification error:', error);
+  } catch (error: unknown) {
+    logger.error('❌ Tenant identification error:', error);
     res.status(500).json({
       error: 'Internal server error',
       message: 'Erro interno ao identificar imobiliária'
@@ -183,8 +184,8 @@ export async function optionalTenantIdentifier(req: Request, res: Response, next
       next();
     });
   } catch (error) {
-    // Se houver erro, continuar sem tenant
-    console.log('⚠️ Optional tenant identification failed, continuing without tenant');
+    // If houver erro, continuar sem tenant
+    logger.warn('⚠️ Optional tenant identification failed, continuing without tenant');
     next();
   }
 }

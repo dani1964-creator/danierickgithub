@@ -14,6 +14,7 @@ import { Building2, Users, Globe, Trash2, Plus, Eye, EyeOff, ExternalLink, Refre
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Helmet } from 'react-helmet-async';
+import { logger } from '@/lib/logger';
 
 interface BrokerData {
   id: string;
@@ -49,7 +50,7 @@ export default function SuperAdminPage() {
 
   // Debug: Log sempre que brokers mudar
   useEffect(() => {
-    console.log('🔄 [useState] Estado brokers mudou:', {
+    logger.debug('🔄 [useState] Estado brokers mudou:', {
       length: brokers.length,
       brokers: brokers.map(b => ({ name: b.business_name, email: b.email }))
     });
@@ -58,11 +59,11 @@ export default function SuperAdminPage() {
   // Função simples para buscar brokers
   const fetchBrokers = async () => {
     try {
-      console.log('🔍 [fetchBrokers] Iniciando busca...');
+  logger.info('🔍 [fetchBrokers] Iniciando busca...');
       setLoading(true);
       
-      console.log('🔍 [fetchBrokers] Service Role URL:', import.meta.env.VITE_SUPABASE_URL);
-      console.log('🔍 [fetchBrokers] Service Role Key existe:', !!import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY);
+  logger.debug('🔍 [fetchBrokers] Service Role URL:', import.meta.env.VITE_SUPABASE_URL);
+  logger.debug('🔍 [fetchBrokers] Service Role Key existe:', !!import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY);
       
       // 🎯 TENTATIVA 1: Service Role
       let { data: brokersData, error: brokersError } = await supabaseServiceRole
@@ -70,42 +71,42 @@ export default function SuperAdminPage() {
         .select('id, business_name, email, is_active, plan_type, created_at, website_slug')
         .order('created_at', { ascending: false });
 
-      console.log('📊 [Tentativa 1] Service Role:', { count: brokersData?.length || 0 });
+  logger.info('📊 [Tentativa 1] Service Role:', { count: brokersData?.length || 0 });
 
       // 🎯 TENTATIVA 2: Se Service Role falhou, tentar com client normal
       if (!brokersData || brokersData.length < 6) {
-        console.log('🔄 [Tentativa 2] Tentando com client normal...');
+  logger.info('🔄 [Tentativa 2] Tentando com client normal...');
         const { data: normalData, error: normalError } = await supabase
           .from('brokers')
           .select('id, business_name, email, is_active, plan_type, created_at, website_slug')
           .order('created_at', { ascending: false });
         
-        console.log('📊 [Tentativa 2] Client Normal:', { count: normalData?.length || 0 });
+  logger.debug('📊 [Tentativa 2] Client Normal:', { count: normalData?.length || 0 });
         
         if (normalData && normalData.length > (brokersData?.length || 0)) {
           brokersData = normalData;
           brokersError = normalError;
-          console.log('✅ [Tentativa 2] Client normal retornou mais dados!');
+          logger.info('✅ [Tentativa 2] Client normal retornou mais dados!');
         }
       }
 
       // 🎯 TENTATIVA 3: Query sem ORDER BY  
       if (!brokersData || brokersData.length < 6) {
-        console.log('🔄 [Tentativa 3] Tentando sem ORDER BY...');
+  logger.info('🔄 [Tentativa 3] Tentando sem ORDER BY...');
         const { data: noOrderData, error: noOrderError } = await supabaseServiceRole
           .from('brokers')
           .select('id, business_name, email, is_active, plan_type, created_at, website_slug');
         
-        console.log('📊 [Tentativa 3] Sem ORDER BY:', { count: noOrderData?.length || 0 });
+  logger.debug('📊 [Tentativa 3] Sem ORDER BY:', { count: noOrderData?.length || 0 });
         
         if (noOrderData && noOrderData.length > (brokersData?.length || 0)) {
           brokersData = noOrderData;
           brokersError = noOrderError;
-          console.log('✅ [Tentativa 3] Query sem ORDER BY funcionou!');
+          logger.info('✅ [Tentativa 3] Query sem ORDER BY funcionou!');
         }
       }
 
-      console.log('📊 [fetchBrokers] Resposta Supabase (Service Role):', { 
+      logger.debug('📊 [fetchBrokers] Resposta Supabase (Service Role):', { 
         count: brokersData?.length || 0, 
         error: brokersError?.message || 'sem erro',
         data: brokersData
@@ -125,23 +126,23 @@ export default function SuperAdminPage() {
         })
       );
 
-      console.log('✅ [fetchBrokers] Dados processados:', brokersWithCounts);
-      console.log('🔍 [fetchBrokers] Chamando setBrokers com:', brokersWithCounts.length, 'brokers');
+  logger.info('✅ [fetchBrokers] Dados processados:', brokersWithCounts);
+  logger.debug('🔍 [fetchBrokers] Chamando setBrokers com:', brokersWithCounts.length, 'brokers');
       
       // Log individual de cada broker
       brokersWithCounts.forEach((broker, i) => {
-        console.log(`   ${i+1}. ${broker.business_name} (${broker.email}) - Status: ${broker.is_active}`);
+        logger.info(`   ${i+1}. ${broker.business_name} (${broker.email}) - Status: ${broker.is_active}`);
       });
 
       setBrokers(brokersWithCounts);
-      console.log('🎯 [fetchBrokers] setBrokers executado com:', brokersWithCounts.length, 'brokers');
+  logger.debug('🎯 [fetchBrokers] setBrokers executado com:', brokersWithCounts.length, 'brokers');
       
       // 🎯 DIAGNÓSTICO DETALHADO
       if (brokersWithCounts.length !== 6) {
-        console.error('🚨 [DIAGNÓSTICO] Esperava 6 brokers, mas chegaram:', brokersWithCounts.length);
-        console.error('🚨 [DIAGNÓSTICO] Dados que chegaram:', brokersWithCounts);
+  logger.error('🚨 [DIAGNÓSTICO] Esperava 6 brokers, mas chegaram:', brokersWithCounts.length);
+  logger.error('🚨 [DIAGNÓSTICO] Dados que chegaram:', brokersWithCounts);
       } else {
-        console.log('✅ [DIAGNÓSTICO] Correto! 6 brokers carregados.');
+  logger.info('✅ [DIAGNÓSTICO] Correto! 6 brokers carregados.');
       }
       
       toast({
@@ -149,7 +150,7 @@ export default function SuperAdminPage() {
         description: `${brokersWithCounts.length} imobiliárias carregadas com sucesso!`,
       });
     } catch (error) {
-      console.error('❌ [fetchBrokers] Erro:', error);
+  logger.error('❌ [fetchBrokers] Erro:', error);
       toast({
         title: "Erro",
         description: "Não foi possível carregar as imobiliárias.",
@@ -186,7 +187,7 @@ export default function SuperAdminPage() {
       });
 
     } catch (error) {
-      console.error('Error toggling broker status:', error);
+  logger.error('Error toggling broker status:', error);
       toast({
         title: "Erro ao atualizar status",
         description: "Não foi possível atualizar o status.",
@@ -212,7 +213,7 @@ export default function SuperAdminPage() {
       const validEmail = SUPER_ADMIN_EMAIL || "erickjq123@gmail.com";
       const validPassword = SUPER_ADMIN_PASSWORD || "Danis0133.";
       
-      console.log('🔑 [Frontend] Tentativa de login:', { loginEmail, validEmail });
+  logger.debug('🔑 [Frontend] Tentativa de login:', { loginEmail, validEmail });
       
       if (loginEmail === validEmail && loginPassword === validPassword) {
         localStorage.setItem(SUPER_ADMIN_TOKEN_KEY, "1");
@@ -229,7 +230,7 @@ export default function SuperAdminPage() {
         throw new Error("Credenciais inválidas.");
       }
     } catch (error: unknown) {
-      console.error('Error logging in:', error);
+  logger.error('Error logging in:', error);
       toast({
         title: "Erro no login",
         description: error instanceof Error ? error.message : "Credenciais inválidas.",
@@ -252,16 +253,16 @@ export default function SuperAdminPage() {
 
   // Verificar auth no mount
   useEffect(() => {
-    console.log('🔍 [Frontend] Verificando autenticação...');
-    const token = localStorage.getItem(SUPER_ADMIN_TOKEN_KEY);
-    console.log('🔍 [Frontend] Token encontrado:', token);
+  logger.debug('🔍 [Frontend] Verificando autenticação...');
+  const token = localStorage.getItem(SUPER_ADMIN_TOKEN_KEY);
+  logger.debug('🔍 [Frontend] Token encontrado:', token);
     
     if (token === "1") {
-      console.log('✅ [Frontend] Token válido, fazendo login...');
+  logger.info('✅ [Frontend] Token válido, fazendo login...');
       setIsAuthorized(true);
       fetchBrokers();
     } else {
-      console.log('❌ [Frontend] Token inválido, mostrando login...');
+  logger.warn('❌ [Frontend] Token inválido, mostrando login...');
       setIsAuthorized(false);
       setShowLoginDialog(true);
       setLoading(false);
@@ -343,7 +344,7 @@ export default function SuperAdminPage() {
   const totalProperties = brokers.reduce((sum, broker) => sum + (broker.properties_count || 0), 0);
 
   // Log do estado atual dos brokers
-  console.log('📊 [Render] Estado atual dos brokers:', {
+  logger.debug('📊 [Render] Estado atual dos brokers:', {
     totalBrokers,
     activeBrokers,
     brokersArray: brokers.map(b => ({ name: b.business_name, email: b.email, active: b.is_active }))

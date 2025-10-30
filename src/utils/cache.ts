@@ -23,6 +23,8 @@ export interface CacheStats {
   localSize: string;
 }
 
+import { logger } from '@/lib/logger';
+
 class MultiLevelCache {
   private memoryCache = new Map<string, CacheItem<any>>();
   private readonly MAX_MEMORY_ITEMS = 100; // Limite de itens em memória
@@ -46,9 +48,9 @@ class MultiLevelCache {
         key
       });
 
-      console.log(`💾 Cache Memory SET: ${key} (TTL: ${ttlMinutes}min)`);
+  logger.debug(`💾 Cache Memory SET: ${key} (TTL: ${ttlMinutes}min)`);
     } catch (error) {
-      console.warn('❌ Erro ao salvar no cache de memória:', error);
+      logger.warn('❌ Erro ao salvar no cache de memória:', error);
     }
   }
 
@@ -59,14 +61,14 @@ class MultiLevelCache {
 
       if (Date.now() - item.timestamp > item.ttl) {
         this.memoryCache.delete(key);
-        console.log(`⏰ Cache Memory EXPIRED: ${key}`);
+        logger.debug(`⏰ Cache Memory EXPIRED: ${key}`);
         return null;
       }
 
-      console.log(`✅ Cache Memory HIT: ${key}`);
+      logger.debug(`✅ Cache Memory HIT: ${key}`);
       return item.data;
     } catch (error) {
-      console.warn('❌ Erro ao buscar no cache de memória:', error);
+      logger.warn('❌ Erro ao buscar no cache de memória:', error);
       return null;
     }
   }
@@ -88,7 +90,7 @@ class MultiLevelCache {
       
       // Verificar tamanho antes de salvar
       if (serialized.length > this.MAX_STORAGE_SIZE) {
-        console.warn(`⚠️  Item muito grande para sessionStorage: ${key}`);
+        logger.warn(`⚠️  Item muito grande para sessionStorage: ${key}`);
         return;
       }
 
@@ -99,9 +101,9 @@ class MultiLevelCache {
       }
 
       sessionStorage.setItem(key, serialized);
-      console.log(`💾 Cache Session SET: ${key} (TTL: ${ttlMinutes}min)`);
+      logger.debug(`💾 Cache Session SET: ${key} (TTL: ${ttlMinutes}min)`);
     } catch (error) {
-      console.warn('❌ SessionStorage full, clearing old cache:', error);
+      logger.warn('❌ SessionStorage full, clearing old cache:', error);
       this.clearExpiredSession();
       this.clearOldestSession(10);
       
@@ -115,7 +117,7 @@ class MultiLevelCache {
         };
         sessionStorage.setItem(key, JSON.stringify(item));
       } catch (secondError) {
-        console.error('❌ Falha crítica no sessionStorage:', secondError);
+        logger.error('❌ Falha crítica no sessionStorage:', secondError);
       }
     }
   }
@@ -129,14 +131,14 @@ class MultiLevelCache {
 
       if (Date.now() - item.timestamp > item.ttl) {
         sessionStorage.removeItem(key);
-        console.log(`⏰ Cache Session EXPIRED: ${key}`);
+          logger.debug(`⏰ Cache Session EXPIRED: ${key}`);
         return null;
       }
 
-      console.log(`✅ Cache Session HIT: ${key}`);
+        logger.debug(`✅ Cache Session HIT: ${key}`);
       return item.data;
     } catch (error) {
-      console.warn('❌ Erro ao buscar no sessionStorage:', error);
+        logger.warn('❌ Erro ao buscar no sessionStorage:', error);
       sessionStorage.removeItem(key);
       return null;
     }
@@ -158,7 +160,7 @@ class MultiLevelCache {
       const serialized = JSON.stringify(item);
       
       if (serialized.length > this.MAX_STORAGE_SIZE) {
-        console.warn(`⚠️  Item muito grande para localStorage: ${key}`);
+        logger.warn(`⚠️  Item muito grande para localStorage: ${key}`);
         return;
       }
 
@@ -168,9 +170,9 @@ class MultiLevelCache {
       }
 
       localStorage.setItem(key, serialized);
-      console.log(`💾 Cache Local SET: ${key} (TTL: ${ttlHours}h)`);
+      logger.debug(`💾 Cache Local SET: ${key} (TTL: ${ttlHours}h)`);
     } catch (error) {
-      console.warn('❌ localStorage full, clearing old cache:', error);
+      logger.warn('❌ localStorage full, clearing old cache:', error);
       this.clearExpiredLocal();
       this.clearOldestLocal(10);
       
@@ -183,7 +185,7 @@ class MultiLevelCache {
         };
         localStorage.setItem(key, JSON.stringify(item));
       } catch (secondError) {
-        console.error('❌ Falha crítica no localStorage:', secondError);
+        logger.error('❌ Falha crítica no localStorage:', secondError);
       }
     }
   }
@@ -197,14 +199,14 @@ class MultiLevelCache {
 
       if (Date.now() - item.timestamp > item.ttl) {
         localStorage.removeItem(key);
-        console.log(`⏰ Cache Local EXPIRED: ${key}`);
+          logger.debug(`⏰ Cache Local EXPIRED: ${key}`);
         return null;
       }
 
-      console.log(`✅ Cache Local HIT: ${key}`);
+        logger.debug(`✅ Cache Local HIT: ${key}`);
       return item.data;
     } catch (error) {
-      console.warn('❌ Erro ao buscar no localStorage:', error);
+        logger.warn('❌ Erro ao buscar no localStorage:', error);
       localStorage.removeItem(key);
       return null;
     }
@@ -236,7 +238,7 @@ class MultiLevelCache {
       return data;
     }
 
-    console.log(`❌ Cache MISS: ${key}`);
+    logger.debug(`❌ Cache MISS: ${key}`);
     return null;
   }
 
@@ -269,7 +271,7 @@ class MultiLevelCache {
       this.memoryCache.delete(key);
     });
 
-    console.log(`🧹 Removidos ${count} itens antigos do cache de memória`);
+    logger.debug(`🧹 Removidos ${count} itens antigos do cache de memória`);
   }
 
   private hasStorageSpace(type: 'session' | 'local', neededSize: number): boolean {
@@ -303,7 +305,7 @@ class MultiLevelCache {
     });
 
     if (removed > 0) {
-      console.log(`🧹 Removidos ${removed} itens expirados do sessionStorage`);
+      logger.debug(`🧹 Removidos ${removed} itens expirados do sessionStorage`);
     }
   }
 
@@ -329,7 +331,7 @@ class MultiLevelCache {
         sessionStorage.removeItem(key);
       });
 
-    console.log(`🧹 Removidos ${count} itens antigos do sessionStorage`);
+    logger.debug(`🧹 Removidos ${count} itens antigos do sessionStorage`);
   }
 
   private clearExpiredLocal(): void {
@@ -350,7 +352,7 @@ class MultiLevelCache {
     });
 
     if (removed > 0) {
-      console.log(`🧹 Removidos ${removed} itens expirados do localStorage`);
+      logger.debug(`🧹 Removidos ${removed} itens expirados do localStorage`);
     }
   }
 
@@ -375,7 +377,7 @@ class MultiLevelCache {
         localStorage.removeItem(key);
       });
 
-    console.log(`🧹 Removidos ${count} itens antigos do localStorage`);
+    logger.debug(`🧹 Removidos ${count} itens antigos do localStorage`);
   }
 
   // Invalidação e limpeza
@@ -408,7 +410,7 @@ class MultiLevelCache {
       }
     });
 
-    console.log(`🗑️  Cache invalidado para padrão: ${pattern}`);
+    logger.debug(`🗑️  Cache invalidado para padrão: ${pattern}`);
   }
 
   clearAll(): void {
@@ -437,7 +439,7 @@ class MultiLevelCache {
       }
     });
 
-    console.log('🗑️  Todo o cache foi limpo');
+    logger.debug('🗑️  Todo o cache foi limpo');
   }
 
   getStats(): CacheStats {
@@ -486,7 +488,7 @@ class MultiLevelCache {
   // Limpeza automática periódica
   startAutomaticCleanup(intervalMinutes = 5): () => void {
     const interval = setInterval(() => {
-      console.log('🧹 Iniciando limpeza automática do cache...');
+  logger.debug('🧹 Iniciando limpeza automática do cache...');
       
       // Limpar expirados
       this.clearExpiredSession();
@@ -497,8 +499,8 @@ class MultiLevelCache {
         this.clearOldestMemoryItems(20);
       }
       
-      const stats = this.getStats();
-      console.log('📊 Stats do cache:', stats);
+  const stats = this.getStats();
+  logger.debug('📊 Stats do cache:', stats);
       
     }, intervalMinutes * 60 * 1000);
 

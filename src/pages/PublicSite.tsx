@@ -4,6 +4,7 @@ import { useParams } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { logger } from '@/lib/logger';
 import { usePropertyFilters } from '@/hooks/usePropertyFilters';
 import { PublicSiteSkeleton } from '@/components/ui/loading-skeleton';
 import HeroBanner from '@/components/home/HeroBanner';
@@ -75,31 +76,31 @@ const PublicSite = () => {
 
   const fetchContactInfo = useCallback(async () => {
     try {
-      console.log('Fetching contact info for:', brokerProfile?.website_slug);
+      logger.debug('Fetching contact info for:', brokerProfile?.website_slug);
       const { data, error } = await supabase.rpc('get_public_broker_contact', {
         broker_website_slug: brokerProfile?.website_slug
       });
-      console.log('Contact RPC response:', { data, error });
+      logger.debug('Contact RPC response:', { data, error });
       if (error) {
-        console.error('Error fetching contact info:', error);
+        logger.error('Error fetching contact info:', error);
         return null;
       }
       const contactInfo = data && data.length > 0 ? data[0] : null;
-      console.log('Parsed contact info:', contactInfo);
+      logger.debug('Parsed contact info:', contactInfo);
       if (contactInfo) {
         setBrokerContact(contactInfo);
         return contactInfo;
       }
       return null;
     } catch (error: unknown) {
-      console.error('Error fetching contact info:', error);
+      logger.error('Error fetching contact info:', error);
       return null;
     }
   }, [brokerProfile?.website_slug]);
 
   // Função para contato de lead
   const handleContactLead = async (propertyId: string) => {
-    console.log('Contact lead for property:', propertyId);
+    logger.info('Contact lead for property:', propertyId);
     if (!brokerContact) {
       await fetchContactInfo();
     }
@@ -207,7 +208,7 @@ const PublicSite = () => {
       const brokerData = await getBrokerByDomainOrSlug(effectiveSlug);
       // console.log('Broker data from domain-aware hook:', brokerData);
       if (!brokerData) {
-        console.warn('No broker found for slug/domain:', effectiveSlug);
+        logger.warn('No broker found for slug/domain:', effectiveSlug);
         setBrokerProfile(null);
         return;
       }
@@ -225,7 +226,7 @@ const PublicSite = () => {
         setSocialLinks((socialLinksData || []) as SocialLink[]);
       }
     } catch (error: unknown) {
-      console.error('Error fetching data:', error);
+      logger.error('Error fetching data:', error);
       toast({
         title: 'Erro ao carregar dados',
         description: getErrorMessage(error),
@@ -262,7 +263,7 @@ const PublicSite = () => {
   // Fetch contact info when broker profile is loaded
   useEffect(() => {
     if (brokerProfile?.website_slug) {
-      console.log('Broker profile loaded, fetching contact info...');
+      logger.debug('Broker profile loaded, fetching contact info...');
       fetchContactInfo();
     }
   }, [brokerProfile?.website_slug, fetchContactInfo]);

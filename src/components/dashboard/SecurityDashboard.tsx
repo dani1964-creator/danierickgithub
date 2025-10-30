@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { logger } from '@/lib/logger';
 
 interface SecurityLog {
   id: string;
@@ -79,7 +80,7 @@ export default function SecurityDashboard() {
       });
 
     } catch (error) {
-      console.error('Error fetching security data:', error);
+      logger.error('Error fetching security data:', error);
     } finally {
       setLoading(false);
     }

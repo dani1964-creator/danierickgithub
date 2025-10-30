@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { logger } from '@/lib/logger';
 import { X, Upload } from 'lucide-react';
 import { useAuth } from '@shared/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -148,7 +149,7 @@ const EditPropertyDialog = ({ property, open, onOpenChange, onPropertyUpdated }:
         setRealtors(realtorsData || []);
       }
     } catch (error) {
-      console.error('Error fetching realtors:', error);
+      logger.error('Error fetching realtors:', error);
     }
   }, [user?.id]);
 
@@ -898,9 +899,9 @@ const EditPropertyDialog = ({ property, open, onOpenChange, onPropertyUpdated }:
                       alt={`Imagem ${index + 1}`}
                       className="w-full h-24 object-cover rounded-lg"
                       onError={(e) => {
-                        console.error('Erro ao carregar imagem:', imageUrl);
-                        (e.target as HTMLImageElement).style.display = 'none';
-                      }}
+                          logger.error('Erro ao carregar imagem:', imageUrl);
+                          (e.target as HTMLImageElement).style.display = 'none';
+                        }}
                     />
                     <Button
                       type="button"

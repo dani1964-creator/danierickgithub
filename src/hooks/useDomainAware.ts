@@ -1,6 +1,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import { getHost, baseDomain, isCustomDomainHost } from '@/lib/tenant';
 import { BrokerResolver } from '@/lib/brokerResolver';
+import { logger } from '@/lib/logger';
 
 export function useDomainAware() {
   const getCurrentDomain = () => getHost();
@@ -24,7 +25,7 @@ export function useDomainAware() {
           .maybeSingle();
 
         if (error) {
-          console.error('Error fetching broker by slug:', error);
+          logger.error('Error fetching broker by slug:', error);
           return null;
         }
         return data;
@@ -43,13 +44,13 @@ export function useDomainAware() {
         .maybeSingle();
 
       if (error) {
-        console.error('Error fetching broker by resolved ID:', error);
+        logger.error('Error fetching broker by resolved ID:', error);
         return null;
       }
 
       return data;
     } catch (error) {
-      console.error('Error in getBrokerByDomainOrSlug:', error);
+      logger.error('Error in getBrokerByDomainOrSlug:', error);
       return null;
     }
   };
@@ -74,7 +75,7 @@ export function useDomainAware() {
           .maybeSingle();
 
         if (brokerError || !brokerData) {
-          console.error('Error fetching broker by slug:', brokerError);
+          logger.error('Error fetching broker by slug:', brokerError);
           return [];
         }
 
@@ -88,7 +89,7 @@ export function useDomainAware() {
           .range(offset, offset + limit - 1);
 
         if (error) {
-          console.error('Error fetching properties by slug:', error);
+          logger.error('Error fetching properties by slug:', error);
           return [];
         }
         return data || [];
@@ -102,13 +103,13 @@ export function useDomainAware() {
         });
 
         if (result.error) {
-          console.error('Error fetching properties by host:', result.error);
+          logger.error('Error fetching properties by host:', result.error);
           return [];
         }
         return result.data || [];
       }
     } catch (error) {
-      console.error('Error in getPropertiesByDomainOrSlug:', error);
+      logger.error('Error in getPropertiesByDomainOrSlug:', error);
       return [];
     }
   };
@@ -137,7 +138,7 @@ export function useDomainAware() {
           .maybeSingle();
 
         if (error) {
-          console.error('Error fetching broker by slug:', error);
+          logger.error('Error fetching broker by slug:', error);
           return null;
         }
         return broker;
@@ -146,13 +147,13 @@ export function useDomainAware() {
         const result = await (await import('@/lib/publicQueries')).PublicQueryHelper.getPublicBroker();
 
         if (result.error) {
-          console.error('Error fetching broker by host:', result.error);
+          logger.error('Error fetching broker by host:', result.error);
           return null;
         }
         return result.data;
       }
     } catch (error) {
-      console.error('Error in getBrokerContactInfo:', error);
+      logger.error('Error in getBrokerContactInfo:', error);
       return null;
     }
   };

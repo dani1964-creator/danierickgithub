@@ -1,5 +1,6 @@
 import { supabase } from '@/integrations/supabase/client';
 import { getHost, baseDomain, isCustomDomainHost } from '@/lib/tenant';
+import { logger } from '@/lib/logger';
 
 // Versão simplificada: ignora domínio e usa apenas slug
 export function useDomainAware() {
@@ -16,12 +17,12 @@ export function useDomainAware() {
         slug_name: slug || undefined,
       });
       if (error) {
-        console.error('Error fetching broker:', error);
+        logger.error('Error fetching broker:', error);
         return null;
       }
       return data && data.length > 0 ? data[0] : null;
     } catch (error) {
-      console.error('Error in getBrokerByDomainOrSlug:', error);
+        logger.error('Error in getBrokerByDomainOrSlug:', error);
       return null;
     }
   };
@@ -41,12 +42,12 @@ export function useDomainAware() {
         property_offset: offset,
       });
       if (error) {
-        console.error('Error fetching properties:', error);
+        logger.error('Error fetching properties:', error);
         return [];
       }
       return data || [];
     } catch (error) {
-      console.error('Error in getPropertiesByDomainOrSlug:', error);
+        logger.error('Error in getPropertiesByDomainOrSlug:', error);
       return [];
     }
   };
@@ -59,12 +60,12 @@ export function useDomainAware() {
         broker_website_slug: broker.website_slug,
       });
       if (error) {
-        console.error('Error fetching broker contact:', error);
+        logger.error('Error fetching broker contact:', error);
         return null;
       }
       return data && data.length > 0 ? data[0] : null;
     } catch (error) {
-      console.error('Error in getBrokerContactInfo:', error);
+      logger.error('Error in getBrokerContactInfo:', error);
       return null;
     }
   };

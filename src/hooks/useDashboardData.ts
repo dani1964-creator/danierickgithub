@@ -18,6 +18,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { cache, cacheKeys } from '@/utils/cache';
+import { logger } from '@/lib/logger';
 
 export interface DashboardStats {
   // Contadores principais
@@ -133,15 +134,15 @@ export function useDashboardData(
           setLoading(false);
           
           if (logQueries) {
-            console.log('🚀 DASHBOARD CACHE HIT:', cacheKey);
+            logger.debug('🚀 DASHBOARD CACHE HIT:', cacheKey);
           }
           return;
         }
       }
 
       if (logQueries) {
-        console.log('📡 DASHBOARD QUERY START:', brokerId);
-        console.time('dashboard_query');
+        logger.debug('📡 DASHBOARD QUERY START:', brokerId);
+        logger.debug('⏱️ DASHBOARD TIMER START: dashboard_query');
       }
 
       // ✅ MÉTODO 1: Usar função RPC consolidada (IDEAL)
@@ -155,13 +156,13 @@ export function useDashboardData(
         dashboardData = {} as DashboardStats;
         
         if (logQueries) {
-          console.log('✅ RPC Dashboard data loaded');
+          logger.debug('✅ RPC Dashboard data loaded');
         }
         
       } catch (rpcError) {
         // ✅ FALLBACK: Consultas otimizadas manuais
         if (logQueries) {
-          console.log('⚠️ RPC failed, using fallback queries');
+          logger.debug('⚠️ RPC failed, using fallback queries');
         }
         
         dashboardData = await loadDashboardDataFallback(brokerId, recentItemsLimit, topPropertiesLimit);
@@ -180,8 +181,8 @@ export function useDashboardData(
       setLastUpdated(new Date());
 
       if (logQueries) {
-        console.timeEnd('dashboard_query');
-        console.log('✅ DASHBOARD LOADED successfully');
+        logger.debug('⏱️ DASHBOARD TIMER END: dashboard_query');
+        logger.debug('✅ DASHBOARD LOADED successfully');
       }
 
     } catch (err: any) {
@@ -189,7 +190,7 @@ export function useDashboardData(
       setError(errorMsg);
       
       if (logQueries) {
-        console.error('❌ DASHBOARD ERROR:', err);
+        logger.error('❌ DASHBOARD ERROR:', err);
       }
     } finally {
       setLoading(false);
@@ -212,7 +213,7 @@ export function useDashboardData(
           { event: '*', schema: 'public', table: 'properties', filter: `broker_id=eq.${brokerId}` },
           () => {
             if (logQueries) {
-              console.log('🔄 Properties changed, refreshing dashboard');
+              logger.debug('🔄 Properties changed, refreshing dashboard');
             }
             cache.invalidate(getCacheKey());
             loadDashboardData(false);
@@ -222,7 +223,7 @@ export function useDashboardData(
           { event: '*', schema: 'public', table: 'leads', filter: `broker_id=eq.${brokerId}` },
           () => {
             if (logQueries) {
-              console.log('🔄 Leads changed, refreshing dashboard');
+              logger.debug('🔄 Leads changed, refreshing dashboard');
             }
             cache.invalidate(getCacheKey());
             loadDashboardData(false);

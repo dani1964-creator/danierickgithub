@@ -16,6 +16,7 @@
  */
 
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { logger } from '@/lib/logger';
 import { supabase } from '@/integrations/supabase/client';
 import { cache, cacheKeys } from '@/utils/cache';
 
@@ -115,17 +116,17 @@ export function useOptimizedQuery<T = any>(
           setTotalCount(cached.count);
           setCurrentPage(pageNum);
           setLoading(false);
-          
+
           if (logQueries) {
-            console.log(`🚀 CACHE HIT: ${cacheKey} - ${cached.data.length} items`);
+            logger.debug(`🚀 CACHE HIT: ${cacheKey} - ${cached.data.length} items`);
           }
           return;
         }
       }
 
       if (logQueries) {
-        console.log(`📡 QUERY START: ${tableName} - Page ${pageNum}, Limit ${limit}`);
-        console.time(`query_${cacheKey}`);
+        logger.debug(`📡 QUERY START: ${tableName} - Page ${pageNum}, Limit ${limit}`);
+        logger.debug(`TIMER START: query_${cacheKey}`);
       }
 
       // ✅ CONSULTA OTIMIZADA - Com casting para evitar problemas de tipos
@@ -173,8 +174,8 @@ export function useOptimizedQuery<T = any>(
       setCurrentPage(pageNum);
 
       if (logQueries) {
-        console.timeEnd(`query_${cacheKey}`);
-        console.log(`✅ QUERY SUCCESS: ${queryResult.data.length}/${queryResult.count} items`);
+        logger.debug(`TIMER END: query_${cacheKey}`);
+        logger.debug(`✅ QUERY SUCCESS: ${queryResult.data.length}/${queryResult.count} items`);
       }
 
     } catch (err: any) {
@@ -183,7 +184,7 @@ export function useOptimizedQuery<T = any>(
         setError(errorMsg);
         
         if (logQueries) {
-          console.error(`❌ QUERY ERROR: ${tableName}`, err);
+          logger.error(`❌ QUERY ERROR: ${tableName}`, err);
         }
       }
     } finally {
@@ -220,7 +221,7 @@ export function useOptimizedQuery<T = any>(
           }, 
           (payload) => {
             if (logQueries) {
-              console.log(`🔄 REALTIME: ${tableName} changed`, payload);
+              logger.debug(`🔄 REALTIME: ${tableName} changed`, payload);
             }
             
             // Invalidar cache e recarregar

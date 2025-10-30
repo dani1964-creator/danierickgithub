@@ -1,5 +1,6 @@
 
 import { useState, useMemo } from 'react';
+import { logger } from '@/lib/logger';
 import PropertyCard from '@/components/properties/PropertyCard';
 import { Button } from '@/components/ui/button';
 import BackgroundRenderer from '@/components/backgrounds/BackgroundRenderer';
@@ -44,7 +45,7 @@ const PropertiesGrid = ({
   const ensurePropertyVisible = (propertyId: string) => {
     const propertyIndex = regularProperties.findIndex(p => p.id === propertyId);
     if (propertyIndex >= 0 && propertyIndex >= visibleCount) {
-      console.log(`Expanding grid to show property ${propertyId} at index ${propertyIndex}`);
+      logger.debug(`Expanding grid to show property ${propertyId} at index ${propertyIndex}`);
       setVisibleCount(Math.ceil((propertyIndex + 1) / 12) * 12);
     }
   };

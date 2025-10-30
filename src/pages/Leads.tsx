@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { logger } from '@/lib/logger';
 import { Mail, Phone, MessageSquare, User, Clock, CheckCircle, XCircle, Edit, Trash2, Check, X, DollarSign, TrendingUp, Calendar, UserCheck, LayoutGrid, List } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -75,12 +76,12 @@ const Leads = () => {
         .single();
 
       if (brokerError) {
-        console.error('Error fetching broker:', brokerError);
+        logger.error('Error fetching broker:', brokerError);
         return;
       }
 
       if (!brokerData) {
-        console.error('Broker not found');
+        logger.warn('Broker not found');
         return;
       }
 
@@ -95,7 +96,7 @@ const Leads = () => {
       if (error) throw error;
       setRealtors(data || []);
     } catch (error: unknown) {
-      console.error('Error fetching realtors:', error);
+      logger.error('Error fetching realtors:', error);
     }
   }, [user?.id]);
 
@@ -112,7 +113,7 @@ const Leads = () => {
         .single();
 
       if (brokerError) {
-        console.error('Error fetching broker:', brokerError);
+        logger.error('Error fetching broker:', brokerError);
         throw new Error('Erro ao identificar corretor');
       }
 
@@ -140,7 +141,7 @@ const Leads = () => {
       if (error) throw error;
       setLeads(data || []);
     } catch (error: unknown) {
-      console.error('Error fetching leads:', error);
+      logger.error('Error fetching leads:', error);
       toast({
         title: "Erro ao carregar leads",
         description: getErrorMessage(error),
@@ -163,7 +164,7 @@ const Leads = () => {
       const debouncedRefresh = () => {
         clearTimeout(refreshTimeout);
         refreshTimeout = setTimeout(() => {
-          console.log('Leads data changed, refreshing after debounce...');
+          logger.debug('Leads data changed, refreshing after debounce...');
           fetchLeads(user, false); // false = não alterar loading state
         }, 1500); // 1.5 second debounce
       };
@@ -179,7 +180,7 @@ const Leads = () => {
             table: 'leads'
           },
           (payload) => {
-            console.log('New lead inserted:', payload);
+            logger.info('New lead inserted:', payload);
             debouncedRefresh();
             toast({
               title: "Novo lead!",
@@ -234,7 +235,7 @@ const Leads = () => {
         description: "Status do lead foi atualizado com sucesso."
       });
     } catch (error: unknown) {
-      console.error('Error updating lead status:', error);
+      logger.error('Error updating lead status:', error);
       toast({
         title: "Erro ao atualizar status",
         description: getErrorMessage(error),
@@ -294,7 +295,7 @@ const Leads = () => {
         description: "Informações do lead foram atualizadas com sucesso."
       });
     } catch (error: unknown) {
-      console.error('Error updating lead:', error);
+      logger.error('Error updating lead:', error);
       toast({
         title: "Erro ao atualizar lead",
         description: getErrorMessage(error),
@@ -353,7 +354,7 @@ const Leads = () => {
         description: "Os valores do negócio foram atualizados com sucesso."
       });
     } catch (error: unknown) {
-      console.error('Error updating financial values:', error);
+      logger.error('Error updating financial values:', error);
       toast({
         title: "Erro ao atualizar valores",
         description: getErrorMessage(error),
@@ -416,7 +417,7 @@ const Leads = () => {
         description: `Lead foi atribuído para: ${realtorName}`
       });
     } catch (error: unknown) {
-      console.error('Error assigning realtor:', error);
+      logger.error('Error assigning realtor:', error);
       toast({
         title: "Erro ao atribuir corretor",
         description: getErrorMessage(error),
@@ -436,7 +437,7 @@ const Leads = () => {
     }
 
     try {
-      console.log('Tentando excluir leads:', selectedLeads);
+      logger.debug('Tentando excluir leads:', selectedLeads);
       
       const { error, data } = await supabase
         .from('leads')
@@ -444,14 +445,13 @@ const Leads = () => {
         .in('id', selectedLeads)
         .select();
 
-      console.log('Resultado da exclusão:', { error, data });
+      logger.debug('Resultado da exclusão:', { error, data });
 
       if (error) {
-        console.error('Erro do Supabase na exclusão:', error);
+        logger.error('Erro do Supabase na exclusão:', error);
         throw error;
       }
-
-      console.log('Exclusão bem-sucedida, atualizando estado local');
+      logger.debug('Exclusão bem-sucedida, atualizando estado local');
       setLeads(leads.filter(lead => !selectedLeads.includes(lead.id)));
       setSelectedLeads([]);
       setShowDeleteDialog(false);
@@ -462,7 +462,7 @@ const Leads = () => {
         description: `${selectedLeads.length} lead(s) foram excluídos com sucesso.`
       });
     } catch (error: unknown) {
-      console.error('Error deleting leads:', error);
+      logger.error('Error deleting leads:', error);
       toast({
         title: "Erro ao excluir leads",
         description: getErrorMessage(error),

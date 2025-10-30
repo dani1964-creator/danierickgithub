@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { logger } from '@/lib/logger';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import type { BrokerProfile, BrokerContact } from '@src/types/broker';
@@ -33,7 +34,7 @@ const HeroBanner = ({ brokerProfile, onContactClick }: HeroBannerProps) => {
       });
       
       if (error) {
-        console.error('Error fetching contact info:', error);
+        logger.error('Error fetching contact info:', error);
         return null;
       }
       
@@ -44,7 +45,7 @@ const HeroBanner = ({ brokerProfile, onContactClick }: HeroBannerProps) => {
       }
       return null;
     } catch (error) {
-      console.error('Error fetching contact info:', error);
+      logger.error('Error fetching contact info:', error);
       return null;
     }
   }, [brokerProfile?.website_slug]);
@@ -66,7 +67,7 @@ const HeroBanner = ({ brokerProfile, onContactClick }: HeroBannerProps) => {
         window.open(whatsappUrl, '_blank');
         return;
       } catch (error) {
-        console.error('Erro ao abrir WhatsApp (profile fallback):', error);
+        logger.error('Erro ao abrir WhatsApp (profile fallback):', error);
         window.open(`https://wa.me/${profileWhatsapp}?text=${message}`, '_blank');
         return;
       }
@@ -86,7 +87,7 @@ const HeroBanner = ({ brokerProfile, onContactClick }: HeroBannerProps) => {
         window.open(whatsappUrl, '_blank');
         return;
       } catch (error) {
-        console.error('Erro ao abrir WhatsApp (rpc fallback):', error);
+        logger.error('Erro ao abrir WhatsApp (rpc fallback):', error);
         window.open(`https://wa.me/${currentContactInfo.whatsapp_number}?text=${message}`, '_blank');
         return;
       }

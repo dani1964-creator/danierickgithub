@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { logger } from '@/lib/logger';
 import type React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -87,7 +88,7 @@ const LeadModal = ({
         .insert([leadData]);
 
       if (error) {
-        console.error('Error creating lead:', error);
+        logger.error('Error creating lead:', error);
         toast({
           title: "Erro ao enviar",
           description: "Tente novamente em alguns instantes.",
@@ -113,7 +114,7 @@ const LeadModal = ({
         message: ''
       });
     } catch (error) {
-      console.error('Error submitting lead:', error);
+      logger.error('Error submitting lead:', error);
       toast({
         title: "Erro inesperado",
         description: "Tente novamente em alguns instantes.",

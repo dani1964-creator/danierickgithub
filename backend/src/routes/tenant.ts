@@ -1,16 +1,18 @@
 import { Router } from 'express';
+import express from 'express';
 import { TenantController } from '../controllers/tenantController';
 import { authMiddleware } from '../middleware/auth';
+import { logger } from '../lib/logger';
 
 const router = Router();
 
 // Rotas de tenant
-router.get('/info', TenantController.getTenantInfo as any);
-router.get('/identify', TenantController.identifyByDomain as any);
-router.get('/stats', TenantController.getTenantStats as any);
+router.get('/info', TenantController.getTenantInfo as unknown as express.RequestHandler);
+router.get('/identify', TenantController.identifyByDomain as unknown as express.RequestHandler);
+router.get('/stats', TenantController.getTenantStats as unknown as express.RequestHandler);
 
 // Atualizar slug / domínio do broker (usuário autenticado)
-router.put('/update', authMiddleware as any, TenantController.updateSettings as any);
+router.put('/update', authMiddleware as unknown as express.RequestHandler, TenantController.updateSettings as unknown as express.RequestHandler);
 
 // Rota de teste para atualizar broker diretamente por broker_id (APENAS em development)
 router.post('/test-update', async (req, res) => {
@@ -45,9 +47,9 @@ router.post('/test-update', async (req, res) => {
 			}
 		}
 
-		const updatePayload: any = {};
-		if (website_slug !== undefined) updatePayload.website_slug = website_slug;
-		if (custom_domain !== undefined) updatePayload.custom_domain = domainNormalized;
+	const updatePayload: Record<string, unknown> = {};
+	if (website_slug !== undefined) (updatePayload as Record<string, unknown>)['website_slug'] = website_slug;
+	if (custom_domain !== undefined) (updatePayload as Record<string, unknown>)['custom_domain'] = domainNormalized;
 
 		const supabase = (await import('../config/supabase')).supabase;
 		const { error: updateErr } = await supabase.from('brokers').update(updatePayload).eq('id', broker_id);
@@ -56,8 +58,8 @@ router.post('/test-update', async (req, res) => {
 		}
 
 		return res.json({ success: true, message: 'Test update applied' });
-	} catch (err: any) {
-		console.error('Test update error:', err);
+	} catch (err: unknown) {
+		logger.error('Test update error:', err);
 		return res.status(500).json({ error: 'Internal server error' });
 	}
 });

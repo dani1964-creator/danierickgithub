@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { logger } from '@/lib/logger';
 import { supabase } from "../integrations/supabase/client";
 import { createClient } from '@supabase/supabase-js';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
@@ -35,9 +36,9 @@ export default function SuperAdminPage() {
     const url = import.meta.env.VITE_SUPABASE_URL;
     const serviceKey = import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRlbWNqc2twd2N4cW9oemx5anhiIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NTA0MjEzNSwiZXhwIjoyMDcwNjE4MTM1fQ.GiG1U1St1uueHjYdFPCiYB29jV1S3lFssrEnzswWYxM";
     
-    console.log('� SuperAdmin Service Role SUPER ISOLADO:');
-    console.log('  URL:', url ? '✅ Definida' : '❌ Não definida');
-    console.log('  Service Key:', serviceKey ? '✅ Definida (' + serviceKey.substring(0, 20) + '...)' : '❌ Não definida');
+  logger.info('🔐 SuperAdmin Service Role SUPER ISOLADO:');
+  logger.info('  URL:', url ? '✅ Definida' : '❌ Não definida');
+  logger.info('  Service Key:', serviceKey ? '✅ Definida (' + serviceKey.substring(0, 20) + '...)' : '❌ Não definida');
     
     // Instância COMPLETAMENTE separada do Supabase global
     const client = createClient(url, serviceKey, {
@@ -76,18 +77,18 @@ export default function SuperAdminPage() {
     try {
       setLoading(true);
       
-      console.log('🚀 SuperAdmin fetchBrokers iniciado...');
+  logger.info('🚀 SuperAdmin fetchBrokers iniciado...');
       
       const { data: brokersData, error: brokersError } = await supabaseServiceRole
         .from('brokers')
         .select('id, business_name, email, is_active, plan_type, created_at, website_slug')
         .order('created_at', { ascending: false });
 
-      console.log('📊 Resultado da query brokers:');
-      console.log('  Data:', brokersData?.length || 0, 'brokers encontrados');
-      console.log('  Error:', brokersError);
+      logger.info('📊 Resultado da query brokers:');
+      logger.info('  Data:', brokersData?.length || 0, 'brokers encontrados');
+      logger.info('  Error:', brokersError);
       if (brokersData) {
-        brokersData.forEach((b, i) => console.log(`  ${i+1}. ${b.business_name} (${b.email})`));
+        brokersData.forEach((b, i) => logger.info(`  ${i+1}. ${b.business_name} (${b.email})`));
       }
 
       if (brokersError) throw brokersError;
@@ -106,8 +107,8 @@ export default function SuperAdminPage() {
 
       setBrokers(brokersWithCounts);
       toast.success(`${brokersWithCounts.length} imobiliárias carregadas com sucesso!`);
-    } catch (error) {
-      console.error('Error fetching brokers:', error);
+  } catch (error) {
+  logger.error('Error fetching brokers:', error);
       toast.error("Não foi possível carregar as imobiliárias.");
     } finally {
       setLoading(false);
@@ -135,8 +136,8 @@ export default function SuperAdminPage() {
 
       toast.success(`Imobiliária ${!currentStatus ? 'ativada' : 'desativada'} com sucesso.`);
 
-    } catch (error) {
-      console.error('Error toggling broker status:', error);
+  } catch (error) {
+  logger.error('Error toggling broker status:', error);
       toast.error("Não foi possível atualizar o status.");
     }
   };
@@ -162,7 +163,7 @@ export default function SuperAdminPage() {
         throw new Error("Credenciais inválidas.");
       }
     } catch (error: unknown) {
-      console.error('Error logging in:', error);
+      logger.error('Error logging in:', error);
       toast.error(error instanceof Error ? error.message : "Credenciais inválidas.");
     } finally {
       setLoginLoading(false);
@@ -178,16 +179,16 @@ export default function SuperAdminPage() {
 
   // Verificar auth
   useEffect(() => {
-    console.log('🔐 SuperAdmin useEffect iniciado...');
+    logger.info('🔐 SuperAdmin useEffect iniciado...');
     const token = localStorage.getItem(SUPER_ADMIN_TOKEN_KEY);
-    console.log('  Token encontrado:', token);
+    logger.debug('  Token encontrado:', token);
     
     if (token === "1") {
-      console.log('  ✅ Token válido - autenticando e carregando brokers...');
+      logger.info('  ✅ Token válido - autenticando e carregando brokers...');
       setIsAuthorized(true);
       fetchBrokers();
     } else {
-      console.log('  ❌ Token inválido ou ausente - mostrando login');
+      logger.info('  ❌ Token inválido ou ausente - mostrando login');
       setIsAuthorized(false);
       setShowLoginDialog(true);
       setLoading(false);

@@ -1,6 +1,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { Search, Trash2, Eye, Filter, RefreshCw, ChevronLeft, ChevronRight } from 'lucide-react';
+import { logger } from '@/lib/logger';
 import { useAuth } from '@shared/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -97,7 +98,7 @@ const Properties = () => {
       setTotalCount(count || 0);
       setTotalPages(Math.ceil((count || 0) / 12));
     } catch (err: any) {
-      console.error('Error fetching properties:', err);
+      logger.error('Error fetching properties:', err);
       setError(err.message || 'Erro ao carregar propriedades');
     } finally {
       setLoading(false);
@@ -144,7 +145,7 @@ const Properties = () => {
         .single();
 
       if (brokerError) {
-        console.error('Error fetching broker:', brokerError);
+        logger.error('Error fetching broker:', brokerError);
         toast({
           title: "Erro ao identificar corretor",
           description: getErrorMessage(brokerError),
@@ -166,7 +167,7 @@ const Properties = () => {
       setBrokerId(brokerData.id);
       
     } catch (error: unknown) {
-      console.error('Error fetching broker data:', error);
+      logger.error('Error fetching broker data:', error);
       toast({
         title: "Erro ao carregar dados",
         description: getErrorMessage(error),

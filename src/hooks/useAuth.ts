@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
+import { logger } from '@/lib/logger';
 
 export const useAuth = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -9,7 +10,7 @@ export const useAuth = () => {
   const [loading, setLoading] = useState(true);
 
   const handleAuthStateChange = useCallback((event: string, session: Session | null) => {
-    console.log('Auth state change:', event, session?.user?.id);
+    logger.debug('Auth state change:', event, session?.user?.id);
     setSession(session);
     setUser(session?.user ?? null);
     setLoading(false);
@@ -29,7 +30,7 @@ export const useAuth = () => {
         setLoading(false);
       }
     }).catch((error) => {
-      console.error('Error getting session:', error);
+      logger.error('Error getting session:', error);
       if (mounted) {
         setLoading(false);
       }
@@ -59,7 +60,7 @@ export const useAuth = () => {
       
       return { error };
     } catch (error) {
-      console.error('SignUp error:', error);
+      logger.error('SignUp error:', error);
       return { error: error as Error };
     }
   };
@@ -73,7 +74,7 @@ export const useAuth = () => {
       
       return { error };
     } catch (error) {
-      console.error('SignIn error:', error);
+      logger.error('SignIn error:', error);
       return { error: error as Error };
     }
   };
@@ -83,7 +84,7 @@ export const useAuth = () => {
       const { error } = await supabase.auth.signOut();
       return { error };
     } catch (error) {
-      console.error('SignOut error:', error);
+      logger.error('SignOut error:', error);
       return { error: error as Error };
     }
   };
@@ -95,7 +96,7 @@ export const useAuth = () => {
       });
       return { error };
     } catch (error) {
-      console.error('Reset password error:', error);
+      logger.error('Reset password error:', error);
       return { error: error as Error };
     }
   };

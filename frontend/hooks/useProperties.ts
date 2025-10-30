@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { logger } from '@/lib/logger';
 import { useTenant } from '../contexts/TenantContext';
 
 interface PropertyData {
@@ -101,14 +102,14 @@ export function useProperties(options: UsePropertiesOptions = {}): UseProperties
       
       const data = await response.json();
       
-      setProperties(data.data || []);
-      setTotalCount(data.pagination?.total || 0);
-      setCurrentPage(data.pagination?.page || 1);
-      
-      console.log(`✅ Loaded ${data.data?.length || 0} properties for ${tenant.business_name}`);
+  setProperties(data.data || []);
+  setTotalCount(data.pagination?.total || 0);
+  setCurrentPage(data.pagination?.page || 1);
+
+  logger.info(`✅ Loaded ${data.data?.length || 0} properties for ${tenant.business_name}`);
       
     } catch (err: any) {
-      console.error('Error fetching properties:', err);
+  logger.error('Error fetching properties:', err);
       setError(err.message || 'Erro ao carregar propriedades');
     } finally {
       setLoading(false);
@@ -166,7 +167,7 @@ export function useProperty(propertyId: string) {
       setProperty(data.data);
       
     } catch (err: any) {
-      console.error('Error fetching property:', err);
+  logger.error('Error fetching property:', err);
       setError(err.message || 'Erro ao carregar propriedade');
     } finally {
       setLoading(false);

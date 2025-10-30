@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react';
+import { logger } from '@/lib/logger';
 import { Upload, User, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -89,7 +90,7 @@ export const AvatarUpload = ({
       });
 
     } catch (error: unknown) {
-      console.error('Upload error:', getErrorMessage(error));
+      logger.error('Upload error:', getErrorMessage(error));
       toast({
         title: "Erro no upload",
         description: getErrorMessage(error) || "Tente novamente.",

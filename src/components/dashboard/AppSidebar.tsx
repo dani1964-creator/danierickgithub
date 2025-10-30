@@ -62,7 +62,9 @@ const AppSidebar = () => {
       await signOut();
       navigate('/auth');
     } catch (error) {
-      console.error('Error signing out:', error);
+      // Use centralized logger instead of console
+      // Importing logger lazily to avoid top-level side-effects in some bundles
+      try { (await import('@/lib/logger')).logger.error('Error signing out:', error); } catch { /* fallback noop */ }
     }
   };
 

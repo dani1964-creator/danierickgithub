@@ -4,6 +4,7 @@ import helmet from 'helmet';
 import compression from 'compression';
 import morgan from 'morgan';
 import dotenv from 'dotenv';
+import { logger } from './lib/logger';
 
 // Middlewares
 import { identifyTenant } from './middleware/tenantIdentifier';
@@ -72,13 +73,29 @@ app.use('/api/public/leads', identifyTenant, leadsPublicRouter);
 app.use('/api/admin', authMiddleware, identifyTenant, adminRouter);
 
 // Middleware de erro global
-app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
-  console.error('Global error handler:', err);
-  
-  res.status(err.status || 500).json({
+app.use((err: unknown, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  // Tratamento seguro de erro sem usar `any`
+  logger.error('Global error handler:', err);
+  let status = 500;
+  let message = 'Erro interno do servidor';
+  let stack: string | undefined = undefined;
+
+  if (process.env.NODE_ENV === 'development') {
+    const e = err as unknown;
+    if (e && typeof e === 'object') {
+      const errObj = e as { message?: string; stack?: string; status?: number };
+      message = errObj.message ?? message;
+      stack = errObj.stack;
+      status = errObj.status ?? status;
+    } else {
+      message = String(err);
+    }
+  }
+
+  res.status(status).json({
     error: 'Internal Server Error',
-    message: process.env.NODE_ENV === 'development' ? err.message : 'Erro interno do servidor',
-    ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+    message,
+    ...(stack ? { stack } : {})
   });
 });
 
@@ -92,9 +109,9 @@ app.use('*', (req, res) => {
 
 // Iniciar servidor
 app.listen(PORT, () => {
-  console.log(`🚀 Backend multi-tenant rodando na porta ${PORT}`);
-  console.log(`🌐 Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`📋 Health check: http://localhost:${PORT}/health`);
+  logger.info(`🚀 Backend multi-tenant rodando na porta ${PORT}`);
+  logger.info(`🌐 Environment: ${process.env.NODE_ENV || 'development'}`);
+  logger.info(`📋 Health check: http://localhost:${PORT}/health`);
 });
 
 export default app;

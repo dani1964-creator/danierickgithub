@@ -10,6 +10,7 @@ import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import { getErrorMessage } from '@/lib/utils';
 // ✅ IMPORT DO HOOK OTIMIZADO
 import { useDashboardData } from '@/hooks/useDashboardData';
+import { logger } from '@/lib/logger';
 
 
 const Dashboard = () => {
@@ -51,7 +52,7 @@ const Dashboard = () => {
       setBrokerId(data?.id || null);
       setWebsiteSlug(data?.website_slug || null);
     } catch (error: unknown) {
-      console.error('Error fetching broker profile:', error);
+      logger.error('Error fetching broker profile:', error);
     }
   }, []);
 

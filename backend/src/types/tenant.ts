@@ -8,7 +8,7 @@ export interface TenantData {
   custom_domain?: string;
   subdomain?: string;
   website_slug: string;
-  theme_settings: any;
+  theme_settings: Record<string, unknown>;
   site_title?: string;
   site_description?: string;
   site_favicon_url?: string;

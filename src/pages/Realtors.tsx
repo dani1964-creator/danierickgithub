@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { logger } from '@/lib/logger';
 import { User, Mail, Phone, Plus, Edit, Trash2, Check, X, UserCheck, UserX, Award, LayoutGrid, List } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -69,7 +70,7 @@ const Realtors = () => {
       if (error) throw error;
       setBrokerInfo(data as BrokerInfo);
     } catch (error: unknown) {
-      console.error('Error fetching broker info:', error);
+      logger.error('Error fetching broker info:', error);
     }
   }, []); // Removido dependências desnecessárias
 
@@ -86,7 +87,7 @@ const Realtors = () => {
       if (error) throw error;
       setRealtors((data || []) as Realtor[]);
     } catch (error: unknown) {
-      console.error('Error fetching realtors:', error);
+      logger.error('Error fetching realtors:', error);
       toast({
         title: "Erro ao carregar corretores",
         description: getErrorMessage(error),
@@ -167,7 +168,7 @@ const Realtors = () => {
       setEditingRealtor(null);
       resetForm();
     } catch (error: unknown) {
-      console.error('Error saving realtor:', error);
+      logger.error('Error saving realtor:', error);
       toast({
         title: "Erro ao salvar corretor",
         description: getErrorMessage(error),
@@ -209,7 +210,7 @@ const Realtors = () => {
         description: "O corretor foi removido com sucesso."
       });
     } catch (error: unknown) {
-      console.error('Error deleting realtor:', error);
+      logger.error('Error deleting realtor:', error);
       toast({
         title: "Erro ao excluir corretor",
         description: getErrorMessage(error),
@@ -238,7 +239,7 @@ const Realtors = () => {
         description: `O corretor foi ${!currentStatus ? 'ativado' : 'desativado'} com sucesso.`
       });
     } catch (error: unknown) {
-      console.error('Error updating realtor status:', error);
+      logger.error('Error updating realtor status:', error);
       toast({
         title: "Erro ao atualizar status",
         description: getErrorMessage(error),

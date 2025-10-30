@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { logger } from '@/lib/logger';
 import { useParams, Navigate, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Helmet } from 'react-helmet-async';
@@ -38,7 +39,7 @@ const TermsOfUse = () => {
         });
 
         if (error) {
-          console.error('Error fetching broker:', error);
+          logger.error('Error fetching broker:', error);
           setNotFound(true);
         } else if (!data || data.length === 0) {
           setNotFound(true);
@@ -46,7 +47,7 @@ const TermsOfUse = () => {
           setBrokerProfile(data[0]);
         }
       } catch (error) {
-        console.error('Error:', error);
+        logger.error('Error:', error);
         setNotFound(true);
       } finally {
         setLoading(false);

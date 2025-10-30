@@ -19,6 +19,7 @@ import ContactCTA from '@/components/home/ContactCTA';
 import Footer from '@/components/home/Footer';
 import LeadModal from '@/components/leads/LeadModal';
 import { getErrorMessage } from '@/lib/utils';
+import { logger } from '@/lib/logger';
 import { getPrefetchedDetail, setPrefetchedDetail } from '@/lib/detail-prefetch';
 import { getCachedUserIP, getUserAgent, getReferrer } from '@/lib/ip-tracking';
 
@@ -142,14 +143,14 @@ const PropertyDetailPage = () => {
           .from('properties')
           .select('id')
           .limit(1);
-          
+
         if (pingError) {
-          console.warn('Connectivity test warning:', pingError);
+          logger.warn('Connectivity test warning:', pingError);
         }
       } catch (connectError) {
-        console.error('Connection test failed:', connectError);
+        logger.error('Connection test failed:', connectError);
         if (retryCount < 2) {
-          console.log(`Retrying connection... (${retryCount + 1}/3)`);
+          logger.debug(`Retrying connection... (${retryCount + 1}/3)`);
           setTimeout(() => fetchPropertyData(retryCount + 1), 1000 * (retryCount + 1));
           return;
         }
@@ -158,17 +159,17 @@ const PropertyDetailPage = () => {
       // Descobrir o slug do broker quando estamos em domínio customizado
       let effectiveSlug = slug as string | undefined;
       if (!effectiveSlug && isCustomDomain()) {
-        console.log('Custom domain detected, fetching broker data...');
+        logger.debug('Custom domain detected, fetching broker data...');
         const broker = await getBrokerByDomainOrSlug(undefined);
         if (!broker) {
-          console.error('Corretor não encontrado para este domínio');
+          logger.error('Corretor não encontrado para este domínio');
           throw new Error('Corretor não encontrado para este domínio.');
         }
         effectiveSlug = (broker as unknown as { website_slug?: string })?.website_slug || undefined;
-        console.log('Broker slug found:', effectiveSlug);
+        logger.debug('Broker slug found:', effectiveSlug);
       }
       if (!effectivePropertySlug || !effectiveSlug) {
-        console.error('Missing parameters:', { effectivePropertySlug, effectiveSlug });
+        logger.error('Missing parameters:', { effectivePropertySlug, effectiveSlug });
         throw new Error('Parâmetros insuficientes para carregar o imóvel.');
       }
       
@@ -204,9 +205,9 @@ const PropertyDetailPage = () => {
       // console.log('Broker data from RPC:', brokerDataArray);
 
       if (propertyError) {
-        console.error('Property RPC error:', propertyError);
+        logger.error('Property RPC error:', propertyError);
         // Fallback: tentar consulta direta se RPC falhar
-        console.log('Attempting fallback query for property...');
+        logger.debug('Attempting fallback query for property...');
         const fallbackProperty = await supabase
           .from('properties')
           .select(`
@@ -223,33 +224,33 @@ const PropertyDetailPage = () => {
           .single();
           
         if (fallbackProperty.error) {
-          console.error('Fallback property query failed:', fallbackProperty.error);
+          logger.error('Fallback property query failed:', fallbackProperty.error);
           throw new Error(`Erro ao carregar propriedade: ${fallbackProperty.error.message}`);
         }
-        
-        console.log('Fallback property data:', fallbackProperty.data);
+
+        logger.debug('Fallback property data:', fallbackProperty.data);
       }
 
       if (brokerError) {
-        console.error('Broker RPC error:', brokerError);
+        logger.error('Broker RPC error:', brokerError);
         throw new Error(`Erro ao carregar dados do corretor: ${brokerError.message}`);
       }
 
       if (!propertyDataArray || propertyDataArray.length === 0) {
-        console.error('No property data returned from RPC');
+        logger.error('No property data returned from RPC');
         throw new Error('Propriedade não encontrada');
       }
 
-      const propertyData = propertyDataArray[0];
-      console.log('Property data:', propertyData);
+  const propertyData = propertyDataArray[0];
+  logger.debug('Property data:', propertyData);
 
-      console.log('Broker data array:', brokerDataArray);
+  logger.debug('Broker data array:', brokerDataArray);
       
-      const brokerData = brokerDataArray?.[0];
-      console.log('Broker data:', brokerData);
+  const brokerData = brokerDataArray?.[0];
+  logger.debug('Broker data:', brokerData);
 
       if (brokerError) {
-        console.error('Broker error:', brokerError);
+        logger.error('Broker error:', brokerError);
         throw brokerError;
       }
 
@@ -269,7 +270,7 @@ const PropertyDetailPage = () => {
         .limit(6);
 
   const { data: similarData, error: similarError } = await similarPromise;
-  if (similarError) console.warn('Similar properties error:', similarError);
+  if (similarError) logger.warn('Similar properties error:', similarError);
 
       // Fetch social links (não bloqueia render principal)
       const { data: socialData, error: socialError } = await supabase
@@ -279,10 +280,10 @@ const PropertyDetailPage = () => {
         .eq('is_active', true);
 
       if (socialError) {
-        console.warn('Error fetching social links:', socialError);
+        logger.warn('Error fetching social links:', socialError);
       }
 
-      console.log('Realtor data from RPC:', {
+      logger.debug('Realtor data from RPC:', {
         realtor_name: propertyData.realtor_name,
         realtor_avatar_url: propertyData.realtor_avatar_url,
         realtor_creci: propertyData.realtor_creci
@@ -310,7 +311,7 @@ const PropertyDetailPage = () => {
           const alreadyViewed = localStorage.getItem(viewKey);
           
           if (!alreadyViewed) {
-            console.log('✅ New unique view for property:', propertyId);
+            logger.debug('✅ New unique view for property:', propertyId);
             
             // Marcar como visualizado hoje
             localStorage.setItem(viewKey, 'true');
@@ -329,27 +330,27 @@ const PropertyDetailPage = () => {
               .eq('id', propertyId);
               
             if (updateError) {
-              console.warn('Error updating view count:', updateError);
+              logger.warn('Error updating view count:', updateError);
               // Resetar UI em caso de erro
               setViewsCount(currentViews);
             } else {
-              console.log('📊 View count updated:', updatedViews);
+              logger.info('📊 View count updated:', updatedViews);
             }
           } else {
-            console.log('🔄 Property already viewed today');
+            logger.debug('🔄 Property already viewed today');
           }
           
           // Obter IP para logs (opcional, não bloqueia a funcionalidade)
           getCachedUserIP().then(ip => {
-            console.log('🔍 User session view tracking:', { 
+            logger.debug('🔍 User session view tracking:', { 
               propertyId, 
               userIP: ip.length > 8 ? ip.substring(0, 8) + '...' : ip,
               alreadyViewed: !!alreadyViewed
             });
-          }).catch(e => console.log('IP detection failed (non-critical):', e));
+          }).catch(e => logger.debug('IP detection failed (non-critical):', e));
           
         } catch (e) {
-          console.warn('Failed to record property view:', e);
+          logger.warn('Failed to record property view:', e);
           // Fallback: continuar sem contar view adicional para não inflar
         }
       })();
@@ -366,7 +367,7 @@ const PropertyDetailPage = () => {
       }
 
     } catch (error: unknown) {
-      console.error('Error loading property:', error);
+      logger.error('Error loading property:', error);
       
       // Tratamento específico para diferentes tipos de erro
       let errorMessage = '';
@@ -397,7 +398,7 @@ const PropertyDetailPage = () => {
         });
         
         setTimeout(() => {
-          console.log('Auto-retrying after connection error...');
+          logger.debug('Auto-retrying after connection error...');
           fetchPropertyData(0);
         }, 2000);
       } else {
@@ -409,7 +410,7 @@ const PropertyDetailPage = () => {
       }
       
       // Não navegar imediatamente - dar opção ao usuário
-      console.log('Error occurred, showing error state instead of navigating');
+      logger.debug('Error occurred, showing error state instead of navigating');
     } finally {
       setLoading(false);
     }
@@ -456,14 +457,14 @@ const PropertyDetailPage = () => {
   };
 
   const handleContactLead = async () => {
-    console.log('handleContactLead chamada - Dados:', {
+    logger.debug('handleContactLead chamada - Dados:', {
       property: property?.id,
       brokerProfile: brokerProfile?.id,
       website_slug: brokerProfile?.website_slug
     });
 
     if (!property) {
-      console.error('Property não encontrada');
+      logger.error('Property não encontrada');
       return;
     }
 
@@ -472,7 +473,7 @@ const PropertyDetailPage = () => {
   };
 
   const handleLeadSuccess = async (leadData: unknown) => {
-    console.log('Lead cadastrado com sucesso:', leadData);
+  logger.info('Lead cadastrado com sucesso:', leadData);
     
     // Track property interest for pixels
     trackPropertyInterest({
@@ -491,25 +492,25 @@ const PropertyDetailPage = () => {
   // Fetch contact information using public RPC (no authentication required)
   const fetchContactInfo = async () => {
     if (!brokerProfile?.website_slug) {
-      console.log('No broker profile or website_slug available');
+      logger.debug('No broker profile or website_slug available');
       return null;
     }
     
     try {
-      console.log('Fetching contact info for:', brokerProfile.website_slug);
+      logger.debug('Fetching contact info for:', brokerProfile.website_slug);
       const { data, error } = await supabase.rpc('get_public_broker_contact', {
         broker_website_slug: brokerProfile.website_slug
       });
 
-      console.log('Contact RPC response:', { data, error });
+      logger.debug('Contact RPC response:', { data, error });
 
       if (error) {
-        console.error('Error fetching contact info:', error);
+        logger.error('Error fetching contact info:', error);
         return null;
       }
 
       const contactInfo = data && data.length > 0 ? data[0] : null;
-      console.log('Parsed contact info:', contactInfo);
+  logger.debug('Parsed contact info:', contactInfo);
       
       if (contactInfo) {
         setBrokerContact(contactInfo);
@@ -517,27 +518,27 @@ const PropertyDetailPage = () => {
       }
       return null;
     } catch (error) {
-      console.error('Error fetching contact info:', error);
+      logger.error('Error fetching contact info:', error);
       return null;
     }
   };
 
   const handleWhatsAppClick = async () => {
-    console.log('handleWhatsAppClick chamada');
+    logger.debug('handleWhatsAppClick chamada');
     
     if (!property) {
-      console.error('Property não encontrada no handleWhatsAppClick');
+      logger.error('Property não encontrada no handleWhatsAppClick');
       return;
     }
 
     // Fetch contact info if not already loaded
     let contactInfo = brokerContact;
     if (!contactInfo) {
-      console.log('Buscando informações de contato...');
+      logger.debug('Buscando informações de contato...');
       contactInfo = await fetchContactInfo();
     }
 
-    console.log('Contact info:', contactInfo);
+    logger.debug('Contact info:', contactInfo);
 
     if (contactInfo?.whatsapp_number && property) {
     // Generate clean URL based on domain type
@@ -552,7 +553,7 @@ const PropertyDetailPage = () => {
         `Olá! Tenho interesse no imóvel "${property.title}" - Código: ${property.property_code || property.id.slice(-8)}. Valor: ${formatPrice(property.price)}. Gostaria de mais informações. Link: ${shareUrl}`
       );
       
-      console.log('Abrindo WhatsApp e registrando lead...');
+  logger.debug('Abrindo WhatsApp e registrando lead...');
       
       // Detectar se é mobile para usar link apropriado
       const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
@@ -560,13 +561,13 @@ const PropertyDetailPage = () => {
         ? `whatsapp://send?phone=${contactInfo.whatsapp_number}&text=${message}`
         : `https://wa.me/${contactInfo.whatsapp_number}?text=${message}`;
       
-      console.log('WhatsApp URL:', whatsappUrl);
+  logger.debug('WhatsApp URL:', whatsappUrl);
       
       // Tentar abrir WhatsApp
       try {
         window.open(whatsappUrl, '_blank');
       } catch (error) {
-        console.error('Erro ao abrir WhatsApp:', error);
+        logger.error('Erro ao abrir WhatsApp:', error);
         // Fallback para web WhatsApp
         window.open(`https://wa.me/${contactInfo.whatsapp_number}?text=${message}`, '_blank');
       }
@@ -580,7 +581,7 @@ const PropertyDetailPage = () => {
         source: 'property_detail'
       });
     } else {
-      console.error('Informações de contato não disponíveis:', { contactInfo, property });
+      logger.warn('Informações de contato não disponíveis:', { contactInfo, property });
       toast({
         title: "Informações de contato não disponíveis",
         description: "Tente novamente em alguns instantes.",
@@ -670,30 +671,30 @@ const PropertyDetailPage = () => {
 
   // Função de debug para testar RPC
   const testRPCFunctions = useCallback(async () => {
-    console.log('Testing RPC functions...');
+    logger.debug('Testing RPC functions...');
     try {
       const testSlug = slug || 'test-broker';
       const testPropertySlug = effectivePropertySlug || 'test-property';
       
-      console.log('Testing with params:', { testSlug, testPropertySlug });
+      logger.debug('Testing with params:', { testSlug, testPropertySlug });
       
       // Test property RPC
-      console.log('Testing get_public_property_detail_with_realtor...');
+      logger.debug('Testing get_public_property_detail_with_realtor...');
       const propertyTest = await supabase.rpc('get_public_property_detail_with_realtor', {
         broker_slug: testSlug,
         property_slug: testPropertySlug
       });
-      console.log('Property RPC test result:', propertyTest);
+      logger.debug('Property RPC test result:', propertyTest);
       
       // Test broker RPC
-      console.log('Testing get_public_broker_branding...');
+      logger.debug('Testing get_public_broker_branding...');
       const brokerTest = await supabase.rpc('get_public_broker_branding', {
         broker_website_slug: testSlug
       });
-      console.log('Broker RPC test result:', brokerTest);
+      logger.debug('Broker RPC test result:', brokerTest);
       
     } catch (error) {
-      console.error('RPC test failed:', error);
+      logger.error('RPC test failed:', error);
     }
   }, [slug, effectivePropertySlug]);
 

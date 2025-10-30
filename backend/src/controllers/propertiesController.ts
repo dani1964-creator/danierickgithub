@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { supabase } from '../config/supabase';
 import { TenantRequest, ApiResponse } from '../types/tenant';
+import { logger } from '../lib/logger';
 
 export class PropertiesController {
   
@@ -21,7 +22,7 @@ export class PropertiesController {
         search
       } = req.query;
       
-      console.log(`📋 Loading public properties for tenant: ${tenant.business_name}`);
+  logger.info(`📋 Loading public properties for tenant: ${tenant.business_name}`);
       
       // Query base para propriedades públicas ativas
       let query = supabase
@@ -76,13 +77,13 @@ export class PropertiesController {
       const { data, error, count } = await query;
       
       if (error) {
-        console.error('Error loading public properties:', error);
+        logger.error('Error loading public properties:', error);
         throw error;
       }
       
-      console.log(`✅ Loaded ${data?.length || 0} properties for ${tenant.business_name}`);
+  logger.info(`✅ Loaded ${data?.length || 0} properties for ${tenant.business_name}`);
       
-      const response: ApiResponse<any[]> = {
+      const response: ApiResponse<unknown[]> = {
         data: data || [],
         tenant: tenant,
         pagination: {
@@ -95,8 +96,8 @@ export class PropertiesController {
       
       res.json(response);
       
-    } catch (error: any) {
-      console.error('Error in getPublicProperties:', error);
+    } catch (error: unknown) {
+      logger.error('Error in getPublicProperties:', error);
       res.status(500).json({
         error: 'Internal server error',
         message: 'Erro ao carregar propriedades'
@@ -110,7 +111,7 @@ export class PropertiesController {
       const { tenantId, tenant } = req.tenant;
       const { propertyId } = req.params;
       
-      console.log(`📋 Loading property ${propertyId} for tenant: ${tenant.business_name}`);
+  logger.info(`📋 Loading property ${propertyId} for tenant: ${tenant.business_name}`);
       
       const { data, error } = await supabase
         .from('properties')
@@ -145,7 +146,7 @@ export class PropertiesController {
         .single();
       
       if (error) {
-        if (error.code === 'PGRST116') {
+        if ((error as any).code === 'PGRST116') {
           res.status(404).json({
             error: 'Property not found',
             message: 'Propriedade não encontrada'
@@ -161,17 +162,17 @@ export class PropertiesController {
         .update({ views_count: (data.views_count || 0) + 1 })
         .eq('id', propertyId);
       
-      console.log(`✅ Property loaded: ${data.title}`);
+  logger.info(`✅ Property loaded: ${data.title}`);
       
-      const response: ApiResponse<any> = {
+      const response: ApiResponse<unknown> = {
         data: data,
         tenant: tenant
       };
       
       res.json(response);
       
-    } catch (error: any) {
-      console.error('Error in getPublicProperty:', error);
+    } catch (error: unknown) {
+      logger.error('Error in getPublicProperty:', error);
       res.status(500).json({
         error: 'Internal server error',
         message: 'Erro ao carregar propriedade'
@@ -191,7 +192,7 @@ export class PropertiesController {
         search
       } = req.query;
       
-      console.log(`📋 Loading admin properties for tenant: ${tenant.business_name}`);
+  logger.info(`📋 Loading admin properties for tenant: ${tenant.business_name}`);
       
       let query = supabase
         .from('properties')
@@ -231,10 +232,10 @@ export class PropertiesController {
       const { data, error, count } = await query;
       
       if (error) throw error;
+
+        logger.info(`✅ Loaded ${data?.length || 0} admin properties`);
       
-      console.log(`✅ Loaded ${data?.length || 0} admin properties`);
-      
-      const response: ApiResponse<any[]> = {
+      const response: ApiResponse<unknown[]> = {
         data: data || [],
         pagination: {
           page: pageNum,
@@ -246,8 +247,8 @@ export class PropertiesController {
       
       res.json(response);
       
-    } catch (error: any) {
-      console.error('Error in getAdminProperties:', error);
+    } catch (error: unknown) {
+      logger.error('Error in getAdminProperties:', error);
       res.status(500).json({
         error: 'Internal server error',
         message: 'Erro ao carregar propriedades administrativas'

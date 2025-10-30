@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { getErrorMessage } from "@/lib/utils";
+import { logger } from '@/lib/logger';
 
 interface SecurityEvent {
   event_type: string;
@@ -26,13 +27,13 @@ export class SecurityMonitor {
       });
 
       if (error) {
-        console.error('Failed to log security event:', error);
+        logger.error('Failed to log security event:', error);
         return false;
       }
 
       return data?.success || false;
     } catch (error: unknown) {
-      console.error('Security monitor error:', getErrorMessage(error));
+      logger.error('Security monitor error:', getErrorMessage(error));
       return false;
     }
   }
@@ -50,7 +51,7 @@ export class SecurityMonitor {
       });
 
       if (error) {
-        console.error('Rate limit check failed:', error);
+        logger.error('Rate limit check failed:', error);
         // On error, allow the request but log it
         this.logEvent({
           event_type: 'rate_limit_error',
@@ -64,7 +65,7 @@ export class SecurityMonitor {
         rate_limited: data?.rate_limited || false
       };
     } catch (error: unknown) {
-      console.error('Rate limiter error:', getErrorMessage(error));
+      logger.error('Rate limiter error:', getErrorMessage(error));
       return { allowed: true, rate_limited: false };
     }
   }

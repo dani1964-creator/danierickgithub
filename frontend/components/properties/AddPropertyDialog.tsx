@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { logger } from '@/lib/logger';
 import { Plus, Upload, X } from 'lucide-react';
 import { useAuth } from '@shared/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -52,7 +53,7 @@ const AddPropertyDialog = ({ onPropertyAdded }: AddPropertyDialogProps) => {
         setRealtors(realtorsData || []);
       }
     } catch (error) {
-      console.error('Error fetching realtors:', error);
+      logger.error('Error fetching realtors:', error);
     }
   }, [user?.id]);
 

@@ -18,6 +18,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { cache, cacheKeys } from '@/utils/cache';
+import { logger } from '@/lib/logger';
 
 export interface UseOptimizedQueryOptions {
   // Paginação
@@ -119,15 +120,15 @@ export function useOptimizedQuery<T = any>(
           setLoading(false);
           
           if (logQueries && process.env.NODE_ENV === 'development') {
-            console.log(`🚀 CACHE HIT: ${cacheKey} - ${cached.data.length} items`);
+            logger.debug(`🚀 CACHE HIT: ${cacheKey} - ${cached.data.length} items`);
           }
           return;
         }
       }
 
       if (logQueries && process.env.NODE_ENV === 'development') {
-        console.log(`📡 QUERY START: ${tableName} - Page ${pageNum}, Limit ${limit}`);
-        console.time(`query_${cacheKey}`);
+        logger.debug(`📡 QUERY START: ${tableName} - Page ${pageNum}, Limit ${limit}`);
+        logger.debug(`⏱️ QUERY TIMER START: query_${cacheKey}`);
       }
 
       // ✅ CONSULTA OTIMIZADA - Com casting para evitar problemas de tipos
@@ -175,8 +176,8 @@ export function useOptimizedQuery<T = any>(
       setCurrentPage(pageNum);
 
       if (logQueries && process.env.NODE_ENV === 'development') {
-        console.timeEnd(`query_${cacheKey}`);
-        console.log(`✅ QUERY SUCCESS: ${queryResult.data.length}/${queryResult.count} items`);
+        logger.debug(`⏱️ QUERY TIMER END: query_${cacheKey}`);
+        logger.debug(`✅ QUERY SUCCESS: ${queryResult.data.length}/${queryResult.count} items`);
       }
 
     } catch (err: any) {
@@ -191,7 +192,7 @@ export function useOptimizedQuery<T = any>(
       if (isAbort) {
         // Abort é esperado quando cancelamos requisições anteriores.
         if (logQueries) {
-          console.log(`⚠️ QUERY ABORTED: ${tableName}`, err?.message || err);
+          logger.debug(`⚠️ QUERY ABORTED: ${tableName}`, err?.message || err);
         }
         // Não setamos `error` nem mostramos `console.error` — trata-se de fluxo normal.
       } else {
@@ -199,7 +200,7 @@ export function useOptimizedQuery<T = any>(
         setError(errorMsg as string);
 
         if (logQueries) {
-          console.error(`❌ QUERY ERROR: ${tableName}`, err);
+          logger.error(`❌ QUERY ERROR: ${tableName}`, err);
         }
       }
     } finally {
@@ -222,14 +223,14 @@ export function useOptimizedQuery<T = any>(
 
     // ✅ SETUP REALTIME (OPCIONAL) - Com debounce para evitar refresh loops
   useEffect(() => {
-    if (realtime) {
+  if (realtime) {
       // Debounce function para evitar refresh loops
       let refreshTimeout: NodeJS.Timeout;
-      const debouncedRefresh = (payload: any) => {
+          const debouncedRefresh = (payload: any) => {
         clearTimeout(refreshTimeout);
         refreshTimeout = setTimeout(() => {
           if (logQueries) {
-            console.log(`🔄 REALTIME REFRESH: ${tableName} changed`, payload);
+            logger.debug(`🔄 REALTIME REFRESH: ${tableName} changed`, payload);
           }
           // Invalidar cache e recarregar sem mostrar loading
           cache.invalidate(getCacheKey().split('_')[0]);

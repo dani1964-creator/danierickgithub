@@ -1,4 +1,6 @@
 // Utility function to get user's IP address
+import { logger } from '@/lib/logger';
+
 export const getUserIP = async (): Promise<string> => {
   try {
     // In development, create a pseudo-unique identifier based on browser session
@@ -17,7 +19,7 @@ export const getUserIP = async (): Promise<string> => {
       }, 0);
       
       const ip = `192.168.1.${Math.abs(hash) % 254 + 1}`;
-      console.log('🔧 Development mode - using session-based IP:', ip);
+      logger.info('🔧 Development mode - using session-based IP:', ip);
       return ip;
     }
 
@@ -29,22 +31,22 @@ export const getUserIP = async (): Promise<string> => {
       
       if (response.ok) {
         const data = await response.json();
-        if (data.ip && isValidIP(data.ip)) {
-          console.log('🌐 Real IP detected:', data.ip);
+          if (data.ip && isValidIP(data.ip)) {
+          logger.info('🌐 Real IP detected:', data.ip);
           return data.ip;
         }
       }
     } catch (error) {
-      console.warn('IP detection service failed:', error);
+      logger.warn('IP detection service failed:', error);
     }
     
     // Ultimate fallback
     const fallbackIP = '127.0.0.1';
-    console.warn('⚠️ Using fallback IP:', fallbackIP);
-    return fallbackIP;
+  logger.warn('⚠️ Using fallback IP:', fallbackIP);
+  return fallbackIP;
     
   } catch (error) {
-    console.error('❌ Error getting user IP:', error);
+    logger.error('❌ Error getting user IP:', error);
     return '127.0.0.1';
   }
 };

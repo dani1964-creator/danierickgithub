@@ -9,6 +9,7 @@ import Dashboard from '@/pages/Dashboard';
 import AuthForm from '@/components/auth/AuthForm';
 import BrokerNotFound from '@/pages/BrokerNotFound';
 import { isDevelopmentHost } from '@/lib/tenant';
+import { logger } from '@/lib/logger';
 
 export const DomainRouteHandler = () => {
   const { isAuthenticated, loading: authLoading } = useAuth();
@@ -41,7 +42,7 @@ export const DomainRouteHandler = () => {
           setBroker(null);
         }
       } catch (error) {
-        console.error('Error checking broker:', error);
+        logger.error('Error checking broker:', error);
         setBroker(null);
       }
     };

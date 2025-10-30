@@ -171,6 +171,8 @@ const PublicSite = () => {
     });
   }, [slug, toast]);
   const { getBrokerByDomainOrSlug, getPropertiesByDomainOrSlug, isCustomDomain } = useDomainAware();
+  // Debug flag via query param: add ?debug=1 to URL to show resolved broker info on the page
+  const debugMode = (typeof window !== 'undefined') ? new URLSearchParams(window.location.search).get('debug') === '1' : false;
 
   const {
     searchTerm,
@@ -427,6 +429,13 @@ const PublicSite = () => {
       </Helmet>
       
       <div className="public-site-layout min-h-screen bg-background">
+      {debugMode && (
+        <div className="fixed top-4 right-4 z-50 bg-yellow-100 border border-yellow-300 text-yellow-900 px-3 py-2 rounded shadow-md text-xs">
+          <div><strong>DEBUG</strong></div>
+          <div>Slug: {brokerProfile?.website_slug || '(not resolved)'}</div>
+          <div>Broker: {brokerProfile?.business_name || '(none)'}</div>
+        </div>
+      )}
       <TrackingScripts trackingScripts={brokerProfile?.tracking_scripts} />
       <FixedHeader brokerProfile={brokerProfile} />
       <HeroBanner brokerProfile={brokerProfile} />

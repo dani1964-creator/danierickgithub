@@ -2,6 +2,8 @@
  * Utility functions for IP tracking and view counting
  */
 
+import { logger } from '@/lib/logger';
+
 // Function to get user's IP address
 export async function getUserIP(): Promise<string> {
   try {
@@ -29,8 +31,8 @@ export async function getUserIP(): Promise<string> {
         if (ip && isValidIP(ip)) {
           return ip;
         }
-      } catch (error) {
-        console.warn(`IP service ${service} failed:`, error);
+        } catch (error) {
+        logger.warn(`IP service ${service} failed:`, error);
         continue;
       }
     }
@@ -39,7 +41,7 @@ export async function getUserIP(): Promise<string> {
     return 'unknown';
     
   } catch (error) {
-    console.warn('Failed to get user IP:', error);
+    logger.warn('Failed to get user IP:', error);
     return 'unknown';
   }
 }
@@ -127,11 +129,11 @@ export function cleanupOldViewTracking(): void {
     });
     
     if (keysToRemove.length > 0) {
-      console.log(`🧹 Cleaned up ${keysToRemove.length} old view tracking entries`);
+      logger.info(`🧹 Cleaned up ${keysToRemove.length} old view tracking entries`);
     }
     
   } catch (error) {
-    console.warn('Failed to cleanup old view tracking:', error);
+    logger.warn('Failed to cleanup old view tracking:', error);
   }
 }
 

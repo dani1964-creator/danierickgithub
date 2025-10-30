@@ -1,4 +1,5 @@
 import React from 'react';
+import { logger } from '@/lib/logger';
 import { supabase } from '@/integrations/supabase/client';
 
 /**
@@ -31,7 +32,7 @@ export class BrokerResolver {
       
       return brokerId;
     } catch (error) {
-      console.warn('Edge Function falhou, usando fallback local:', error);
+      logger.warn('Edge Function falhou, usando fallback local:', error);
       
       // Fallback para resolução local
       const brokerId = await this.resolveViaLocalQuery(targetHost);
@@ -109,7 +110,7 @@ export class BrokerResolver {
 
       return null;
     } catch (error) {
-      console.error('Erro na resolução local do broker:', error);
+      logger.error('Erro na resolução local do broker:', error);
       return null;
     }
   }

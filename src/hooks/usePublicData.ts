@@ -1,6 +1,7 @@
 import React from 'react';
 import { PublicQueryHelper } from '@/lib/publicQueries';
 import { supabase } from '@/integrations/supabase/client';
+import { logger } from '@/lib/logger';
 
 /**
  * Hook otimizado para páginas públicas
@@ -37,6 +38,7 @@ export function usePublicData() {
         }
       } catch (err) {
         if (mounted) {
+          logger.error('Error loading public data:', err);
           setError(err instanceof Error ? err.message : 'Erro desconhecido');
         }
       } finally {
@@ -82,14 +84,14 @@ export function useDashboardAuth() {
         
         if (mounted) {
           if (error) {
-            console.error('Auth error:', error);
+            logger.error('Auth error:', error);
           }
           setUser(session?.user || null);
           setLoading(false);
         }
       } catch (err) {
         if (mounted) {
-          console.error('Auth check error:', err);
+          logger.error('Auth check error:', err);
           setUser(null);
           setLoading(false);
         }

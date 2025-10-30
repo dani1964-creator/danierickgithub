@@ -14,6 +14,7 @@ import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { getErrorMessage } from '@/lib/utils';
+import { logger } from '@/lib/logger';
 
 interface Realtor {
   id: string;
@@ -898,7 +899,7 @@ const EditPropertyDialog = ({ property, open, onOpenChange, onPropertyUpdated }:
                       alt={`Imagem ${index + 1}`}
                       className="w-full h-24 object-cover rounded-lg"
                       onError={(e) => {
-                        console.error('Erro ao carregar imagem:', imageUrl);
+                        logger.error('Erro ao carregar imagem:', imageUrl);
                         (e.target as HTMLImageElement).style.display = 'none';
                       }}
                     />

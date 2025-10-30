@@ -1,17 +1,20 @@
+import { logger } from '@/lib/logger';
+
 export function getHost(): string {
   if (typeof window === 'undefined') return '';
-  return window.location.host.toLowerCase();
+  // Use hostname (without port) to make host-based resolution robust when running
+  // on non-standard ports (dev proxy, preview URLs, etc.). window.location.host
+  // can include the port which breaks .endsWith checks against the base domain.
+  return (window.location.hostname || '').toLowerCase();
 }
 
 export function isDevelopmentHost(host?: string): boolean {
   const h = (host || getHost());
   if (!h) return false;
-  
-  // Hostnames de desenvolvimento comuns
-  return h === 'localhost:3001' ||
-         h === 'localhost:5173' ||
-         h === '127.0.0.1:3001' ||
-         h === '127.0.0.1:5173' ||
+
+  // Hostnames de desenvolvimento comuns (baseadas em hostname, sem porta)
+  return h === 'localhost' ||
+         h === '127.0.0.1' ||
          h.includes('.app.github.dev') ||
          h.includes('.gitpod.io') ||
          h.includes('.codespaces.github.com') ||
@@ -62,7 +65,7 @@ export async function resolveBrokerSlug(supabase: SupabaseClient): Promise<strin
       .maybeSingle();
 
     if (error) {
-      console.warn('resolveBrokerSlug subdomain error:', error);
+      logger.warn('resolveBrokerSlug subdomain error:', error);
       return null;
     }
 
@@ -88,7 +91,7 @@ export async function resolveBrokerSlug(supabase: SupabaseClient): Promise<strin
     .maybeSingle();
 
   if (error) {
-    console.warn('resolveBrokerSlug custom domain error:', error);
+    logger.warn('resolveBrokerSlug custom domain error:', error);
     return null;
   }
 
@@ -142,7 +145,7 @@ export async function getCurrentBrokerByRequest(supabase: SupabaseClient) {
       .maybeSingle();
 
     if (domainError || !domainData) {
-      console.warn('getCurrentBrokerByRequest custom domain error:', domainError);
+        logger.warn('getCurrentBrokerByRequest custom domain error:', domainError);
       return null;
     }
 
@@ -156,14 +159,14 @@ export async function getCurrentBrokerByRequest(supabase: SupabaseClient) {
       .maybeSingle();
 
     if (brokerError) {
-      console.warn('getCurrentBrokerByRequest broker fetch error:', brokerError);
+      logger.warn('getCurrentBrokerByRequest broker fetch error:', brokerError);
       return null;
     }
 
     return brokerData;
 
   } catch (error) {
-    console.error('getCurrentBrokerByRequest general error:', error);
+    logger.error('getCurrentBrokerByRequest general error:', error);
     return null;
   }
 }

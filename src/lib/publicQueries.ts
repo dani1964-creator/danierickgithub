@@ -1,5 +1,6 @@
 import { supabase } from '@/integrations/supabase/client';
 import { BrokerResolver } from './brokerResolver';
+import { logger } from '@/lib/logger';
 
 /**
  * Helper para queries públicas seguindo as recomendações do Supabase Assistant IA
@@ -146,7 +147,7 @@ export class PublicQueryHelper {
       const brokerId = await BrokerResolver.getCurrentBrokerId();
       return brokerId !== null;
     } catch (error) {
-      console.warn('Error validating host:', error);
+      logger.warn('Error validating host:', error);
       return false;
     }
   }

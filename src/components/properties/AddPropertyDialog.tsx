@@ -16,6 +16,7 @@ import { useToast } from '@/hooks/use-toast';
 import { toSlug } from '@/lib/utils';
 import { getErrorMessage } from '@/lib/utils';
 import type { Database } from '@/integrations/supabase/types';
+import { logger } from '@/lib/logger';
 
 interface AddPropertyDialogProps {
   onPropertyAdded: () => void;
@@ -52,7 +53,7 @@ const AddPropertyDialog = ({ onPropertyAdded }: AddPropertyDialogProps) => {
         setRealtors(realtorsData || []);
       }
     } catch (error) {
-      console.error('Error fetching realtors:', error);
+      logger.error('Error fetching realtors:', error);
     }
   }, [user?.id]);
 

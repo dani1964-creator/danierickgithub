@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import dynamic from 'next/dynamic';
 import { logger } from '@/lib/logger';
 import { User, Mail, Phone, Plus, Edit, Trash2, Check, X, UserCheck, UserX, Award, LayoutGrid, List } from 'lucide-react';
 import { useAuth } from '@shared/hooks/useAuth';
@@ -42,7 +43,14 @@ const Realtors = () => {
   const [editingRealtor, setEditingRealtor] = useState<string | null>(null);
   interface BrokerInfo { id: string; business_name: string }
   const [brokerInfo, setBrokerInfo] = useState<BrokerInfo | null>(null);
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>(() => (localStorage.getItem('realtors_view_mode') as 'grid' | 'list') || 'grid');
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>(() => {
+    try {
+      if (typeof window === 'undefined') return 'grid';
+      return (localStorage.getItem('realtors_view_mode') as 'grid' | 'list') || 'grid';
+    } catch {
+      return 'grid';
+    }
+  });
 
   // Form states
   const [formData, setFormData] = useState({
@@ -675,4 +683,5 @@ const Realtors = () => {
   );
 };
 
-export default Realtors;
+const DynamicRealtors = dynamic(() => Promise.resolve(Realtors), { ssr: false });
+export default DynamicRealtors;

@@ -1,0 +1,1133 @@
+import type { Database } from './types';
+export declare const supabase: import("@supabase/supabase-js").SupabaseClient<Database, "public", "public", {
+    Tables: {
+        audit_logs: {
+            Row: {
+                created_at: string | null;
+                id: string;
+                new_data: import("./types").Json | null;
+                old_data: import("./types").Json | null;
+                operation: string;
+                record_id: string | null;
+                table_name: string;
+                user_id: string | null;
+            };
+            Insert: {
+                created_at?: string | null;
+                id?: string;
+                new_data?: import("./types").Json | null;
+                old_data?: import("./types").Json | null;
+                operation: string;
+                record_id?: string | null;
+                table_name: string;
+                user_id?: string | null;
+            };
+            Update: {
+                created_at?: string | null;
+                id?: string;
+                new_data?: import("./types").Json | null;
+                old_data?: import("./types").Json | null;
+                operation?: string;
+                record_id?: string | null;
+                table_name?: string;
+                user_id?: string | null;
+            };
+            Relationships: [];
+        };
+        broker_contact_access_log: {
+            Row: {
+                access_type: string;
+                accessed_at: string;
+                broker_id: string;
+                id: string;
+                user_agent: string | null;
+                user_ip: unknown | null;
+            };
+            Insert: {
+                access_type?: string;
+                accessed_at?: string;
+                broker_id: string;
+                id?: string;
+                user_agent?: string | null;
+                user_ip?: unknown | null;
+            };
+            Update: {
+                access_type?: string;
+                accessed_at?: string;
+                broker_id?: string;
+                id?: string;
+                user_agent?: string | null;
+                user_ip?: unknown | null;
+            };
+            Relationships: [];
+        };
+        brokers: {
+            Row: {
+                about_text: string | null;
+                about_us_content: string | null;
+                address: string | null;
+                background_image_url: string | null;
+                business_name: string;
+                cnpj: string | null;
+                contact_email: string | null;
+                created_at: string;
+                creci: string | null;
+                custom_domain: string | null;
+                display_name: string | null;
+                domain_config: import("./types").Json | null;
+                email: string;
+                footer_text: string | null;
+                hero_subtitle: string | null;
+                hero_title: string | null;
+                id: string;
+                is_active: boolean | null;
+                is_super_admin: boolean | null;
+                logo_size: number | null;
+                logo_url: string | null;
+                max_properties: number | null;
+                overlay_color: string | null;
+                overlay_opacity: string | null;
+                phone: string | null;
+                plan_type: string | null;
+                primary_color: string | null;
+                privacy_policy_content: string | null;
+                secondary_color: string | null;
+                sections_background_color_1: string | null;
+                sections_background_color_2: string | null;
+                sections_background_color_3: string | null;
+                sections_background_style: string | null;
+                site_description: string | null;
+                site_favicon_url: string | null;
+                site_share_image_url: string | null;
+                site_title: string | null;
+                robots_index: boolean | null;
+                robots_follow: boolean | null;
+                canonical_prefer_custom_domain: boolean | null;
+                home_title_template: string | null;
+                home_description_template: string | null;
+                property_title_template: string | null;
+                property_description_template: string | null;
+                terms_of_use_content: string | null;
+                tracking_scripts: import("./types").Json | null;
+                updated_at: string;
+                user_id: string;
+                website_slug: string | null;
+                whatsapp_button_color: string | null;
+                whatsapp_button_text: string | null;
+                whatsapp_number: string | null;
+                brand_primary?: string | null;
+                brand_secondary?: string | null;
+                brand_accent?: string | null;
+                brand_surface?: string | null;
+                brand_surface_fg?: string | null;
+                brand_radius?: number | null;
+                brand_card_elevation?: number | null;
+            };
+            Insert: {
+                about_text?: string | null;
+                about_us_content?: string | null;
+                address?: string | null;
+                background_image_url?: string | null;
+                business_name: string;
+                cnpj?: string | null;
+                contact_email?: string | null;
+                created_at?: string;
+                creci?: string | null;
+                custom_domain?: string | null;
+                display_name?: string | null;
+                domain_config?: import("./types").Json | null;
+                email: string;
+                footer_text?: string | null;
+                hero_subtitle?: string | null;
+                hero_title?: string | null;
+                id?: string;
+                is_active?: boolean | null;
+                is_super_admin?: boolean | null;
+                logo_size?: number | null;
+                logo_url?: string | null;
+                max_properties?: number | null;
+                overlay_color?: string | null;
+                overlay_opacity?: string | null;
+                phone?: string | null;
+                plan_type?: string | null;
+                primary_color?: string | null;
+                privacy_policy_content?: string | null;
+                secondary_color?: string | null;
+                sections_background_color_1?: string | null;
+                sections_background_color_2?: string | null;
+                sections_background_color_3?: string | null;
+                sections_background_style?: string | null;
+                site_description?: string | null;
+                site_favicon_url?: string | null;
+                site_share_image_url?: string | null;
+                site_title?: string | null;
+                robots_index?: boolean | null;
+                robots_follow?: boolean | null;
+                canonical_prefer_custom_domain?: boolean | null;
+                home_title_template?: string | null;
+                home_description_template?: string | null;
+                property_title_template?: string | null;
+                property_description_template?: string | null;
+                terms_of_use_content?: string | null;
+                tracking_scripts?: import("./types").Json | null;
+                updated_at?: string;
+                user_id: string;
+                website_slug?: string | null;
+                whatsapp_button_color?: string | null;
+                whatsapp_button_text?: string | null;
+                whatsapp_number?: string | null;
+                brand_primary?: string | null;
+                brand_secondary?: string | null;
+                brand_accent?: string | null;
+                brand_surface?: string | null;
+                brand_surface_fg?: string | null;
+                brand_radius?: number | null;
+                brand_card_elevation?: number | null;
+            };
+            Update: {
+                about_text?: string | null;
+                about_us_content?: string | null;
+                address?: string | null;
+                background_image_url?: string | null;
+                business_name?: string;
+                cnpj?: string | null;
+                contact_email?: string | null;
+                created_at?: string;
+                creci?: string | null;
+                custom_domain?: string | null;
+                display_name?: string | null;
+                domain_config?: import("./types").Json | null;
+                email?: string;
+                footer_text?: string | null;
+                hero_subtitle?: string | null;
+                hero_title?: string | null;
+                id?: string;
+                is_active?: boolean | null;
+                is_super_admin?: boolean | null;
+                logo_size?: number | null;
+                logo_url?: string | null;
+                max_properties?: number | null;
+                overlay_color?: string | null;
+                overlay_opacity?: string | null;
+                phone?: string | null;
+                plan_type?: string | null;
+                primary_color?: string | null;
+                privacy_policy_content?: string | null;
+                secondary_color?: string | null;
+                sections_background_color_1?: string | null;
+                sections_background_color_2?: string | null;
+                sections_background_color_3?: string | null;
+                sections_background_style?: string | null;
+                site_description?: string | null;
+                site_favicon_url?: string | null;
+                site_share_image_url?: string | null;
+                site_title?: string | null;
+                robots_index?: boolean | null;
+                robots_follow?: boolean | null;
+                canonical_prefer_custom_domain?: boolean | null;
+                home_title_template?: string | null;
+                home_description_template?: string | null;
+                property_title_template?: string | null;
+                property_description_template?: string | null;
+                terms_of_use_content?: string | null;
+                tracking_scripts?: import("./types").Json | null;
+                updated_at?: string;
+                user_id?: string;
+                website_slug?: string | null;
+                whatsapp_button_color?: string | null;
+                whatsapp_button_text?: string | null;
+                whatsapp_number?: string | null;
+                brand_primary?: string | null;
+                brand_secondary?: string | null;
+                brand_accent?: string | null;
+                brand_surface?: string | null;
+                brand_surface_fg?: string | null;
+                brand_radius?: number | null;
+                brand_card_elevation?: number | null;
+            };
+            Relationships: [];
+        };
+        broker_domains: {
+            Row: {
+                id: string;
+                broker_id: string;
+                domain: string;
+                is_active: boolean;
+                created_at: string;
+            };
+            Insert: {
+                id?: string;
+                broker_id: string;
+                domain: string;
+                is_active?: boolean;
+                created_at?: string;
+            };
+            Update: {
+                id?: string;
+                broker_id?: string;
+                domain?: string;
+                is_active?: boolean;
+                created_at?: string;
+            };
+            Relationships: [{
+                foreignKeyName: "broker_domains_broker_id_fkey";
+                columns: ["broker_id"];
+                isOneToOne: false;
+                referencedRelation: "brokers";
+                referencedColumns: ["id"];
+            }];
+        };
+        contact_access_logs: {
+            Row: {
+                access_type: string;
+                accessed_at: string;
+                broker_id: string;
+                id: string;
+                session_id: string | null;
+                user_agent: string | null;
+                user_ip: unknown | null;
+            };
+            Insert: {
+                access_type?: string;
+                accessed_at?: string;
+                broker_id: string;
+                id?: string;
+                session_id?: string | null;
+                user_agent?: string | null;
+                user_ip?: unknown | null;
+            };
+            Update: {
+                access_type?: string;
+                accessed_at?: string;
+                broker_id?: string;
+                id?: string;
+                session_id?: string | null;
+                user_agent?: string | null;
+                user_ip?: unknown | null;
+            };
+            Relationships: [];
+        };
+        leads: {
+            Row: {
+                broker_id: string;
+                commission_value: number | null;
+                created_at: string;
+                deal_closed_at: string | null;
+                deal_value: number | null;
+                email: string;
+                id: string;
+                message: string | null;
+                name: string;
+                phone: string | null;
+                property_id: string | null;
+                realtor_id: string | null;
+                source: string | null;
+                status: string | null;
+                updated_at: string;
+            };
+            Insert: {
+                broker_id: string;
+                commission_value?: number | null;
+                created_at?: string;
+                deal_closed_at?: string | null;
+                deal_value?: number | null;
+                email: string;
+                id?: string;
+                message?: string | null;
+                name: string;
+                phone?: string | null;
+                property_id?: string | null;
+                realtor_id?: string | null;
+                source?: string | null;
+                status?: string | null;
+                updated_at?: string;
+            };
+            Update: {
+                broker_id?: string;
+                commission_value?: number | null;
+                created_at?: string;
+                deal_closed_at?: string | null;
+                deal_value?: number | null;
+                email?: string;
+                id?: string;
+                message?: string | null;
+                name?: string;
+                phone?: string | null;
+                property_id?: string | null;
+                realtor_id?: string | null;
+                source?: string | null;
+                status?: string | null;
+                updated_at?: string;
+            };
+            Relationships: [{
+                foreignKeyName: "leads_broker_id_fkey";
+                columns: ["broker_id"];
+                isOneToOne: false;
+                referencedRelation: "brokers";
+                referencedColumns: ["id"];
+            }, {
+                foreignKeyName: "leads_property_id_fkey";
+                columns: ["property_id"];
+                isOneToOne: false;
+                referencedRelation: "properties";
+                referencedColumns: ["id"];
+            }, {
+                foreignKeyName: "leads_realtor_id_fkey";
+                columns: ["realtor_id"];
+                isOneToOne: false;
+                referencedRelation: "realtors";
+                referencedColumns: ["id"];
+            }];
+        };
+        properties: {
+            Row: {
+                address: string;
+                area_m2: number | null;
+                bathrooms: number | null;
+                bedrooms: number | null;
+                broker_id: string;
+                city: string | null;
+                created_at: string;
+                description: string | null;
+                features: string[] | null;
+                id: string;
+                images: string[] | null;
+                is_active: boolean | null;
+                is_featured: boolean | null;
+                main_image_url: string | null;
+                neighborhood: string | null;
+                parking_spaces: number | null;
+                property_type_id: string | null;
+                price: number;
+                property_code: string | null;
+                property_type: string;
+                realtor_id: string | null;
+                slug: string;
+                status: string | null;
+                title: string;
+                transaction_type: string;
+                uf: string | null;
+                updated_at: string;
+                views_count: number | null;
+            };
+            Insert: {
+                address: string;
+                area_m2?: number | null;
+                bathrooms?: number | null;
+                bedrooms?: number | null;
+                broker_id: string;
+                city?: string | null;
+                created_at?: string;
+                description?: string | null;
+                features?: string[] | null;
+                id?: string;
+                images?: string[] | null;
+                is_active?: boolean | null;
+                is_featured?: boolean | null;
+                main_image_url?: string | null;
+                neighborhood?: string | null;
+                parking_spaces?: number | null;
+                property_type_id?: string | null;
+                price: number;
+                property_code?: string | null;
+                property_type: string;
+                realtor_id?: string | null;
+                slug: string;
+                status?: string | null;
+                title: string;
+                transaction_type: string;
+                uf?: string | null;
+                updated_at?: string;
+                views_count?: number | null;
+            };
+            Update: {
+                address?: string;
+                area_m2?: number | null;
+                bathrooms?: number | null;
+                bedrooms?: number | null;
+                broker_id?: string;
+                city?: string | null;
+                created_at?: string;
+                description?: string | null;
+                features?: string[] | null;
+                id?: string;
+                images?: string[] | null;
+                is_active?: boolean | null;
+                is_featured?: boolean | null;
+                main_image_url?: string | null;
+                neighborhood?: string | null;
+                parking_spaces?: number | null;
+                property_type_id?: string | null;
+                price?: number;
+                property_code?: string | null;
+                property_type?: string;
+                realtor_id?: string | null;
+                slug?: string;
+                status?: string | null;
+                title?: string;
+                transaction_type?: string;
+                uf?: string | null;
+                updated_at?: string;
+                views_count?: number | null;
+            };
+            Relationships: [{
+                foreignKeyName: "properties_broker_id_fkey";
+                columns: ["broker_id"];
+                isOneToOne: false;
+                referencedRelation: "brokers";
+                referencedColumns: ["id"];
+            }, {
+                foreignKeyName: "properties_realtor_id_fkey";
+                columns: ["realtor_id"];
+                isOneToOne: false;
+                referencedRelation: "realtors";
+                referencedColumns: ["id"];
+            }, {
+                foreignKeyName: "properties_property_type_id_fkey";
+                columns: ["property_type_id"];
+                isOneToOne: false;
+                referencedRelation: "property_types";
+                referencedColumns: ["id"];
+            }];
+        };
+        property_types: {
+            Row: {
+                id: string;
+                broker_id: string | null;
+                value: string;
+                label: string;
+                group_label: string;
+                is_active: boolean;
+                created_at: string;
+            };
+            Insert: {
+                id?: string;
+                broker_id?: string | null;
+                value: string;
+                label: string;
+                group_label: string;
+                is_active?: boolean;
+                created_at?: string;
+            };
+            Update: {
+                id?: string;
+                broker_id?: string | null;
+                value?: string;
+                label?: string;
+                group_label?: string;
+                is_active?: boolean;
+                created_at?: string;
+            };
+            Relationships: [{
+                foreignKeyName: "property_types_broker_id_fkey";
+                columns: ["broker_id"];
+                isOneToOne: false;
+                referencedRelation: "brokers";
+                referencedColumns: ["id"];
+            }];
+        };
+        realtors: {
+            Row: {
+                avatar_url: string | null;
+                bio: string | null;
+                broker_id: string;
+                commission_percentage: number | null;
+                created_at: string;
+                creci: string | null;
+                email: string;
+                id: string;
+                is_active: boolean;
+                name: string;
+                phone: string | null;
+                updated_at: string;
+                whatsapp_button_text: string;
+            };
+            Insert: {
+                avatar_url?: string | null;
+                bio?: string | null;
+                broker_id: string;
+                commission_percentage?: number | null;
+                created_at?: string;
+                creci?: string | null;
+                email: string;
+                id?: string;
+                is_active?: boolean;
+                name: string;
+                phone?: string | null;
+                updated_at?: string;
+                whatsapp_button_text?: string;
+            };
+            Update: {
+                avatar_url?: string | null;
+                bio?: string | null;
+                broker_id?: string;
+                commission_percentage?: number | null;
+                created_at?: string;
+                creci?: string | null;
+                email?: string;
+                id?: string;
+                is_active?: boolean;
+                name?: string;
+                phone?: string | null;
+                updated_at?: string;
+                whatsapp_button_text?: string;
+            };
+            Relationships: [{
+                foreignKeyName: "realtors_broker_id_fkey";
+                columns: ["broker_id"];
+                isOneToOne: false;
+                referencedRelation: "brokers";
+                referencedColumns: ["id"];
+            }];
+        };
+        security_logs: {
+            Row: {
+                created_at: string;
+                endpoint: string | null;
+                event_type: string;
+                id: string;
+                ip_address: unknown | null;
+                metadata: import("./types").Json | null;
+                user_agent: string | null;
+                user_id: string | null;
+            };
+            Insert: {
+                created_at?: string;
+                endpoint?: string | null;
+                event_type: string;
+                id?: string;
+                ip_address?: unknown | null;
+                metadata?: import("./types").Json | null;
+                user_agent?: string | null;
+                user_id?: string | null;
+            };
+            Update: {
+                created_at?: string;
+                endpoint?: string | null;
+                event_type?: string;
+                id?: string;
+                ip_address?: unknown | null;
+                metadata?: import("./types").Json | null;
+                user_agent?: string | null;
+                user_id?: string | null;
+            };
+            Relationships: [];
+        };
+        social_links: {
+            Row: {
+                broker_id: string;
+                created_at: string;
+                display_order: number;
+                id: string;
+                is_active: boolean;
+                platform: string;
+                updated_at: string;
+                url: string;
+            };
+            Insert: {
+                broker_id: string;
+                created_at?: string;
+                display_order?: number;
+                id?: string;
+                is_active?: boolean;
+                platform: string;
+                updated_at?: string;
+                url: string;
+            };
+            Update: {
+                broker_id?: string;
+                created_at?: string;
+                display_order?: number;
+                id?: string;
+                is_active?: boolean;
+                platform?: string;
+                updated_at?: string;
+                url?: string;
+            };
+            Relationships: [];
+        };
+    };
+    Views: {
+        lead_counts_by_status: {
+            Row: {
+                broker_id: string | null;
+                status: string | null;
+                total: number | null;
+            };
+            Relationships: [{
+                foreignKeyName: "leads_broker_id_fkey";
+                columns: ["broker_id"];
+                isOneToOne: false;
+                referencedRelation: "brokers";
+                referencedColumns: ["id"];
+            }];
+        };
+    };
+    Functions: {
+        check_lead_rate_limit: {
+            Args: {
+                client_ip?: unknown;
+            };
+            Returns: boolean;
+        };
+        check_lead_rate_limit_enhanced: {
+            Args: {
+                client_ip?: unknown;
+                user_email?: string;
+            } | {
+                user_email?: string;
+            };
+            Returns: boolean;
+        };
+        delete_broker_admin: {
+            Args: {
+                broker_id: string;
+            };
+            Returns: boolean;
+        };
+        generate_slug: {
+            Args: {
+                title: string;
+            };
+            Returns: string;
+        };
+        get_all_brokers_admin: {
+            Args: Record<PropertyKey, never>;
+            Returns: {
+                business_name: string;
+                contact_email: string;
+                created_at: string;
+                display_name: string;
+                email: string;
+                id: string;
+                is_active: boolean;
+                max_properties: number;
+                phone: string;
+                plan_type: string;
+                properties_count: number;
+                updated_at: string;
+                user_id: string;
+                website_slug: string;
+                whatsapp_number: string;
+            }[];
+        };
+        get_broker_by_domain_or_slug: {
+            Args: {
+                domain_name?: string;
+                slug_name?: string;
+            };
+            Returns: {
+                about_text: string;
+                about_us_content: string;
+                background_image_url: string;
+                business_name: string;
+                created_at: string;
+                custom_domain: string;
+                display_name: string;
+                footer_text: string;
+                hero_subtitle: string;
+                hero_title: string;
+                id: string;
+                is_active: boolean;
+                logo_size: number;
+                logo_url: string;
+                overlay_color: string;
+                overlay_opacity: string;
+                primary_color: string;
+                privacy_policy_content: string;
+                secondary_color: string;
+                site_description: string;
+                site_favicon_url: string;
+                site_share_image_url: string;
+                site_title: string;
+                robots_index: boolean;
+                robots_follow: boolean;
+                canonical_prefer_custom_domain: boolean;
+                home_title_template: string;
+                home_description_template: string;
+                property_title_template: string;
+                property_description_template: string;
+                terms_of_use_content: string;
+                tracking_scripts: import("./types").Json;
+                updated_at: string;
+                website_slug: string;
+                whatsapp_button_color: string;
+                whatsapp_button_text: string;
+                whatsapp_number: string;
+            }[];
+        };
+        get_broker_by_domain_secure: {
+            Args: {
+                p_domain: string;
+            };
+            Returns: {
+                about_text: string;
+                about_us_content: string;
+                background_image_url: string;
+                business_name: string;
+                created_at: string;
+                custom_domain: string;
+                display_name: string;
+                footer_text: string;
+                hero_subtitle: string;
+                hero_title: string;
+                id: string;
+                is_active: boolean;
+                logo_size: number;
+                logo_url: string;
+                overlay_color: string;
+                overlay_opacity: string;
+                primary_color: string;
+                privacy_policy_content: string;
+                secondary_color: string;
+                site_description: string;
+                site_favicon_url: string;
+                site_share_image_url: string;
+                site_title: string;
+                robots_index: boolean;
+                robots_follow: boolean;
+                canonical_prefer_custom_domain: boolean;
+                home_title_template: string;
+                home_description_template: string;
+                property_title_template: string;
+                property_description_template: string;
+                terms_of_use_content: string;
+                tracking_scripts: import("./types").Json;
+                updated_at: string;
+                user_id: string;
+                website_slug: string;
+                whatsapp_button_color: string;
+                whatsapp_button_text: string;
+                whatsapp_number: string;
+            }[];
+        };
+        get_broker_contact_info_with_logging: {
+            Args: {
+                broker_website_slug: string;
+                user_agent?: string;
+                user_ip?: unknown;
+            };
+            Returns: {
+                access_allowed: boolean;
+                contact_email: string;
+                creci: string;
+                whatsapp_number: string;
+            }[];
+        };
+        get_broker_contact_secure: {
+            Args: {
+                broker_website_slug: string;
+                requesting_user_id?: string;
+            };
+            Returns: {
+                access_granted: boolean;
+                access_reason: string;
+                contact_email: string;
+                creci: string;
+                whatsapp_number: string;
+            }[];
+        };
+        get_properties_by_domain_or_slug: {
+            Args: {
+                domain_name?: string;
+                property_limit?: number;
+                property_offset?: number;
+                slug_name?: string;
+            };
+            Returns: {
+                address: string;
+                area_m2: number;
+                bathrooms: number;
+                bedrooms: number;
+                broker_business_name: string;
+                broker_display_name: string;
+                broker_website_slug: string;
+                city: string;
+                created_at: string;
+                description: string;
+                features: string[];
+                id: string;
+                images: string[];
+                is_featured: boolean;
+                main_image_url: string;
+                neighborhood: string;
+                parking_spaces: number;
+                price: number;
+                property_code: string;
+                property_type: string;
+                realtor_avatar_url: string;
+                realtor_bio: string;
+                realtor_creci: string;
+                realtor_name: string;
+                realtor_whatsapp_button_text: string;
+                slug: string;
+                status: string;
+                title: string;
+                transaction_type: string;
+                uf: string;
+                updated_at: string;
+                views_count: number;
+            }[];
+        };
+        get_public_broker_branding: {
+            Args: {
+                broker_website_slug?: string;
+            };
+            Returns: {
+                about_text: string;
+                about_us_content: string;
+                address: string;
+                background_image_url: string;
+                business_name: string;
+                cnpj: string;
+                created_at: string;
+                display_name: string;
+                footer_text: string;
+                hero_subtitle: string;
+                hero_title: string;
+                id: string;
+                is_active: boolean;
+                logo_size: number;
+                logo_url: string;
+                overlay_color: string;
+                overlay_opacity: string;
+                primary_color: string;
+                privacy_policy_content: string;
+                secondary_color: string;
+                sections_background_color_1: string;
+                sections_background_color_2: string;
+                sections_background_color_3: string;
+                sections_background_style: string;
+                site_description: string;
+                site_favicon_url: string;
+                site_share_image_url: string;
+                site_title: string;
+                terms_of_use_content: string;
+                tracking_scripts: import("./types").Json;
+                updated_at: string;
+                website_slug: string;
+                whatsapp_button_color: string;
+                whatsapp_button_text: string;
+            }[];
+        };
+        get_public_broker_branding_secure: {
+            Args: {
+                broker_website_slug?: string;
+            };
+            Returns: {
+                about_text: string;
+                about_us_content: string;
+                background_image_url: string;
+                business_name: string;
+                created_at: string;
+                display_name: string;
+                footer_text: string;
+                hero_subtitle: string;
+                hero_title: string;
+                id: string;
+                is_active: boolean;
+                logo_size: number;
+                logo_url: string;
+                overlay_color: string;
+                overlay_opacity: string;
+                primary_color: string;
+                privacy_policy_content: string;
+                secondary_color: string;
+                site_description: string;
+                site_favicon_url: string;
+                site_share_image_url: string;
+                site_title: string;
+                terms_of_use_content: string;
+                tracking_scripts: import("./types").Json;
+                updated_at: string;
+                website_slug: string;
+                whatsapp_button_color: string;
+                whatsapp_button_text: string;
+                whatsapp_number: string;
+            }[];
+        };
+        get_public_broker_contact: {
+            Args: {
+                broker_website_slug: string;
+            };
+            Returns: {
+                contact_email: string;
+                creci: string;
+                whatsapp_number: string;
+            }[];
+        };
+        get_public_properties: {
+            Args: {
+                property_limit?: number;
+                property_offset?: number;
+            };
+            Returns: {
+                address: string;
+                area_m2: number;
+                bathrooms: number;
+                bedrooms: number;
+                broker_business_name: string;
+                broker_display_name: string;
+                broker_website_slug: string;
+                city: string;
+                created_at: string;
+                description: string;
+                features: string[];
+                id: string;
+                images: string[];
+                is_featured: boolean;
+                main_image_url: string;
+                neighborhood: string;
+                parking_spaces: number;
+                price: number;
+                property_code: string;
+                property_type: string;
+                slug: string;
+                status: string;
+                title: string;
+                transaction_type: string;
+                uf: string;
+                updated_at: string;
+                views_count: number;
+            }[];
+        };
+        get_public_properties_with_realtor: {
+            Args: {
+                property_limit?: number;
+                property_offset?: number;
+            };
+            Returns: {
+                address: string;
+                area_m2: number;
+                bathrooms: number;
+                bedrooms: number;
+                broker_business_name: string;
+                broker_display_name: string;
+                broker_website_slug: string;
+                city: string;
+                created_at: string;
+                description: string;
+                features: string[];
+                id: string;
+                images: string[];
+                is_featured: boolean;
+                main_image_url: string;
+                neighborhood: string;
+                parking_spaces: number;
+                price: number;
+                property_code: string;
+                property_type: string;
+                realtor_avatar_url: string;
+                realtor_bio: string;
+                realtor_creci: string;
+                realtor_name: string;
+                realtor_whatsapp_button_text: string;
+                slug: string;
+                status: string;
+                title: string;
+                transaction_type: string;
+                uf: string;
+                updated_at: string;
+                views_count: number;
+            }[];
+        };
+        get_public_property_detail_with_realtor: {
+            Args: {
+                broker_slug: string;
+                property_slug: string;
+            };
+            Returns: {
+                address: string;
+                area_m2: number;
+                bathrooms: number;
+                bedrooms: number;
+                broker_business_name: string;
+                broker_display_name: string;
+                broker_website_slug: string;
+                city: string;
+                created_at: string;
+                description: string;
+                features: string[];
+                id: string;
+                images: string[];
+                is_featured: boolean;
+                main_image_url: string;
+                neighborhood: string;
+                parking_spaces: number;
+                price: number;
+                property_code: string;
+                property_type: string;
+                realtor_avatar_url: string;
+                realtor_bio: string;
+                realtor_creci: string;
+                realtor_name: string;
+                realtor_whatsapp_button_text: string;
+                slug: string;
+                status: string;
+                title: string;
+                transaction_type: string;
+                uf: string;
+                updated_at: string;
+                views_count: number;
+            }[];
+        };
+        is_broker_query_safe: {
+            Args: Record<PropertyKey, never>;
+            Returns: boolean;
+        };
+        is_super_admin: {
+            Args: {
+                user_email: string;
+            };
+            Returns: boolean;
+        };
+        log_contact_access: {
+            Args: {
+                p_access_type?: string;
+                p_broker_id: string;
+                p_user_agent?: string;
+                p_user_ip?: unknown;
+            };
+            Returns: boolean;
+        };
+        log_lead_access: {
+            Args: {
+                p_broker_id?: string;
+                p_lead_id: string;
+                p_operation: string;
+            };
+            Returns: undefined;
+        };
+        toggle_broker_status: {
+            Args: {
+                broker_id: string;
+                new_status: boolean;
+            };
+            Returns: boolean;
+        };
+        user_can_access_realtor: {
+            Args: {
+                realtor_id: string;
+            };
+            Returns: boolean;
+        };
+        user_owns_broker: {
+            Args: {
+                p_broker_slug: string;
+                p_user_id: string;
+            };
+            Returns: boolean;
+        };
+        validate_domain_ownership: {
+            Args: {
+                p_domain: string;
+                p_user_id: string;
+            };
+            Returns: boolean;
+        };
+    };
+    Enums: { [_ in never]: never; };
+    CompositeTypes: { [_ in never]: never; };
+}, {
+    PostgrestVersion: "13.0.4";
+}>;

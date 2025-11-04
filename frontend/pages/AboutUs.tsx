@@ -3,6 +3,7 @@ import { logger } from '@/lib/logger';
 import { useParams, Navigate, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Helmet } from 'react-helmet-async';
+import dynamic from 'next/dynamic';
 import DOMPurify from 'dompurify';
 import { ContentPageSkeleton } from '@/components/ui/loading-skeleton';
 
@@ -148,4 +149,5 @@ const AboutUs = () => {
   );
 };
 
-export default AboutUs;
+const DynamicAboutUs = dynamic(() => Promise.resolve(AboutUs), { ssr: false });
+export default DynamicAboutUs;

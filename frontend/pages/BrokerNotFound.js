@@ -1,0 +1,19 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = BrokerNotFound;
+const jsx_runtime_1 = require("react/jsx-runtime");
+const react_1 = require("react");
+const react_helmet_async_1 = require("react-helmet-async");
+const lucide_react_1 = require("lucide-react");
+const button_1 = require("@/components/ui/button");
+function BrokerNotFound() {
+    (0, react_1.useEffect)(() => {
+        // Log para analytics se necessário
+        console.log('Broker not found - 404');
+    }, []);
+    const handleGoBack = () => {
+        window.history.back();
+    };
+    const currentHost = window.location.host;
+    return ((0, jsx_runtime_1.jsxs)(jsx_runtime_1.Fragment, { children: [(0, jsx_runtime_1.jsxs)(react_helmet_async_1.Helmet, { children: [(0, jsx_runtime_1.jsx)("title", { children: "Vitrine n\u00E3o encontrada - AdminImobili\u00E1ria" }), (0, jsx_runtime_1.jsx)("meta", { name: "description", content: "A vitrine solicitada n\u00E3o foi encontrada ou n\u00E3o est\u00E1 ativa." }), (0, jsx_runtime_1.jsx)("meta", { name: "robots", content: "noindex, nofollow" })] }), (0, jsx_runtime_1.jsx)("div", { className: "min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-4", children: (0, jsx_runtime_1.jsxs)("div", { className: "max-w-2xl w-full text-center space-y-8", children: [(0, jsx_runtime_1.jsx)("div", { className: "flex justify-center", children: (0, jsx_runtime_1.jsx)("div", { className: "w-32 h-32 bg-red-100 rounded-full flex items-center justify-center", children: (0, jsx_runtime_1.jsx)(lucide_react_1.Search, { className: "w-16 h-16 text-red-500" }) }) }), (0, jsx_runtime_1.jsxs)("div", { className: "space-y-4", children: [(0, jsx_runtime_1.jsx)("h1", { className: "text-4xl font-bold text-slate-800", children: "Vitrine n\u00E3o encontrada" }), (0, jsx_runtime_1.jsxs)("p", { className: "text-xl text-slate-600 max-w-lg mx-auto", children: ["A vitrine solicitada em ", (0, jsx_runtime_1.jsx)("code", { className: "bg-slate-200 px-2 py-1 rounded text-sm font-mono", children: currentHost }), " n\u00E3o foi encontrada ou n\u00E3o est\u00E1 ativa."] })] }), (0, jsx_runtime_1.jsxs)("div", { className: "bg-white rounded-lg shadow-sm p-6 text-left max-w-md mx-auto", children: [(0, jsx_runtime_1.jsx)("h3", { className: "font-semibold text-slate-800 mb-3", children: "Poss\u00EDveis causas:" }), (0, jsx_runtime_1.jsxs)("ul", { className: "text-sm text-slate-600 space-y-2", children: [(0, jsx_runtime_1.jsx)("li", { children: "\u2022 A imobili\u00E1ria ainda n\u00E3o configurou sua vitrine" }), (0, jsx_runtime_1.jsx)("li", { children: "\u2022 O link est\u00E1 incorreto ou desatualizado" }), (0, jsx_runtime_1.jsx)("li", { children: "\u2022 A vitrine foi temporariamente desativada" }), (0, jsx_runtime_1.jsx)("li", { children: "\u2022 O subdom\u00EDnio \"admin\" \u00E9 reservado para uso do sistema" })] })] }), (0, jsx_runtime_1.jsxs)("div", { className: "flex flex-col sm:flex-row gap-4 justify-center", children: [(0, jsx_runtime_1.jsxs)(button_1.Button, { onClick: handleGoBack, variant: "outline", className: "flex items-center gap-2", children: [(0, jsx_runtime_1.jsx)(lucide_react_1.ArrowLeft, { className: "w-4 h-4" }), "Voltar"] }), (0, jsx_runtime_1.jsxs)(button_1.Button, { onClick: () => window.location.href = 'https://adminimobiliaria.site', className: "flex items-center gap-2", children: [(0, jsx_runtime_1.jsx)(lucide_react_1.Home, { className: "w-4 h-4" }), "Ir para AdminImobili\u00E1ria"] })] }), (0, jsx_runtime_1.jsx)("div", { className: "pt-8 border-t border-slate-200", children: (0, jsx_runtime_1.jsx)("p", { className: "text-sm text-slate-500", children: "Se voc\u00EA \u00E9 o propriet\u00E1rio desta vitrine, fa\u00E7a login no painel de controle para ativ\u00E1-la." }) })] }) })] }));
+}

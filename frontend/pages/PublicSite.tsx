@@ -1,5 +1,6 @@
 import type { BrokerProfile, BrokerContact } from '@src/types/broker';
 import { useState, useEffect, useCallback, useMemo } from 'react';
+import dynamic from 'next/dynamic';
 import { useParams } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { supabase } from '@/integrations/supabase/client';
@@ -147,6 +148,10 @@ const PublicSite = () => {
   }, [slug, toast]);
   const { getBrokerByDomainOrSlug, getPropertiesByDomainOrSlug, isCustomDomain } = useDomainAware();
 
+  // Safe origin/href values to avoid SSR failures when rendering Helmet
+  const origin = typeof window !== 'undefined' ? window.location.origin : '';
+  const href = typeof window !== 'undefined' ? window.location.href : '';
+
   const {
     searchTerm,
     setSearchTerm,
@@ -218,8 +223,8 @@ const PublicSite = () => {
     if (savedFavorites) {
       setFavorites(JSON.parse(savedFavorites));
     }
-    // Check if it's first visit and user hasn't submitted a lead yet
-    const visitIdentifier = isCustomDomain() ? window.location.hostname : slug;
+  // Check if it's first visit and user hasn't submitted a lead yet
+  const visitIdentifier = isCustomDomain() ? (typeof window !== 'undefined' ? window.location.hostname : '') : slug;
     if (visitIdentifier) {
       const visitKey = `first-visit-${visitIdentifier}`;
       const leadSubmittedKey = `lead-submitted-${visitIdentifier}`;
@@ -304,13 +309,13 @@ const PublicSite = () => {
         {/* Favicon */}
         {brokerProfile?.site_favicon_url && (
           <link 
-            rel="icon" 
-            href={brokerProfile.site_favicon_url.startsWith('http') ? 
-              brokerProfile.site_favicon_url : 
-              `${window.location.origin}${brokerProfile.site_favicon_url}`
-            } 
-            type="image/png" 
-          />
+              rel="icon" 
+              href={brokerProfile.site_favicon_url.startsWith('http') ? 
+                brokerProfile.site_favicon_url : 
+                `${origin}${brokerProfile.site_favicon_url}`
+              } 
+              type="image/png" 
+            />
         )}
         
         {/* Open Graph */}
@@ -334,17 +339,17 @@ const PublicSite = () => {
             brokerProfile?.site_share_image_url ? 
               (brokerProfile.site_share_image_url.startsWith('http') ? 
                 brokerProfile.site_share_image_url : 
-                `${window.location.origin}${brokerProfile.site_share_image_url}`) :
+                `${origin}${brokerProfile.site_share_image_url}`) :
               brokerProfile?.logo_url ? 
                 (brokerProfile.logo_url.startsWith('http') ? 
                   brokerProfile.logo_url : 
-                  `${window.location.origin}${brokerProfile.logo_url}`) :
-                `${window.location.origin}/placeholder.svg`
+                  `${origin}${brokerProfile.logo_url}`) :
+                `${origin}/placeholder.svg`
           } 
         />
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content={brokerProfile?.business_name || 'Imobiliária'} />
-        <meta property="og:url" content={window.location.href} />
+  <meta property="og:url" content={href} />
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
         
@@ -370,17 +375,17 @@ const PublicSite = () => {
             brokerProfile?.site_share_image_url ? 
               (brokerProfile.site_share_image_url.startsWith('http') ? 
                 brokerProfile.site_share_image_url : 
-                `${window.location.origin}${brokerProfile.site_share_image_url}`) :
+                `${origin}${brokerProfile.site_share_image_url}`) :
               brokerProfile?.logo_url ? 
                 (brokerProfile.logo_url.startsWith('http') ? 
                   brokerProfile.logo_url : 
-                  `${window.location.origin}${brokerProfile.logo_url}`) :
-                `${window.location.origin}/placeholder.svg`
+                  `${origin}${brokerProfile.logo_url}`) :
+                `${origin}/placeholder.svg`
           } 
         />
         
         {/* Canonical URL */}
-        <link rel="canonical" href={getCanonicalBase(brokerProfile, window.location.origin)} />
+  <link rel="canonical" href={getCanonicalBase(brokerProfile, origin)} />
   <meta name="robots" content={`${((brokerProfile as unknown as { robots_index?: boolean })?.robots_index ?? true) ? 'index' : 'noindex'}, ${((brokerProfile as unknown as { robots_follow?: boolean })?.robots_follow ?? true) ? 'follow' : 'nofollow'}`} />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
@@ -390,11 +395,11 @@ const PublicSite = () => {
             '@context': 'https://schema.org',
             '@type': 'RealEstateAgent',
             name: brokerProfile?.business_name || brokerProfile?.display_name || 'Imobiliária',
-            url: typeof window !== 'undefined' ? window.location.href : undefined,
+            url: href || undefined,
             logo: brokerProfile?.logo_url
               ? (brokerProfile.logo_url.startsWith('http')
                   ? brokerProfile.logo_url
-                  : `${typeof window !== 'undefined' ? window.location.origin : ''}${brokerProfile.logo_url}`)
+                  : `${origin}${brokerProfile.logo_url}`)
               : undefined,
           })}
         </script>
@@ -481,4 +486,5 @@ const PublicSite = () => {
   );
 };
 
-export default PublicSite;
+const DynamicPublicSite = dynamic(() => Promise.resolve(PublicSite), { ssr: false });
+export default DynamicPublicSite;

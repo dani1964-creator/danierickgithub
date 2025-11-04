@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useToast } from '@/hooks/use-toast';
 import { Home, Building2, Users, Globe, Settings, TrendingUp, Eye, UserPlus, RefreshCw } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
+import dynamic from 'next/dynamic';
 import { supabase } from '@/integrations/supabase/client';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import { getErrorMessage } from '@/lib/utils';
@@ -448,4 +449,5 @@ const Dashboard = () => {
   );
 };
 
-export default Dashboard;
+const DynamicDashboard = dynamic(() => Promise.resolve(Dashboard), { ssr: false });
+export default DynamicDashboard;

@@ -27,11 +27,13 @@ interface BrokerData {
   properties_count?: number;
 }
 
-export default function SuperAdminPage() {
+function SuperAdminPage() {
   const SUPER_ADMIN_EMAIL = import.meta.env.VITE_SA_EMAIL || "";
   const SUPER_ADMIN_PASSWORD = import.meta.env.VITE_SA_PASSWORD || "";
   const SUPER_ADMIN_TOKEN_KEY = "sa_auth";
   const { toast } = useToast();
+  // Safe origin for Helmet canonical when rendering on server
+  const origin = typeof window !== 'undefined' ? window.location.origin : '';
   
   // 🎯 Service Role client para SuperAdmin (memoizado para evitar recriação)
   const supabaseServiceRole = useMemo(() => createClient(
@@ -280,6 +282,11 @@ export default function SuperAdminPage() {
     );
   }
 
+import dynamic from 'next/dynamic';
+
+const DynamicSuperAdmin = dynamic(() => Promise.resolve(SuperAdminPage), { ssr: false });
+export default DynamicSuperAdmin;
+
   if (!isAuthorized) {
     return (
       <>
@@ -355,7 +362,7 @@ export default function SuperAdminPage() {
       <Helmet>
         <title>Super Admin — Controle de Imobiliárias</title>
         <meta name="description" content="Painel do super admin para gerenciar imobiliárias, acessos e sites." />
-        <link rel="canonical" href={`${window.location.origin}/admin`} />
+        <link rel="canonical" href={`${origin}/admin`} />
         <meta name="robots" content="noindex, nofollow" />
       </Helmet>
       

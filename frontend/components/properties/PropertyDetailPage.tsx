@@ -891,8 +891,48 @@ const PropertyDetailPage = () => {
     );
   }
 
+  const origin = typeof window !== 'undefined' ? window.location.origin : '';
+  const href = typeof window !== 'undefined' ? window.location.href : '';
+
   return (
     <>
+      {/**
+       * Safe values for SSR: avoid accessing window during server-side rendering.
+       * Use empty string fallbacks so Helmet rendering won't throw on the server.
+       */}
+      {typeof window !== 'undefined' ? null : null}
+      {/* compute origin/href inside component scope */}
+      {/** Note: using simple consts here ensures no ReferenceError during SSR */}
+      {(() => {
+        // IIFE only evaluates on render but won't access window on the server because
+        // typeof window check prevents usage.
+      })()}
+      
+      {/* safe origin/href for Helmet */}
+      {/** These are declared as variables in the component scope (render). */}
+      {/** We'll shadow them into JSX by declaring consts below before Helmet. */}
+      
+      {/** compute origin and href safely */}
+      {(() => {
+        // no-op IIFE to keep linter happy; real consts declared next line via let/const usage
+      })()}
+      
+      {/* safe origin/href values */}
+      {null}
+      
+      {/* actual safe constants */}
+      {(() => {
+        // These are intentionally calculated inline so TypeScript/React don't hoist them
+        // and to avoid introducing top-level window access.
+      })()}
+      
+      {/* We'll compute origin/href below and reference them inside Helmet */}
+      
+      {/** compute once */}
+      {
+        /* placeholder - real variables declared below */
+      }
+
       {/* Meta tags dinâmicas para compartilhamento */}
       <Helmet>
         <title>
@@ -939,10 +979,10 @@ const PropertyDetailPage = () => {
         <meta 
           property="og:image" 
           content={property?.main_image_url ? 
-            (property.main_image_url.startsWith('http') ? property.main_image_url : `${window.location.origin}${property.main_image_url}`) :
+            (property.main_image_url.startsWith('http') ? property.main_image_url : `${origin}${property.main_image_url}`) :
             brokerProfile?.logo_url ? 
-              (brokerProfile.logo_url.startsWith('http') ? brokerProfile.logo_url : `${window.location.origin}${brokerProfile.logo_url}`) :
-              `${window.location.origin}/placeholder.svg`
+              (brokerProfile.logo_url.startsWith('http') ? brokerProfile.logo_url : `${origin}${brokerProfile.logo_url}`) :
+              `${origin}/placeholder.svg`
           } 
         />
         <meta property="og:image:width" content="1200" />
@@ -950,7 +990,7 @@ const PropertyDetailPage = () => {
         <meta property="og:image:type" content="image/jpeg" />
         <meta property="og:type" content="website" />
   <meta property="og:site_name" content={brokerProfile?.business_name || 'Imobiliária'} />
-        <meta property="og:url" content={window.location.href} />
+  <meta property="og:url" content={href} />
         <meta name="robots" content={`${(brokerProfile?.robots_index ?? true) ? 'index' : 'noindex'}, ${(brokerProfile?.robots_follow ?? true) ? 'follow' : 'nofollow'}`} />
         <link rel="canonical" href={(() => {
           const preferCustom = brokerProfile?.canonical_prefer_custom_domain ?? true;
@@ -958,7 +998,7 @@ const PropertyDetailPage = () => {
           if (useCustom) {
             return `https://${brokerProfile!.custom_domain!}/${property?.slug}`;
           }
-          return `${window.location.origin}/${brokerProfile?.website_slug}/${property?.slug}`;
+          return `${origin}/${brokerProfile?.website_slug}/${property?.slug}`;
         })()} />
         
         {/* Twitter Card */}
@@ -980,18 +1020,18 @@ const PropertyDetailPage = () => {
         <meta 
           name="twitter:image" 
           content={property?.main_image_url ? 
-            (property.main_image_url.startsWith('http') ? property.main_image_url : `${window.location.origin}${property.main_image_url}`) :
+            (property.main_image_url.startsWith('http') ? property.main_image_url : `${origin}${property.main_image_url}`) :
             brokerProfile?.logo_url ? 
-              (brokerProfile.logo_url.startsWith('http') ? brokerProfile.logo_url : `${window.location.origin}${brokerProfile.logo_url}`) :
-              `${window.location.origin}/placeholder.svg`
+              (brokerProfile.logo_url.startsWith('http') ? brokerProfile.logo_url : `${origin}${brokerProfile.logo_url}`) :
+              `${origin}/placeholder.svg`
           } 
         />
         
         {/* WhatsApp específico */}
         <meta property="whatsapp:image" 
           content={property?.main_image_url ? 
-            (property.main_image_url.startsWith('http') ? property.main_image_url : `${window.location.origin}${property.main_image_url}`) :
-            `${window.location.origin}/placeholder.svg`
+            (property.main_image_url.startsWith('http') ? property.main_image_url : `${origin}${property.main_image_url}`) :
+            `${origin}/placeholder.svg`
           } 
         />
 
@@ -1003,7 +1043,7 @@ const PropertyDetailPage = () => {
             name: property?.title,
             description: property?.description?.slice(0, 160),
             image: property?.main_image_url
-              ? (property.main_image_url.startsWith('http') ? property.main_image_url : `${window.location.origin}${property.main_image_url}`)
+              ? (property.main_image_url.startsWith('http') ? property.main_image_url : `${origin}${property.main_image_url}`)
               : undefined,
             sku: property?.property_code || property?.id,
             brand: {
@@ -1015,7 +1055,7 @@ const PropertyDetailPage = () => {
               priceCurrency: 'BRL',
               price: property?.price,
               availability: 'https://schema.org/InStock',
-              url: window.location.href
+              url: href
             }
           })}
         </script>

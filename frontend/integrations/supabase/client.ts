@@ -8,9 +8,22 @@ const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiO
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
 
+// During server-side builds (Next.js) `localStorage` and `window` are not available.
+// Provide a minimal no-op storage implementation to avoid ReferenceError during SSR
+const safeStorage: Storage = (typeof window !== 'undefined' && typeof localStorage !== 'undefined')
+  ? localStorage
+  : {
+      length: 0,
+      clear() {},
+      getItem(_key: string) { return null; },
+      key(_index: number) { return null; },
+      removeItem(_key: string) {},
+      setItem(_key: string, _value: string) {},
+    } as unknown as Storage;
+
 export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
   auth: {
-    storage: localStorage,
+    storage: safeStorage,
     persistSession: true,
     autoRefreshToken: true,
   }

@@ -1,0 +1,52 @@
+interface Property {
+    id: string;
+    title: string;
+    description: string | null;
+    price: number;
+    property_type: string;
+    transaction_type: string;
+    address: string;
+    neighborhood: string | null;
+    uf: string | null;
+    bedrooms: number | null;
+    bathrooms: number | null;
+    area_m2: number | null;
+    parking_spaces: number | null;
+    is_featured: boolean;
+    features: string[] | null;
+    images: string[] | null;
+    property_code: string | null;
+    status: string | null;
+    realtor_id?: string | null;
+    hoa_fee?: number | null;
+    hoa_periodicity?: string | null;
+    iptu_value?: number | null;
+    iptu_periodicity?: string | null;
+    built_year?: number | null;
+    suites?: number | null;
+    private_area_m2?: number | null;
+    total_area_m2?: number | null;
+    covered_parking_spaces?: number | null;
+    floor_number?: number | null;
+    total_floors?: number | null;
+    sunlight_orientation?: string | null;
+    property_condition?: string | null;
+    water_cost?: number | null;
+    electricity_cost?: number | null;
+    furnished?: boolean | null;
+    accepts_pets?: boolean | null;
+    elevator?: boolean | null;
+    portaria_24h?: boolean | null;
+    gas_included?: boolean | null;
+    accessibility?: boolean | null;
+    heating_type?: string | null;
+    notes?: string | null;
+}
+interface EditPropertyDialogProps {
+    property: Property;
+    open: boolean;
+    onOpenChange: (open: boolean) => void;
+    onPropertyUpdated: () => void;
+}
+declare const EditPropertyDialog: ({ property, open, onOpenChange, onPropertyUpdated }: EditPropertyDialogProps) => import("react/jsx-runtime").JSX.Element;
+export default EditPropertyDialog;

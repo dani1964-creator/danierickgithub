@@ -1,5 +1,6 @@
 
 import { useState, useEffect, useCallback } from 'react';
+import dynamic from 'next/dynamic';
 import { Search, Trash2, Eye, Filter, RefreshCw, ChevronLeft, ChevronRight } from 'lucide-react';
 import { logger } from '@/lib/logger';
 import { useAuth } from '@shared/hooks/useAuth';
@@ -669,4 +670,5 @@ const Properties = () => {
     );
   };
 
-export default Properties;
+const DynamicProperties = dynamic(() => Promise.resolve(Properties), { ssr: false });
+export default DynamicProperties;

@@ -11,6 +11,8 @@
     "dev:8080": "vite --port 8080 --strictPort",
     "dev:3001": "vite --port 3001 --host",
     "build": "vite build",
+    "build:shared": "tsc -p ./shared/tsconfig.json",
+    "build:ci": "npm run build:shared && (cd frontend && npm ci --silent && npm run build)",
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
     "preview": "vite preview"

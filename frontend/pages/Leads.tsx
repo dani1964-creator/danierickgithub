@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import dynamic from 'next/dynamic';
 import { Mail, Phone, MessageSquare, User, Clock, CheckCircle, XCircle, Edit, Trash2, Check, X, DollarSign, TrendingUp, Calendar, UserCheck, LayoutGrid, List } from 'lucide-react';
 import { logger } from '@/lib/logger';
 import { useAuth } from '@shared/hooks/useAuth';
@@ -62,7 +63,14 @@ const Leads = () => {
   const [editCommissionValue, setEditCommissionValue] = useState('');
   const [realtors, setRealtors] = useState<Realtor[]>([]);
   const [assigningRealtor, setAssigningRealtor] = useState<string | null>(null);
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>(() => (localStorage.getItem('leads_view_mode') as 'grid' | 'list') || 'grid');
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>(() => {
+    try {
+      if (typeof window === 'undefined') return 'grid';
+      return (localStorage.getItem('leads_view_mode') as 'grid' | 'list') || 'grid';
+    } catch {
+      return 'grid';
+    }
+  });
 
   const fetchRealtors = useCallback(async () => {
     if (!user?.id) return;
@@ -1573,4 +1581,5 @@ const Leads = () => {
   );
 };
 
-export default Leads;
+const DynamicLeads = dynamic(() => Promise.resolve(Leads), { ssr: false });
+export default DynamicLeads;

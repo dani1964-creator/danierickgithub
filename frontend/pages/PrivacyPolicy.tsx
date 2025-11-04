@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import dynamic from 'next/dynamic';
 import { logger } from '@/lib/logger';
 import { useParams, Navigate, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -150,4 +151,5 @@ const PrivacyPolicy = () => {
   );
 };
 
-export default PrivacyPolicy;
+const DynamicPrivacyPolicy = dynamic(() => Promise.resolve(PrivacyPolicy), { ssr: false });
+export default DynamicPrivacyPolicy;

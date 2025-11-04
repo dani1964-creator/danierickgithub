@@ -50,9 +50,10 @@ export function TenantProvider({ children, initialTenant }: TenantProviderProps)
       
       // Fallback: fazer requisição para API
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+      const tenantDomain = typeof window !== 'undefined' ? window.location.hostname : '';
       const response = await fetch(`${apiUrl}/api/tenant/info`, {
         headers: {
-          'x-tenant-domain': window.location.hostname
+          'x-tenant-domain': tenantDomain
         }
       });
       

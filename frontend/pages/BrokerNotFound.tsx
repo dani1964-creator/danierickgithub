@@ -1,19 +1,20 @@
 import { useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
+import dynamic from 'next/dynamic';
 import { Home, Search, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
-export default function BrokerNotFound() {
+function BrokerNotFound() {
   useEffect(() => {
     // Log para analytics se necessário
     console.log('Broker not found - 404');
   }, []);
 
   const handleGoBack = () => {
-    window.history.back();
+    if (typeof window !== 'undefined') window.history.back();
   };
 
-  const currentHost = window.location.host;
+  const currentHost = typeof window !== 'undefined' ? window.location.host : '';
 
   return (
     <>
@@ -65,7 +66,7 @@ export default function BrokerNotFound() {
             </Button>
             
             <Button 
-              onClick={() => window.location.href = 'https://adminimobiliaria.site'}
+              onClick={() => { if (typeof window !== 'undefined') window.location.href = 'https://adminimobiliaria.site'; }}
               className="flex items-center gap-2"
             >
               <Home className="w-4 h-4" />
@@ -84,3 +85,6 @@ export default function BrokerNotFound() {
     </>
   );
 }
+
+const DynamicBrokerNotFound = dynamic(() => Promise.resolve(BrokerNotFound), { ssr: false });
+export default DynamicBrokerNotFound;

@@ -1,5 +1,6 @@
 
 import { useState, useEffect, useCallback } from 'react';
+import dynamic from 'next/dynamic';
 import { Save, User, Globe2, Plus, Trash2, Copy, CloudCog } from 'lucide-react';
 import { useAuth } from '@shared/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -494,4 +495,5 @@ const Settings = () => {
   );
 };
 
-export default Settings;
+const DynamicSettings = dynamic(() => Promise.resolve(Settings), { ssr: false });
+export default DynamicSettings;

@@ -1,6 +1,7 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import { logger } from '@/lib/logger';
+import dynamic from 'next/dynamic';
 
 const NotFound = () => {
   const location = useLocation();
@@ -34,4 +35,5 @@ const NotFound = () => {
   );
 };
 
-export default NotFound;
+const DynamicNotFound = dynamic(() => Promise.resolve(NotFound), { ssr: false });
+export default DynamicNotFound;

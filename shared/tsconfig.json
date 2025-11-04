@@ -1,0 +1,24 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+  "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "declaration": true,
+    "declarationMap": false,
+    "outDir": "dist",
+    "rootDir": "./",
+    "jsx": "react-jsx",
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "strict": false,
+    "skipLibCheck": true,
+    "resolveJsonModule": true
+  },
+  "baseUrl": "..",
+  "paths": {
+    "@/*": ["frontend/*"],
+    "@shared/*": ["shared/*"]
+  },
+  "include": ["hooks/**/*", "types/**/*", "**/*.ts", "**/*.tsx", "../frontend/**/*"],
+  "exclude": ["node_modules", "dist"]
+}

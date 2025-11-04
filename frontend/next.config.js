@@ -70,7 +70,14 @@ module.exports = {
     config.module.rules.push({
       test: /\.[jt]sx?$/,
       include: [path.resolve(__dirname, '../shared')],
-      use: [defaultLoaders.babel],
+      use: [
+        {
+          loader: require.resolve('babel-loader'),
+          options: {
+            presets: [require.resolve('next/babel')],
+          },
+        },
+      ],
     });
     return config;
   },

@@ -58,4 +58,22 @@ const nextConfig = {
   }
 };
 
+const path = require('path');
+
+// Ensure Next transpiles the monorepo `shared` folder which contains TypeScript
+// modules that must be compiled for the frontend build.
+module.exports = {
+  ...nextConfig,
+  transpilePackages: ['@shared'],
+  webpack: (config, { defaultLoaders }) => {
+    // Add rule to run Next's babel loader over the shared package files.
+    config.module.rules.push({
+      test: /\.[jt]sx?$/,
+      include: [path.resolve(__dirname, '../shared')],
+      use: [defaultLoaders.babel],
+    });
+    return config;
+  },
+};
+
 module.exports = nextConfig;

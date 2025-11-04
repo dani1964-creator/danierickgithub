@@ -47,6 +47,9 @@ const nextConfig = {
     ],
   },
   
+  // Tell Next to transpile our local shared package by package name.
+  transpilePackages: ['@myorg/shared'],
+
   // Experimental features
   experimental: {
     serverComponentsExternalPackages: ['@supabase/supabase-js']

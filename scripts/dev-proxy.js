@@ -5,7 +5,7 @@ function makeProxy(port, hostHeader) {
   const app = express();
 
   app.use('/', createProxyMiddleware({
-    target: 'http://localhost:3001',
+    target: 'http://localhost:3000',
     changeOrigin: true,
     ws: true,
     onProxyReq(proxyReq, req, res) {
@@ -21,4 +21,4 @@ function makeProxy(port, hostHeader) {
 makeProxy(8081, 'bucos.adminimobiliaria.site');
 makeProxy(8082, 'teste.adminimobiliaria.site');
 
-console.log('Dev proxy started: ports 8081 (bucos) and 8082 (teste) -> forwarding to localhost:3001');
+console.log('Dev proxy started: ports 8081 (bucos) and 8082 (teste) -> forwarding to localhost:3000');

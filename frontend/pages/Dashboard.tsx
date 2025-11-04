@@ -1,14 +1,5 @@
-import { logger } from '@/lib/logger';
 import { Navigate, useNavigate } from 'react-router-dom';
-import { useAuth } from '@shared/hooks/useAuth';
-Dashboard.tsx
-tenantController.ts
-frontend
-pages
-Dashboard.tsx
-…
-78910111213141516171819561234
-import { useState, useEffect, useCallback } from 'react';import { supabase } from '@/integrations/supabase/client';import DashboardLayout from '@/components/dashboard/DashboardLayout';import { getErrorMessage } from '@/lib/utils';// ✅ IMPORT DO HOOK OTIMIZADOimport { useDashboardData } from '@shared/hooks/useDashboardData';const Dashboard = () => {  const { user, signOut, loading } = useAuth();  const { toast } = useToast();
+import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
@@ -18,7 +9,8 @@ import { supabase } from '@/integrations/supabase/client';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import { getErrorMessage } from '@/lib/utils';
 // ✅ IMPORT DO HOOK OTIMIZADO
-import { useDashboardData } from '@shared/hooks/useDashboardData';
+import { useDashboardData } from '@/hooks/useDashboardData';
+import { logger } from '@/lib/logger';
 
 
 const Dashboard = () => {
@@ -26,8 +18,8 @@ const Dashboard = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const [websiteSlug, setWebsiteSlug] = useState<string | null>(null);
-  const [customDomain, setCustomDomain] = useState<string | null>(null);
   const [brokerId, setBrokerId] = useState<string | null>(null);
+  const [customDomain, setCustomDomain] = useState<string | null>(null);
 
   // ✅ HOOK OTIMIZADO - SUBSTITUI TODAS AS CONSULTAS PESADAS
   const { 
@@ -58,13 +50,13 @@ const Dashboard = () => {
       if (error) throw error;
       
       // ✅ SETAR ID DO BROKER PARA ATIVAR O HOOK
-  setBrokerId(data?.id || null);
-  setWebsiteSlug(data?.website_slug || null);
-  setCustomDomain(data?.custom_domain || null);
+      setBrokerId(data?.id || null);
+      setWebsiteSlug(data?.website_slug || null);
+      setCustomDomain(data?.custom_domain || null);
     } catch (error: unknown) {
       logger.error('Error fetching broker profile:', error);
     }
-  }, []);
+  }, [setBrokerId, setWebsiteSlug, setCustomDomain]);
 
   useEffect(() => {
     if (user) {

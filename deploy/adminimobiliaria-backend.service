@@ -1,0 +1,14 @@
+[Unit]
+Description=AdminImobiliaria Backend
+After=network.target
+
+[Service]
+Type=simple
+User=www-data
+WorkingDirectory=/var/www/adminimobiliaria/backend
+ExecStart=/usr/bin/node dist/app.js
+Restart=on-failure
+EnvironmentFile=/var/www/adminimobiliaria/backend/.env
+
+[Install]
+WantedBy=multi-user.target

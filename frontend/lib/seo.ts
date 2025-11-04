@@ -23,3 +23,40 @@ export function applyTemplate(template: string | null | undefined, values: Recor
   }
   return result;
 }
+
+/**
+ * Gera uma URL pública simples e síncrona para compartilhamento baseado em slug
+ * (usado em operações de UI como "Compartilhar" e WhatsApp). Esta função
+ * tenta usar a configuração do domínio base quando disponível, e faz um
+ * fallback para window.location.origin quando não houver VITE/ENV disponível.
+ */
+export function getPublicUrl(brokerSlug: string, propertySlug: string, pathPrefix = '/'): string {
+  try {
+    const trim = (s: string) => s?.replace(/^\/+|\/+$/g, '') || '';
+    const cleanProperty = trim(propertySlug || '');
+    const cleanBroker = trim(brokerSlug || '');
+
+    // Tentar usar variável de ambiente (Vite) quando presente
+    // (em Next.js isso pode não existir, por isso fallback em seguida)
+    // @ts-ignore
+    const base = (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_BASE_PUBLIC_DOMAIN)
+      ? String(import.meta.env.VITE_BASE_PUBLIC_DOMAIN)
+      : '';
+
+    if (base) {
+      // Formato: https://{brokerSlug}.{base}/{propertySlug}
+      return `https://${cleanBroker}.${base}/${cleanProperty}`.replace(/\/\/$/, '');
+    }
+
+    // Fallback para origin + /{brokerSlug}/{propertySlug}
+    if (typeof window !== 'undefined') {
+      const origin = window.location.origin.replace(/\/$/, '');
+      return `${origin}/${cleanBroker}/${cleanProperty}`.replace(/\/\/$/, '');
+    }
+
+    // Último recurso
+    return `https://${cleanBroker}/${cleanProperty}`;
+  } catch (e) {
+    return `/${brokerSlug}/${propertySlug}`;
+  }
+}

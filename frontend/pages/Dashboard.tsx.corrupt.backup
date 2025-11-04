@@ -1,0 +1,30 @@
+import { logger } from '@/lib/logger';
+import { Navigate, useNavigate } from 'react-router-dom';
+import { useAuth } from '@shared/hooks/useAuth';
+Dashboard.tsx
+tenantController.ts
+frontend
+pages
+Dashboard.tsx
+…
+78910111213141516171819561234
+import { useState, useEffect, useCallback } from 'react';import { supabase } from '@/integrations/supabase/client';import DashboardLayout from '@/components/dashboard/DashboardLayout';import { getErrorMessage } from '@/lib/utils';// ✅ IMPORT DO HOOK OTIMIZADOimport { useDashboardData } from '@shared/hooks/useDashboardData';const Dashboard = () => {  const { user, signOut, loading } = useAuth();  const { toast } = useToast();
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useToast } from '@/hooks/use-toast';
+import { Home, Building2, Users, Globe, Settings, TrendingUp, Eye, UserPlus, RefreshCw } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import DashboardLayout from '@/components/dashboard/DashboardLayout';
+import { getErrorMessage } from '@/lib/utils';
+// ✅ IMPORT DO HOOK OTIMIZADO
+import { useDashboardData } from '@shared/hooks/useDashboardData';
+
+
+const Dashboard = () => {
+  const { user, signOut, loading } = useAuth();
+  const { toast } = useToast();
+  const navigate = useNavigate();
+  const [websiteSlug, setWebsiteSlug] = useState<string | null>(null);
+  const [customDomain, setCustomDomain] = useState<string | null>(null);
+  const [brokerId, setBrokerId] = useState<string | null>(null);

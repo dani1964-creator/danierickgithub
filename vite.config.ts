@@ -7,6 +7,13 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
     port: 3001,
+    // Permitir hosts de desenvolvimento usados nos testes locais/proxy.
+    // Evita erro: "Blocked request. This host (...) is not allowed"
+    // Lista apenas hosts de dev para segurança; em caso de muitos hosts use 'all'.
+    allowedHosts: [
+      'bucos.adminimobiliaria.site',
+      'teste.adminimobiliaria.site'
+    ],
   },
   plugins: [
     react(),

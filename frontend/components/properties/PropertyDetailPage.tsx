@@ -19,6 +19,7 @@ import ContactCTA from '@/components/home/ContactCTA';
 import Footer from '@/components/home/Footer';
 import LeadModal from '@/components/leads/LeadModal';
 import { getErrorMessage } from '@/lib/utils';
+import { getPublicUrl } from '@/lib/seo';
 import { logger } from '@/lib/logger';
 import { getPrefetchedDetail, setPrefetchedDetail } from '@/lib/detail-prefetch';
 
@@ -512,7 +513,7 @@ const PropertyDetailPage = () => {
       
       // Sempre usar URL limpa baseada em slug do corretor e slug do imóvel
       const brokerSlug = brokerProfile?.website_slug || slug;
-    const shareUrl = `${currentOrigin}/${brokerSlug}/${property.slug}`;
+      const shareUrl = getPublicUrl(brokerSlug as string, property.slug as string);
       
       const message = encodeURIComponent(
         `Olá! Tenho interesse no imóvel "${property.title}" - Código: ${property.property_code || property.id.slice(-8)}. Valor: ${formatPrice(property.price)}. Gostaria de mais informações. Link: ${shareUrl}`
@@ -530,11 +531,12 @@ const PropertyDetailPage = () => {
       
       // Tentar abrir WhatsApp
       try {
-        window.open(whatsappUrl, '_blank');
+        // Abrir diretamente a URL pública do imóvel (padrão do sistema)
+        window.open(shareUrl, '_blank');
       } catch (error) {
-        logger.error('Erro ao abrir WhatsApp:', error);
-        // Fallback para web WhatsApp
-        window.open(`https://wa.me/${contactInfo.whatsapp_number}?text=${message}`, '_blank');
+        logger.error('Erro ao abrir URL pública:', error);
+        // Fallback para abrir a página pública diretamente
+        window.open(shareUrl, '_blank');
       }
       
       // Registrar interesse também
@@ -557,10 +559,9 @@ const PropertyDetailPage = () => {
 
   const handleShare = () => {
     if (!property || !brokerProfile) return;
-
-  // Usar URL direta do site (sem Edge Function)
-  const brokerSlug = brokerProfile.website_slug || slug;
-  const shareUrl = `${window.location.origin}/${brokerSlug}/${property.slug}`;
+    // Usar URL direta do site (via helper centralizado)
+    const brokerSlug = brokerProfile.website_slug || slug;
+    const shareUrl = getPublicUrl(brokerSlug as string, property.slug as string);
 
     if (navigator.share) {
       navigator.share({

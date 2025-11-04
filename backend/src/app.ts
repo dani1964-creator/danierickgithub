@@ -15,6 +15,7 @@ import { propertiesPublicRouter } from './routes/properties';
 import { leadsPublicRouter } from './routes/leads';
 import { tenantRouter } from './routes/tenant';
 import { adminRouter } from './routes/admin';
+import debugRouter from './routes/debug';
 
 // Carregar variáveis de ambiente
 dotenv.config();
@@ -64,6 +65,11 @@ app.get('/health', (req, res) => {
 
 // Rotas de identificação de tenant (sem middleware de autenticação)
 app.use('/api/tenant', tenantRouter);
+
+// Rota de debug opcional (ativa apenas se ENABLE_DEBUG_ROUTES=true)
+if (process.env.ENABLE_DEBUG_ROUTES === 'true') {
+  app.use('/api/debug', debugRouter);
+}
 
 // Rotas públicas (com identificação de tenant)
 app.use('/api/public/properties', identifyTenant, propertiesPublicRouter);

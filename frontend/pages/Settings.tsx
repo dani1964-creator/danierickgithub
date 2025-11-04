@@ -47,11 +47,11 @@ const Settings = () => {
   const [domainsLoading, setDomainsLoading] = useState(false);
   const [domainInput, setDomainInput] = useState('');
   const [savingDomain, setSavingDomain] = useState(false);
-  const appUrl = (import.meta.env.VITE_PUBLIC_APP_URL as string) || (typeof window !== 'undefined' ? window.location.origin : '');
+  const appUrl = (process.env.NEXT_PUBLIC_APP_URL as string) || (typeof window !== 'undefined' ? window.location.origin : '');
   const appHost = (() => {
     try { return new URL(appUrl).host; } catch { return (appUrl || '').replace(/^https?:\/\//, '').replace(/\/$/, ''); }
   })();
-  const cnameTarget = (import.meta.env.VITE_CNAME_TARGET as string) || appHost;
+  const cnameTarget = (process.env.NEXT_PUBLIC_CNAME_TARGET as string) || appHost;
   const getErrorMessage = (err: unknown) => (err instanceof Error ? err.message : typeof err === 'string' ? err : 'Erro desconhecido');
   const isLikelyApex = (d: string) => {
     const dom = normalizeDomain(d);

@@ -27,14 +27,14 @@ interface BrokerData {
 }
 
 export default function SuperAdminPage() {
-  const SUPER_ADMIN_EMAIL = import.meta.env.VITE_SA_EMAIL || "erickjq123@gmail.com";
-  const SUPER_ADMIN_PASSWORD = import.meta.env.VITE_SA_PASSWORD || "Danis0133.";
+  const SUPER_ADMIN_EMAIL = (process.env.NEXT_PUBLIC_SA_EMAIL as string) || "erickjq123@gmail.com";
+  const SUPER_ADMIN_PASSWORD = (process.env.NEXT_PUBLIC_SA_PASSWORD as string) || "Danis0133.";
   const SUPER_ADMIN_TOKEN_KEY = "sa_auth";
   
   // Service Role SUPER ISOLADO - instância completamente separada
   const supabaseServiceRole = useMemo(() => {
-    const url = import.meta.env.VITE_SUPABASE_URL;
-    const serviceKey = import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRlbWNqc2twd2N4cW9oemx5anhiIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NTA0MjEzNSwiZXhwIjoyMDcwNjE4MTM1fQ.GiG1U1St1uueHjYdFPCiYB29jV1S3lFssrEnzswWYxM";
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL as string || '';
+    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
     
   logger.info('🔐 SuperAdmin Service Role SUPER ISOLADO:');
   logger.info('  URL:', url ? '✅ Definida' : '❌ Não definida');

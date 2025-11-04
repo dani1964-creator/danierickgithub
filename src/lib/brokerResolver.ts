@@ -64,7 +64,7 @@ export class BrokerResolver {
    * Fallback: resolve localmente (compatibilidade)
    */
   private static async resolveViaLocalQuery(host: string): Promise<string | null> {
-    const baseDomain = import.meta.env.VITE_BASE_PUBLIC_DOMAIN?.toLowerCase() || 'adminimobiliaria.site';
+  const baseDomain = (process.env.NEXT_PUBLIC_BASE_PUBLIC_DOMAIN || '')?.toLowerCase() || 'adminimobiliaria.site';
     
     try {
       // Subdomínio *.adminimobiliaria.site

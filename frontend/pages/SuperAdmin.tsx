@@ -28,8 +28,8 @@ interface BrokerData {
 }
 
 function SuperAdminPage() {
-  const SUPER_ADMIN_EMAIL = import.meta.env.VITE_SA_EMAIL || "";
-  const SUPER_ADMIN_PASSWORD = import.meta.env.VITE_SA_PASSWORD || "";
+  const SUPER_ADMIN_EMAIL = (process.env.NEXT_PUBLIC_SA_EMAIL as string) || "";
+  const SUPER_ADMIN_PASSWORD = (process.env.NEXT_PUBLIC_SA_PASSWORD as string) || "";
   const SUPER_ADMIN_TOKEN_KEY = "sa_auth";
   const { toast } = useToast();
   // Safe origin for Helmet canonical when rendering on server
@@ -37,8 +37,8 @@ function SuperAdminPage() {
   
   // 🎯 Service Role client para SuperAdmin (memoizado para evitar recriação)
   const supabaseServiceRole = useMemo(() => createClient(
-    import.meta.env.VITE_SUPABASE_URL,
-    import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRlbWNqc2twd2N4cW9oemx5anhiIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NTA0MjEzNSwiZXhwIjoyMDcwNjE4MTM1fQ.GiG1U1St1uueHjYdFPCiYB29jV1S3lFssrEnzswWYxM"
+    process.env.NEXT_PUBLIC_SUPABASE_URL as string,
+    process.env.SUPABASE_SERVICE_ROLE_KEY || "",
   ), []);
   
   // Estados simples
@@ -64,8 +64,8 @@ function SuperAdminPage() {
   logger.info('🔍 [fetchBrokers] Iniciando busca...');
       setLoading(true);
       
-  logger.debug('🔍 [fetchBrokers] Service Role URL:', import.meta.env.VITE_SUPABASE_URL);
-  logger.debug('🔍 [fetchBrokers] Service Role Key existe:', !!import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY);
+  logger.debug('🔍 [fetchBrokers] Service Role URL:', process.env.NEXT_PUBLIC_SUPABASE_URL);
+  logger.debug('🔍 [fetchBrokers] Service Role Key existe:', !!process.env.SUPABASE_SERVICE_ROLE_KEY);
       
       // 🎯 TENTATIVA 1: Service Role
       let { data: brokersData, error: brokersError } = await supabaseServiceRole

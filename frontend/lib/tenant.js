@@ -28,7 +28,7 @@ function isDevelopmentHost(host) {
         h.includes('.preview.app.github.dev');
 }
 function baseDomain() {
-    return (import.meta.env.VITE_BASE_PUBLIC_DOMAIN || '').toLowerCase();
+    return (typeof process !== 'undefined' && process.env.NEXT_PUBLIC_BASE_PUBLIC_DOMAIN ? String(process.env.NEXT_PUBLIC_BASE_PUBLIC_DOMAIN) : '').toLowerCase();
 }
 function isCustomDomainHost(host) {
     const h = (host || getHost());

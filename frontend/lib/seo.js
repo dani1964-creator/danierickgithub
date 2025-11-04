@@ -34,10 +34,11 @@ function getPublicUrl(brokerSlug, propertySlug, pathPrefix = '/') {
         const cleanBroker = trim(brokerSlug || '');
         // Tentar usar variável de ambiente (Vite) quando presente
         // (em Next.js isso pode não existir, por isso fallback em seguida)
-        // @ts-ignore
-        const base = (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_BASE_PUBLIC_DOMAIN)
-            ? String(import.meta.env.VITE_BASE_PUBLIC_DOMAIN)
-            : '';
+            const base = (typeof process !== 'undefined' && process.env.NEXT_PUBLIC_BASE_PUBLIC_DOMAIN)
+                ? String(process.env.NEXT_PUBLIC_BASE_PUBLIC_DOMAIN)
+                : (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_BASE_PUBLIC_DOMAIN)
+                    ? String(import.meta.env.VITE_BASE_PUBLIC_DOMAIN)
+                    : '';
         if (base) {
             // Formato: https://{brokerSlug}.{base}/{propertySlug}
             return `https://${cleanBroker}.${base}/${cleanProperty}`.replace(/\/\/$/, '');

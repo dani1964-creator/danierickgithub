@@ -22,7 +22,7 @@ export function isDevelopmentHost(host?: string): boolean {
 }
 
 export function baseDomain(): string {
-  return (import.meta.env.VITE_BASE_PUBLIC_DOMAIN || '').toLowerCase();
+  return (process.env.NEXT_PUBLIC_BASE_PUBLIC_DOMAIN || '').toLowerCase();
 }
 
 export function isCustomDomainHost(host?: string): boolean {

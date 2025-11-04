@@ -19,12 +19,15 @@ const locale_1 = require("date-fns/locale");
 const react_helmet_async_1 = require("react-helmet-async");
 const logger_1 = require("@/lib/logger");
 function SuperAdminPage() {
-    const SUPER_ADMIN_EMAIL = import.meta.env.VITE_SA_EMAIL || "";
-    const SUPER_ADMIN_PASSWORD = import.meta.env.VITE_SA_PASSWORD || "";
+    const SUPER_ADMIN_EMAIL = (typeof process !== 'undefined' && process.env.NEXT_PUBLIC_SA_EMAIL) || "";
+    const SUPER_ADMIN_PASSWORD = (typeof process !== 'undefined' && process.env.NEXT_PUBLIC_SA_PASSWORD) || "";
     const SUPER_ADMIN_TOKEN_KEY = "sa_auth";
     const { toast } = (0, use_toast_1.useToast)();
     // 🎯 Service Role client para SuperAdmin (memoizado para evitar recriação)
-    const supabaseServiceRole = (0, react_1.useMemo)(() => (0, supabase_js_1.createClient)(import.meta.env.VITE_SUPABASE_URL, import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRlbWNqc2twd2N4cW9oemx5anhiIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NTA0MjEzNSwiZXhwIjoyMDcwNjE4MTM1fQ.GiG1U1St1uueHjYdFPCiYB29jV1S3lFssrEnzswWYxM"), []);
+    const supabaseServiceRole = (0, react_1.useMemo)(() => (0, supabase_js_1.createClient)(
+        (typeof process !== 'undefined' && process.env.NEXT_PUBLIC_SUPABASE_URL) || '',
+        (typeof process !== 'undefined' && process.env.SUPABASE_SERVICE_ROLE_KEY) || ''
+    ), []);
     // Estados simples
     const [brokers, setBrokers] = (0, react_1.useState)([]);
     const [loading, setLoading] = (0, react_1.useState)(true);
@@ -45,8 +48,8 @@ function SuperAdminPage() {
         try {
             logger_1.logger.info('🔍 [fetchBrokers] Iniciando busca...');
             setLoading(true);
-            logger_1.logger.debug('🔍 [fetchBrokers] Service Role URL:', import.meta.env.VITE_SUPABASE_URL);
-            logger_1.logger.debug('🔍 [fetchBrokers] Service Role Key existe:', !!import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY);
+                logger_1.logger.debug('🔍 [fetchBrokers] Service Role URL:', (typeof process !== 'undefined' && process.env.NEXT_PUBLIC_SUPABASE_URL));
+                logger_1.logger.debug('🔍 [fetchBrokers] Service Role Key existe:', !!(typeof process !== 'undefined' && process.env.SUPABASE_SERVICE_ROLE_KEY));
             // 🎯 TENTATIVA 1: Service Role
             let { data: brokersData, error: brokersError } = await supabaseServiceRole
                 .from('brokers')

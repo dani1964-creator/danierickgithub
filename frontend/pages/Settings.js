@@ -27,7 +27,7 @@ const Settings = () => {
     const [domainsLoading, setDomainsLoading] = (0, react_1.useState)(false);
     const [domainInput, setDomainInput] = (0, react_1.useState)('');
     const [savingDomain, setSavingDomain] = (0, react_1.useState)(false);
-    const appUrl = import.meta.env.VITE_PUBLIC_APP_URL || (typeof window !== 'undefined' ? window.location.origin : '');
+    const appUrl = (typeof process !== 'undefined' && process.env.NEXT_PUBLIC_APP_URL) || (typeof window !== 'undefined' ? window.location.origin : '');
     const appHost = (() => {
         try {
             return new URL(appUrl).host;
@@ -36,7 +36,7 @@ const Settings = () => {
             return (appUrl || '').replace(/^https?:\/\//, '').replace(/\/$/, '');
         }
     })();
-    const cnameTarget = import.meta.env.VITE_CNAME_TARGET || appHost;
+    const cnameTarget = (typeof process !== 'undefined' && process.env.NEXT_PUBLIC_CNAME_TARGET) || appHost;
     const getErrorMessage = (err) => (err instanceof Error ? err.message : typeof err === 'string' ? err : 'Erro desconhecido');
     const isLikelyApex = (d) => {
         const dom = normalizeDomain(d);

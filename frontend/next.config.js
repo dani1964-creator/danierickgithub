@@ -67,7 +67,9 @@ module.exports = {
   transpilePackages: ['@shared'],
   webpack: (config, { defaultLoaders }) => {
     // Add rule to run Next's babel loader over the shared package files.
-    config.module.rules.push({
+    // Put the rule at the beginning so it runs before other loaders that may try
+    // to parse the same files.
+    config.module.rules.unshift({
       test: /\.[jt]sx?$/,
       include: [path.resolve(__dirname, '../shared')],
       use: [

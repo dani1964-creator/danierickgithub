@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { logger } from '@/lib/logger';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
-import { useParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import dynamic from 'next/dynamic';
 import DOMPurify from 'dompurify';
@@ -21,8 +20,8 @@ interface BrokerProfile {
 }
 
 const AboutUs = () => {
-  const { slug } = useParams<{ slug: string }>();
   const router = useRouter();
+  const { slug } = router.query as { slug?: string };
   const [brokerProfile, setBrokerProfile] = useState<BrokerProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);

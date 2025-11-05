@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import dynamic from 'next/dynamic';
 import { logger } from '@/lib/logger';
 import { User, Mail, Phone, Plus, Edit, Trash2, Check, X, UserCheck, UserX, Award, LayoutGrid, List } from 'lucide-react';
-import { useAuth } from '@shared/hooks/useAuth';
+import { useAuth } from '@/shared/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';

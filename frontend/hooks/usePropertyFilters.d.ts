@@ -1,4 +1,4 @@
-import { Property } from '@shared/types/tenant';
+import { Property } from '@/shared/types/tenant';
 interface Filters {
     transaction_type: string;
     property_type: string;

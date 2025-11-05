@@ -1,4 +1,4 @@
-import { useAuth } from "@shared/hooks/useAuth";
+import { useAuth } from "@/hooks/useAuth";
 import AuthForm from "@/components/auth/AuthForm";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import Dashboard from "./dashboard";

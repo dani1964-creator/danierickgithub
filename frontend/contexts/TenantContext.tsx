@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { logger } from '@/lib/logger';
-import { TenantData } from '@shared/types/tenant';
+import { TenantData } from '@/shared/types/tenant';
 
 interface TenantContextType {
   tenant: TenantData | null;

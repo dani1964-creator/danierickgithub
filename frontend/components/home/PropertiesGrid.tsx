@@ -5,7 +5,7 @@ import PropertyCard from '@/components/properties/PropertyCard';
 import { Button } from '@/components/ui/button';
 import BackgroundRenderer from '@/components/backgrounds/BackgroundRenderer';
 import SectionHeader from '@/components/common/SectionHeader';
-import { Property } from '@shared/types/tenant';
+import { Property } from '@/shared/types/tenant';
 import { BrokerProfile } from '@/shared/types/broker';
 
 interface PropertiesGridProps {

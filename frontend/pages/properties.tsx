@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback } from 'react';
 import dynamic from 'next/dynamic';
 import { Search, Trash2, Eye, Filter, RefreshCw, ChevronLeft, ChevronRight } from 'lucide-react';
 import { logger } from '@/lib/logger';
-import { useAuth } from '@shared/hooks/useAuth';
+import { useAuth } from '@/shared/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';

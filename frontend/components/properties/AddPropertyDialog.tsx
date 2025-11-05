@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { logger } from '@/lib/logger';
 import { Plus, Upload, X } from 'lucide-react';
-import { useAuth } from '@shared/hooks/useAuth';
+import { useAuth } from '@/shared/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';

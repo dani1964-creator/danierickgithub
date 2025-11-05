@@ -1,5 +1,5 @@
 import { ReactNode } from 'react';
-import { TenantData } from '@shared/types/tenant';
+import { TenantData } from '@/shared/types/tenant';
 interface TenantContextType {
     tenant: TenantData | null;
     loading: boolean;

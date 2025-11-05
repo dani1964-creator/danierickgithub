@@ -33,7 +33,7 @@ const PropertyCard = ({
   onImageClick 
 }: PropertyCardProps) => {
   const router = useRouter();
-  const router = useRouter(); const { slug  } = router.query;
+  const { slug } = router.query as { slug?: string };
   const { isCustomDomain, getBrokerByDomainOrSlug } = useDomainAware();
 
   const formatPrice = (price: number) => {

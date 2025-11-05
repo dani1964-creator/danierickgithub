@@ -1,6 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { createClient } from '@supabase/supabase-js';
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -15,6 +14,7 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Helmet } from 'react-helmet-async';
 import { logger } from '@/lib/logger';
+import dynamic from 'next/dynamic';
 
 interface BrokerData {
   id: string;
@@ -35,11 +35,8 @@ function SuperAdminPage() {
   // Safe origin for Helmet canonical when rendering on server
   const origin = typeof window !== 'undefined' ? window.location.origin : '';
   
-  // 🎯 Service Role client para SuperAdmin (memoizado para evitar recriação)
-  const supabaseServiceRole = useMemo(() => createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL as string,
-    process.env.SUPABASE_SERVICE_ROLE_KEY || "",
-  ), []);
+  // NOTE: Do NOT instantiate a Service Role client in the browser.
+  // Server-side endpoints under /api/superadmin/* provide privileged operations.
   
   // Estados simples
   const [brokers, setBrokers] = useState<BrokerData[]>([]);
@@ -58,106 +55,25 @@ function SuperAdminPage() {
     });
   }, [brokers]);
 
-  // Função simples para buscar brokers
+  // Função para buscar brokers via endpoint server-side (não usar Service Role no cliente)
   const fetchBrokers = async () => {
     try {
-  logger.info('🔍 [fetchBrokers] Iniciando busca...');
       setLoading(true);
-      
-  logger.debug('🔍 [fetchBrokers] Service Role URL:', process.env.NEXT_PUBLIC_SUPABASE_URL);
-  logger.debug('🔍 [fetchBrokers] Service Role Key existe:', !!process.env.SUPABASE_SERVICE_ROLE_KEY);
-      
-      // 🎯 TENTATIVA 1: Service Role
-      let { data: brokersData, error: brokersError } = await supabaseServiceRole
-        .from('brokers')
-        .select('id, business_name, email, is_active, plan_type, created_at, website_slug')
-        .order('created_at', { ascending: false });
-
-  logger.info('📊 [Tentativa 1] Service Role:', { count: brokersData?.length || 0 });
-
-      // 🎯 TENTATIVA 2: Se Service Role falhou, tentar com client normal
-      if (!brokersData || brokersData.length < 6) {
-  logger.info('🔄 [Tentativa 2] Tentando com client normal...');
-        const { data: normalData, error: normalError } = await supabase
-          .from('brokers')
-          .select('id, business_name, email, is_active, plan_type, created_at, website_slug')
-          .order('created_at', { ascending: false });
-        
-  logger.debug('📊 [Tentativa 2] Client Normal:', { count: normalData?.length || 0 });
-        
-        if (normalData && normalData.length > (brokersData?.length || 0)) {
-          brokersData = normalData;
-          brokersError = normalError;
-          logger.info('✅ [Tentativa 2] Client normal retornou mais dados!');
-        }
+      logger.info('� [fetchBrokers] Chamando /api/superadmin/brokers');
+      const res = await fetch('/api/superadmin/brokers');
+      const json = await res.json();
+      if (!res.ok) {
+        logger.error('❌ [fetchBrokers] API error:', json);
+        throw new Error(json?.error || 'Erro ao buscar brokers');
       }
 
-      // 🎯 TENTATIVA 3: Query sem ORDER BY  
-      if (!brokersData || brokersData.length < 6) {
-  logger.info('🔄 [Tentativa 3] Tentando sem ORDER BY...');
-        const { data: noOrderData, error: noOrderError } = await supabaseServiceRole
-          .from('brokers')
-          .select('id, business_name, email, is_active, plan_type, created_at, website_slug');
-        
-  logger.debug('📊 [Tentativa 3] Sem ORDER BY:', { count: noOrderData?.length || 0 });
-        
-        if (noOrderData && noOrderData.length > (brokersData?.length || 0)) {
-          brokersData = noOrderData;
-          brokersError = noOrderError;
-          logger.info('✅ [Tentativa 3] Query sem ORDER BY funcionou!');
-        }
-      }
-
-      logger.debug('📊 [fetchBrokers] Resposta Supabase (Service Role):', { 
-        count: brokersData?.length || 0, 
-        error: brokersError?.message || 'sem erro',
-        data: brokersData
-      });
-
-      if (brokersError) throw brokersError;
-
-      // Buscar contagem de propriedades (também com Service Role)      
-      const brokersWithCounts = await Promise.all(
-        brokersData.map(async (broker) => {
-          const { count } = await supabaseServiceRole
-            .from('properties')
-            .select('*', { count: 'exact', head: true })
-            .eq('broker_id', broker.id);
-
-          return { ...broker, properties_count: count || 0 };
-        })
-      );
-
-  logger.info('✅ [fetchBrokers] Dados processados:', brokersWithCounts);
-  logger.debug('🔍 [fetchBrokers] Chamando setBrokers com:', brokersWithCounts.length, 'brokers');
-      
-      // Log individual de cada broker
-      brokersWithCounts.forEach((broker, i) => {
-        logger.info(`   ${i+1}. ${broker.business_name} (${broker.email}) - Status: ${broker.is_active}`);
-      });
-
+      const brokersWithCounts = json.data || [];
+      logger.info('✅ [fetchBrokers] Dados recebidos:', brokersWithCounts.length);
       setBrokers(brokersWithCounts);
-  logger.debug('🎯 [fetchBrokers] setBrokers executado com:', brokersWithCounts.length, 'brokers');
-      
-      // 🎯 DIAGNÓSTICO DETALHADO
-      if (brokersWithCounts.length !== 6) {
-  logger.error('🚨 [DIAGNÓSTICO] Esperava 6 brokers, mas chegaram:', brokersWithCounts.length);
-  logger.error('🚨 [DIAGNÓSTICO] Dados que chegaram:', brokersWithCounts);
-      } else {
-  logger.info('✅ [DIAGNÓSTICO] Correto! 6 brokers carregados.');
-      }
-      
-      toast({
-        title: "Sucesso",
-        description: `${brokersWithCounts.length} imobiliárias carregadas com sucesso!`,
-      });
+      toast({ title: 'Sucesso', description: `${brokersWithCounts.length} imobiliárias carregadas com sucesso!` });
     } catch (error) {
-  logger.error('❌ [fetchBrokers] Erro:', error);
-      toast({
-        title: "Erro",
-        description: "Não foi possível carregar as imobiliárias.",
-        variant: "destructive",
-      });
+      logger.error('❌ [fetchBrokers] Erro:', error);
+      toast({ title: 'Erro', description: 'Não foi possível carregar as imobiliárias.', variant: 'destructive' });
     } finally {
       setLoading(false);
     }
@@ -166,15 +82,21 @@ function SuperAdminPage() {
   // Função simples para toggle status
   const toggleBrokerStatus = async (brokerId: string, currentStatus: boolean) => {
     try {
-      const { error } = await supabaseServiceRole
-        .from('brokers')
-        .update({ 
-          is_active: !currentStatus,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', brokerId);
-      
-      if (error) throw error;
+      const res = await fetch('/api/superadmin/toggle-broker-status', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          brokerId,
+          isActive: !currentStatus,
+        }),
+      });
+
+      const json = await res.json();
+      if (!res.ok) {
+        throw new Error(json?.error || 'Erro ao atualizar status');
+      }
       
       // Atualizar estado local
       setBrokers(prev => prev.map(broker => 
@@ -189,7 +111,7 @@ function SuperAdminPage() {
       });
 
     } catch (error) {
-  logger.error('Error toggling broker status:', error);
+      logger.error('Error toggling broker status:', error);
       toast({
         title: "Erro ao atualizar status",
         description: "Não foi possível atualizar o status.",
@@ -281,11 +203,6 @@ function SuperAdminPage() {
       </div>
     );
   }
-
-import dynamic from 'next/dynamic';
-
-const DynamicSuperAdmin = dynamic(() => Promise.resolve(SuperAdminPage), { ssr: false });
-export default DynamicSuperAdmin;
 
   if (!isAuthorized) {
     return (
@@ -597,3 +514,5 @@ export default DynamicSuperAdmin;
     </div>
   );
 }
+
+export default dynamic(() => Promise.resolve(SuperAdminPage), { ssr: false });

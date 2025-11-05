@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { logger } from '@/lib/logger';
 import { useParams, Navigate, useNavigate } from 'react-router-dom';
+import dynamic from 'next/dynamic';
 import { supabase } from '@/integrations/supabase/client';
 import { Helmet } from 'react-helmet-async';
 import DOMPurify from 'dompurify';
@@ -150,4 +151,4 @@ const TermsOfUse = () => {
   );
 };
 
-export default TermsOfUse;
+export default dynamic(() => Promise.resolve(TermsOfUse), { ssr: false });

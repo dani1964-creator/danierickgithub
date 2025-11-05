@@ -2,19 +2,19 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.logger = void 0;
 // Lightweight logger wrapper used by frontend code.
-// Debug output only appears in development (Vite sets import.meta.env.DEV).
+// Prefer bundler-safe environment variables. Avoid `import.meta` access which
+// may trigger warnings in Next's build/runtime.
 const isDev = (() => {
     try {
-        // Vite env
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const im = import.meta;
-        if (im && im.env && typeof im.env.DEV !== 'undefined')
-            return Boolean(im.env.DEV);
+        if (typeof process !== 'undefined') {
+            const pub = process.env.NEXT_PUBLIC_DEBUG || process.env.NEXT_PUBLIC_VITE_DEV;
+            if (typeof pub !== 'undefined') return String(pub) === '1' || String(pub).toLowerCase() === 'true';
+            return process.env.NODE_ENV !== 'production';
+        }
     }
-    catch {
-        // import.meta might not be available in some environments
+    catch (e) {
     }
-    return process.env.NODE_ENV !== 'production';
+    return false;
 })();
 exports.logger = {
     debug: (...args) => {

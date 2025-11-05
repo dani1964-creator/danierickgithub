@@ -1,15 +1,18 @@
 // Lightweight logger wrapper used by frontend code.
-// Debug output only appears in development (Vite sets import.meta.env.DEV).
+// Prefer server-side / bundler-safe environment variables. Avoid accessing
+// `import.meta` directly because bundlers (and Next's runtime) may warn.
 const isDev = (() => {
   try {
-    // Vite env
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const im = (import.meta as any);
-    if (im && im.env && typeof im.env.DEV !== 'undefined') return Boolean(im.env.DEV);
-  } catch {
-    // import.meta might not be available in some environments
+    // Honor an explicit public debug flag when present (useful for preview/deploys)
+    if (typeof process !== 'undefined') {
+      const pub = process.env.NEXT_PUBLIC_DEBUG || process.env.NEXT_PUBLIC_VITE_DEV;
+      if (typeof pub !== 'undefined') return String(pub) === '1' || String(pub).toLowerCase() === 'true';
+      return process.env.NODE_ENV !== 'production';
+    }
+  } catch (e) {
+    // Fallback safe value
   }
-  return process.env.NODE_ENV !== 'production';
+  return false;
 })();
 
 export const logger = {

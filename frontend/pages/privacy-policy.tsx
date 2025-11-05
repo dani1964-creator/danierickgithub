@@ -2,9 +2,9 @@ import { useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
 import { logger } from '@/lib/logger';
 import { useRouter } from 'next/router';
+import Head from 'next/head';
 import { useParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { Helmet } from 'react-helmet-async';
 import DOMPurify from 'dompurify';
 import { ContentPageSkeleton } from '@/components/ui/loading-skeleton';
 
@@ -89,10 +89,10 @@ const PrivacyPolicy = () => {
 
   return (
     <>
-      <Helmet>
+      <Head>
         <title>Política de Privacidade - {brokerProfile?.business_name}</title>
         <meta name="description" content={`Política de Privacidade da ${brokerProfile?.business_name}. Como coletamos, usamos e protegemos seus dados pessoais.`} />
-      </Helmet>
+      </Head>
 
       <div className="min-h-screen bg-background animate-fade-in">
         {/* Header */}

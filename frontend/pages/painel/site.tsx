@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { ExternalLink, Globe, CheckCircle2, XCircle, AlertCircle, Copy } from 'lucide-react';
-import { Helmet } from 'react-helmet-async';
+import Head from 'next/head';
 import { logger } from '@/lib/logger';
 
 /**
@@ -151,9 +151,9 @@ export default function WebsiteConfiguration() {
 
   return (
     <div className="container mx-auto p-6 max-w-4xl">
-      <Helmet>
+      <Head>
         <title>Configurações do Site - Painel</title>
-      </Helmet>
+      </Head>
 
       <div className="mb-6">
         <h1 className="text-3xl font-bold">Configurações do Site</h1>

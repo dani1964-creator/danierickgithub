@@ -1,5 +1,4 @@
 import { useEffect } from 'react';
-import { Helmet } from 'react-helmet-async';
 import type { Json } from '@/integrations/supabase/types';
 
 interface TrackingScripts {

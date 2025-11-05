@@ -12,7 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Building2, Users, Globe, Trash2, Plus, Eye, EyeOff, ExternalLink, RefreshCw, LogOut } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Helmet } from 'react-helmet-async';
+import Head from 'next/head';
 import { logger } from '@/lib/logger';
 import dynamic from 'next/dynamic';
 
@@ -276,12 +276,12 @@ function SuperAdminPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Helmet>
+      <Head>
         <title>Super Admin — Controle de Imobiliárias</title>
         <meta name="description" content="Painel do super admin para gerenciar imobiliárias, acessos e sites." />
         <link rel="canonical" href={`${origin}/admin`} />
         <meta name="robots" content="noindex, nofollow" />
-      </Helmet>
+      </Head>
       
       <div className="container mx-auto p-3 sm:p-6">
         <div className="mb-6 sm:mb-8 flex justify-between items-start">

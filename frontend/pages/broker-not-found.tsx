@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Helmet } from 'react-helmet-async';
+import Head from 'next/head';
 import dynamic from 'next/dynamic';
 import { Home, Search, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -18,11 +18,11 @@ function BrokerNotFound() {
 
   return (
     <>
-      <Helmet>
+      <Head>
         <title>Vitrine não encontrada - AdminImobiliária</title>
         <meta name="description" content="A vitrine solicitada não foi encontrada ou não está ativa." />
         <meta name="robots" content="noindex, nofollow" />
-      </Helmet>
+      </Head>
 
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-4">
         <div className="max-w-2xl w-full text-center space-y-8">

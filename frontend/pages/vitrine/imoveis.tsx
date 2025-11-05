@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Helmet } from 'react-helmet-async';
+import Head from 'next/head';
 import { logger } from '@/lib/logger';
 
 /**
@@ -38,9 +38,9 @@ export default function PublicProperties() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Helmet>
+      <Head>
         <title>Imóveis - Vitrine</title>
-      </Helmet>
+      </Head>
 
       <div className="container mx-auto px-6 py-12">
         <h1 className="text-4xl font-bold mb-8">Nossos Imóveis</h1>

@@ -2,7 +2,7 @@ import type { BrokerProfile, BrokerContact } from '@src/types/broker';
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/router';
-import { Helmet } from 'react-helmet-async';
+import Head from 'next/head';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { usePropertyFilters } from '@/hooks/usePropertyFilters';
@@ -282,7 +282,7 @@ const PublicSite = () => {
   return (
     <ThemeProvider broker={brokerProfile}>
       {/* Meta tags dinâmicas para cada imobiliária */}
-      <Helmet>
+      <Head>
         
         <title>
           {applyTemplate(
@@ -403,7 +403,7 @@ const PublicSite = () => {
               : undefined,
           })}
         </script>
-      </Helmet>
+      </Head>
       
       <div className="public-site-layout min-h-screen bg-background">
       <TrackingScripts trackingScripts={brokerProfile?.tracking_scripts} />

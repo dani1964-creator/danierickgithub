@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
-import { Helmet } from 'react-helmet-async';
+import Head from 'next/head';
 import { logger } from '@/lib/logger';
 
 /**
@@ -83,10 +83,10 @@ export default function PublicHomepage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Helmet>
+      <Head>
         <title>{brokerData.business_name}</title>
         <meta name="description" content={brokerData.description} />
-      </Helmet>
+      </Head>
 
       {/* Hero Section */}
       <section className="bg-gradient-to-br from-primary/10 to-background py-20">

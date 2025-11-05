@@ -2,8 +2,8 @@ import { useEffect, useState } from 'react';
 import { logger } from '@/lib/logger';
 import { useRouter } from 'next/router';
 import dynamic from 'next/dynamic';
+import Head from 'next/head';
 import { supabase } from '@/integrations/supabase/client';
-import { Helmet } from 'react-helmet-async';
 import DOMPurify from 'dompurify';
 import { ContentPageSkeleton } from '@/components/ui/loading-skeleton';
 
@@ -89,10 +89,10 @@ const TermsOfUse = () => {
 
   return (
     <>
-      <Helmet>
+      <Head>
         <title>Termos de Uso - {brokerProfile?.business_name}</title>
         <meta name="description" content={`Termos de Uso da ${brokerProfile?.business_name}. Regras e condições para utilização dos nossos serviços.`} />
-      </Helmet>
+      </Head>
 
       <div className="min-h-screen bg-background animate-fade-in">
         {/* Header */}

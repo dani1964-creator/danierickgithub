@@ -4,8 +4,10 @@
 
 ### 1. Build Command
 ```bash
-cd frontend && npm ci && npm run build
+cd frontend && npm install && npm run build
 ```
+
+**⚠️ IMPORTANTE:** Use `npm install` ao invés de `npm ci` para garantir instalação de devDependencies.
 
 ### 2. Output Directory
 ```
@@ -16,6 +18,8 @@ frontend/.next
 ```bash
 cd frontend && npm start
 ```
+
+**⚠️ IMPORTANTE:** O `cd frontend` é obrigatório pois há um `package.json` na raiz que executa Vite. Sem o `cd`, o DO executa o build errado!
 
 ### 4. Environment Variables (App-Level)
 
@@ -130,7 +134,9 @@ npm start
 | `Middleware timeout` | Fetch para backend externo | ✅ Middleware com fallback standalone |
 | `SUPABASE_SERVICE_ROLE_KEY not found` | Variável não configurada | Adicionar no App-Level Env |
 | `Wildcard não funciona` | DNS não configurado | Adicionar CNAME no Cloudflare |
+| `vite build` executado ao invés de `next build` | DO ignorando source_dir | ✅ Usar `cd frontend &&` nos comandos |
+| `npm ci` pula devDependencies | Comando de build incorreto | ✅ Usar `npm install` ao invés de `npm ci` |
 
 ---
 
-**Última atualização:** 2024-11-05 (após correção PostCSS)
+**Última atualização:** 2024-11-05 (após correção source_dir)

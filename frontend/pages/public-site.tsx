@@ -182,7 +182,9 @@ const PublicSite = () => {
 
   const fetchBrokerData = useCallback(async () => {
     try {
-      const effectiveSlug = isCustomDomain() ? undefined : slug;
+      // Garantir que slug seja string | undefined (router.query pode retornar string[])
+      const slugString = Array.isArray(slug) ? slug[0] : slug;
+      const effectiveSlug = isCustomDomain() ? undefined : slugString;
       logger.debug('Fetching broker data - Custom domain:', isCustomDomain(), 'Slug:', effectiveSlug);
       const brokerData = await getBrokerByDomainOrSlug(effectiveSlug);
       logger.debug('Broker data from domain-aware hook:', brokerData);

@@ -4,7 +4,7 @@ import type { Json } from '@/integrations/supabase/types';
 import { useState, useEffect, useCallback } from 'react';
 import dynamic from 'next/dynamic';
 import { Save, Globe, Palette, Code, Share2, FileText, Search } from 'lucide-react';
-import useAuth from '@/hooks/useAuth';
+import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';

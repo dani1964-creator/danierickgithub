@@ -27,8 +27,8 @@
       "@/hooks/*": ["./hooks/*"],
       "@/contexts/*": ["./contexts/*"],
       "@/utils/*": ["./utils/*"],
-      "@shared/*": ["../shared/*"],
-      "@src/*": ["../src/*"]
+      "@shared/*": ["./shared/*"],
+      "@src/*": ["./src/*"]
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"],

@@ -1,4 +1,4 @@
-import type { BrokerProfile, BrokerContact } from '@src/types/broker';
+import type { BrokerProfile, BrokerContact } from '@/shared/types/broker';
 type SocialLink = {
     id: string | number;
     platform: string;

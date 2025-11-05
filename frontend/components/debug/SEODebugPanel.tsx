@@ -1,5 +1,5 @@
 import React from 'react';
-import type { BrokerProfile } from '@src/types/broker';
+import type { BrokerProfile } from '@/shared/types/broker';
 
 type MinimalBrokerSEO = Partial<Pick<BrokerProfile,
   'site_title' |

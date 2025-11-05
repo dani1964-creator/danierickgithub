@@ -1,4 +1,4 @@
-import type { BrokerProfile } from '@src/types/broker';
+import type { BrokerProfile } from '@/shared/types/broker';
 type Props = {
     broker?: Partial<BrokerProfile> | null;
     children: React.ReactNode;

@@ -2,7 +2,7 @@
 // Chave: `${brokerSlug}|${propertySlug}`
 
 import type { Database } from '@/integrations/supabase/types';
-import type { BrokerProfile } from '@src/types/broker';
+import type { BrokerProfile } from '@/shared/types/broker';
 
 // O RPC get_public_property_detail_with_realtor retorna um objeto "Property" enriquecido
 // Não temos o tipo gerado automaticamente do RPC; definimos um shape mínimo usado no detalhe

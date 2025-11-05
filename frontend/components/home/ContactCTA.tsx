@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import LeadModal from '@/components/leads/LeadModal';
-import type { BrokerProfile, BrokerContact } from '@src/types/broker';
+import type { BrokerProfile, BrokerContact } from '@/shared/types/broker';
 interface ContactCTAProps {
   brokerProfile: BrokerProfile;
 }

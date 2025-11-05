@@ -76,7 +76,7 @@ interface Property {
   notes?: string | null;
 }
 
-import type { BrokerProfile, BrokerContact } from '@src/types/broker';
+import type { BrokerProfile, BrokerContact } from '@/shared/types/broker';
 
 const PropertyDetailPage = () => {
   const router = useRouter();

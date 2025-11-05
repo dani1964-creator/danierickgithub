@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
-import type { BrokerProfile } from '@src/types/broker';
+import type { BrokerProfile } from '@/shared/types/broker';
 
 interface FixedHeaderProps {
   brokerProfile: BrokerProfile;

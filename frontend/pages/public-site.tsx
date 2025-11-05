@@ -1,4 +1,5 @@
-import type { BrokerProfile, BrokerContact } from '@src/types/broker';
+import type { BrokerProfile, BrokerContact } from '@/shared/types/broker';
+import type { Property } from '@/shared/types/tenant';
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/router';
@@ -27,7 +28,6 @@ import { getCanonicalBase, applyTemplate } from '@/lib/seo';
 import { usePropertyTypes } from '@/hooks/usePropertyTypes';
 import { getErrorMessage } from '@/lib/utils';
 import { logger } from '@/lib/logger';
-import { Property } from '@shared/types/tenant';
 
 // BrokerContact importado do tipo compartilhado
 

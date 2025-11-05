@@ -26,11 +26,9 @@
       "@/components/*": ["./components/*"],
       "@/hooks/*": ["./hooks/*"],
       "@/contexts/*": ["./contexts/*"],
-      "@/utils/*": ["./utils/*"],
-      "@shared/*": ["./shared/*"],
-      "@src/*": ["./src/*"]
+      "@/utils/*": ["./utils/*"]
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"],
-  "exclude": ["node_modules", "_vite_legacy", ".next"]
+  "exclude": ["node_modules", "_LEGACY_VITE_src", "_LEGACY_VITE_old", ".next", "shared"]
 }

@@ -1,5 +1,5 @@
 import type { Database } from '@/integrations/supabase/types';
-import type { BrokerProfile } from '@src/types/broker';
+import type { BrokerProfile } from '@/shared/types/broker';
 export type PublicPropertyDetail = {
     id: string;
     title: string;

@@ -1,4 +1,4 @@
-import type { BrokerProfile } from '@src/types/broker';
+import type { BrokerProfile } from '@/shared/types/broker';
 interface HeroBannerProps {
     brokerProfile: BrokerProfile;
     onContactClick?: () => void;

@@ -1,5 +1,5 @@
 import { Property } from '@shared/types/tenant';
-import { BrokerProfile } from '@src/types/broker';
+import { BrokerProfile } from '@/shared/types/broker';
 interface PropertyCardProps {
     id?: string;
     property: Property;

@@ -15,7 +15,7 @@ import {
   SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
-import { useAuth } from '@shared/hooks/useAuth';
+import useAuth from '@/hooks/useAuth';
 
 const AppSidebar = () => {
   const router = useRouter();

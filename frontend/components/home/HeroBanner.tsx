@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react';
 import { logger } from '@/lib/logger';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import type { BrokerProfile, BrokerContact } from '@src/types/broker';
+import type { BrokerProfile, BrokerContact } from '@/shared/types/broker';
 
 interface HeroBannerProps {
   brokerProfile: BrokerProfile;

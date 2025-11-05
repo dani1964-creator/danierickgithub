@@ -1,7 +1,8 @@
 import { useRouter } from 'next/router';
-import { useAuth } from '@/hooks/useAuth';
+import useAuth from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+
 import { useToast } from '@/hooks/use-toast';
 import { Home, Building2, Users, Globe, Settings, TrendingUp, Eye, UserPlus, RefreshCw } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
@@ -10,7 +11,7 @@ import { supabase } from '@/integrations/supabase/client';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import { getErrorMessage } from '@/lib/utils';
 // ✅ IMPORT DO HOOK OTIMIZADO
-import { useDashboardData } from '@/hooks/useDashboardData';
+import useDashboardData from '@/hooks/useDashboardData';
 import { logger } from '@/lib/logger';
 
 

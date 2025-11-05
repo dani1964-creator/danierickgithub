@@ -1,5 +1,6 @@
-# Diretórios copiados do projeto Vite (não devem ser validados)
-src/
+# Diretórios copiados do projeto Vite (renomeados para evitar compilação)
+_LEGACY_VITE_src/
+_LEGACY_VITE_old/
 shared/
 
 # Build outputs
@@ -13,6 +14,3 @@ node_modules/
 
 # Type definitions
 **/*.d.ts
-
-# Legacy
-_vite_legacy/

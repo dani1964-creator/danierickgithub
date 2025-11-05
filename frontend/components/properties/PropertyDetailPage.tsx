@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/router';
-import { Helmet } from 'react-helmet-async';
+import Head from 'next/head';
 import { ChevronLeft, MapPin, Bed, Bath, Car, Square, Eye, Heart, Share2, MessageCircle, Phone, Mail, X, Play, Maximize2, ArrowLeft, Star, Calendar, Users, Zap, Moon, Sun } from 'lucide-react';
 import { ZoomableImage } from '@/components/ui/zoomable-image';
 import { supabase } from '@/integrations/supabase/client';
@@ -934,7 +934,7 @@ const PropertyDetailPage = () => {
       }
 
       {/* Meta tags dinâmicas para compartilhamento */}
-      <Helmet>
+      <Head>
         <title>
           {(() => {
             const base = property ? `${property.title} - ${brokerProfile?.business_name || 'Imobiliária'}` : `${brokerProfile?.business_name || 'Imobiliária'}`;
@@ -1059,7 +1059,7 @@ const PropertyDetailPage = () => {
             }
           })}
         </script>
-      </Helmet>
+      </Head>
 
       {/* Container principal do conteúdo da propriedade */}
       <div className={`min-h-screen transition-colors duration-300 ${

@@ -8,8 +8,9 @@ services:
       branch: main
       deploy_on_push: true
       repo: dani1964-creator/danierickgithub
-    build_command: cd frontend && npm install && npm run build
-    run_command: cd frontend && npm start
+    source_dir: /frontend
+    build_command: npm install && npm run build
+    run_command: ./start.sh
     environment_slug: node-js
     instance_count: 1
     instance_size_slug: basic-xxs

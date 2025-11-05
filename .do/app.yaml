@@ -4,9 +4,12 @@ region: nyc
 services:
   # Frontend Next.js (standalone - sem backend separado)
   - name: web
-    source_dir: /frontend
-    build_command: npm install && npm run build
-    run_command: npm start
+    github:
+      branch: main
+      deploy_on_push: true
+      repo: dani1964-creator/danierickgithub
+    build_command: cd frontend && npm install && npm run build
+    run_command: cd frontend && npm start
     environment_slug: node-js
     instance_count: 1
     instance_size_slug: basic-xxs

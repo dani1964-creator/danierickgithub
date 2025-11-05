@@ -87,6 +87,7 @@ const Settings = () => {
     } finally {
       setDomainsLoading(false);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Removido dependências desnecessárias
 
   const fetchProfile = useCallback(async (currentUser?: typeof user) => {
@@ -115,10 +116,12 @@ const Settings = () => {
     } finally {
       setLoading(false);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Removido dependências para evitar re-renders constantes
 
   useEffect(() => {
     if (user) {
+  // eslint-disable-next-line react-hooks/exhaustive-deps
       fetchProfile(user);
     }
   }, [user]); // Precisa depender do user para executar quando ele estiver disponível

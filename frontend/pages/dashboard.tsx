@@ -65,7 +65,7 @@ const Dashboard = () => {
       fetchBrokerProfile(user);
       // ✅ REALTIME AGORA É GERENCIADO PELO useDashboardData hook automaticamente
     }
-  }, [user]); // Precisa depender do user para executar quando ele estiver disponível
+  }, [user, fetchBrokerProfile]); // Precisa depender do user para executar quando ele estiver disponível
 
   // Redirect effect for authentication
   useEffect(() => {

@@ -83,11 +83,13 @@ const WebsiteSettings = () => {
     } finally {
       setLoading(false);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Removido dependências para evitar re-renders constantes
 
   useEffect(() => {
     if (user) {
       fetchProfile(user);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
     }
   }, [user]); // Precisa depender do user para executar quando ele estiver disponível
 

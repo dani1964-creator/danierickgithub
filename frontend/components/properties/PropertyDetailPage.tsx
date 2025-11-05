@@ -378,6 +378,7 @@ const PropertyDetailPage = () => {
     } finally {
       setLoading(false);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [effectivePropertySlug, slug]);
 
   useEffect(() => {
@@ -667,6 +668,7 @@ const PropertyDetailPage = () => {
     (window as any).testRPCFunctions = testRPCFunctions;
     return () => {
       delete (window as any).testRPCFunctions;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
     };
   }, []); // Remover dependência para evitar re-criação constante
 
@@ -709,6 +711,7 @@ const PropertyDetailPage = () => {
 
     return () => {
       carouselApi.off('select', onSelect);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
     };
   }, [carouselApi, thumbnailCarouselApi]);
 

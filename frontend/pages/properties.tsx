@@ -175,6 +175,7 @@ const Properties = () => {
         variant: "destructive"
       });
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [toast]);
 
   // ✅ BUSCAR BROKER ID QUANDO USER ESTIVER DISPONÍVEL

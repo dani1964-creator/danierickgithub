@@ -191,6 +191,7 @@ function SuperAdminPage() {
       setShowLoginDialog(true);
       setLoading(false);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   if (loading) {

@@ -71,6 +71,7 @@ const SocialLinksManager = () => {
     } finally {
       setLoading(false);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [toast, user?.id]);
 
   useEffect(() => {

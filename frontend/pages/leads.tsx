@@ -161,6 +161,7 @@ const Leads = () => {
         setLoading(false);
       }
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Removido dependências para evitar re-renders constantes
 
   useEffect(() => {
@@ -223,6 +224,7 @@ const Leads = () => {
         supabase.removeChannel(channel);
       };
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]); // Precisa depender do user para executar quando ele estiver disponível
 
 

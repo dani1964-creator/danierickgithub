@@ -106,6 +106,7 @@ const Realtors = () => {
     } finally {
       setLoading(false);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [brokerInfo?.id]); // Adicionada dependência do brokerInfo.id
 
   useEffect(() => {

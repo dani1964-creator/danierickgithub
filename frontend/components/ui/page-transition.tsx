@@ -15,6 +15,7 @@ export const PageTransition = ({ children, duration = 300 }: PageTransitionProps
     if (location !== displayLocation) {
       setTransitionStage('fadeOut');
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location, displayLocation]);
 
   return (

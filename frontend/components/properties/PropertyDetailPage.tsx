@@ -223,8 +223,8 @@ const PropertyDetailPage = () => {
               website_slug
             )
           `)
-          .eq('slug', Array.isArray(effectivePropertySlug) ? effectivePropertySlug[0] : effectivePropertySlug)
-          .eq('brokers.website_slug', Array.isArray(effectiveSlug) ? effectiveSlug[0] : effectiveSlug)
+          .eq('slug', effectivePropertySlug)
+          .eq('brokers.website_slug', effectiveSlug)
           .eq('is_active', true)
           .single();
           

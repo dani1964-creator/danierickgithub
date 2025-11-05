@@ -1,0 +1,18 @@
+# Diretórios copiados do projeto Vite (não devem ser validados)
+src/
+shared/
+
+# Build outputs
+.next/
+out/
+dist/
+build/
+
+# Dependencies
+node_modules/
+
+# Type definitions
+**/*.d.ts
+
+# Legacy
+_vite_legacy/

@@ -79,19 +79,17 @@ interface Property {
 import type { BrokerProfile, BrokerContact } from '@src/types/broker';
 
 const PropertyDetailPage = () => {
-  const router = useRouter(); const { slug, propertySlug: propertySlugParam  } = router.query;
   const router = useRouter();
+  const { slug, propertySlug: propertySlugParam } = router.query as { slug?: string; propertySlug?: string };
   const { toast } = useToast();
   
   // Refs para evitar dependências desnecessárias no useCallback
   const toastRef = useRef(toast);
-  const navigateRef = useRef(navigate);
   
   // Atualizar refs quando funções mudarem
   useEffect(() => {
     toastRef.current = toast;
-    navigateRef.current = navigate;
-  }, [toast, navigate]);
+  }, [toast]);
   const { trackPropertyView, trackPropertyInterest, trackWhatsAppClick } = useTracking();
   const isMobile = useIsMobile();
   const [property, setProperty] = useState<Property | null>(null);
@@ -225,8 +223,8 @@ const PropertyDetailPage = () => {
               website_slug
             )
           `)
-          .eq('slug', effectivePropertySlug)
-          .eq('brokers.website_slug', effectiveSlug)
+          .eq('slug', Array.isArray(effectivePropertySlug) ? effectivePropertySlug[0] : effectivePropertySlug)
+          .eq('brokers.website_slug', Array.isArray(effectiveSlug) ? effectiveSlug[0] : effectiveSlug)
           .eq('is_active', true)
           .single();
           
@@ -509,7 +507,7 @@ const PropertyDetailPage = () => {
     if (contactInfo?.whatsapp_number && property) {
     // Generate clean URL based on domain type
       const currentOrigin = window.location.origin;
-      const currentPath = window.router.pathname;
+      const currentPath = router.pathname;
       
       // Sempre usar URL limpa baseada em slug do corretor e slug do imóvel
       const brokerSlug = brokerProfile?.website_slug || slug;
@@ -1075,7 +1073,7 @@ const PropertyDetailPage = () => {
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => router.push(-1)}
+                  onClick={() => router.back()}
                   className="hover:bg-gray-100 p-3 rounded-xl transition-all duration-200 hover:scale-105"
                 >
                   <ArrowLeft className="h-5 w-5 mr-2" />

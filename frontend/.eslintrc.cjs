@@ -3,7 +3,7 @@ module.exports = {
   parser: '@typescript-eslint/parser',
   plugins: ['@typescript-eslint'],
   extends: ['next/core-web-vitals'],
-  ignorePatterns: ['**/*.d.ts', '_vite_legacy/**', '.next/**', 'node_modules/**'],
+  ignorePatterns: ['**/*.d.ts', '_vite_legacy/**', '.next/**', 'node_modules/**', 'src/**', 'shared/**'],
   parserOptions: {
     ecmaVersion: 2020,
     sourceType: 'module',

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import Image from 'next/image';
 import { useRouter } from 'next/router';
 import { MapPin, Bed, Bath, Car, Eye, Heart, Share2, Square } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -104,10 +105,12 @@ const PropertyCard = ({
         {/* Container da imagem - proporção 4:3 */}
         <div className="relative w-full aspect-[4/3] flex-shrink-0 overflow-hidden">
           {propertyImages.length > 0 ? (
-            <img
+            <Image
               src={propertyImages[0]}
               alt={property.title}
-              className="w-full h-full object-cover"
+              fill
+              className="object-cover"
+              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
               loading="lazy"
             />
           ) : (

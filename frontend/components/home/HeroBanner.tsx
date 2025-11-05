@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import Image from 'next/image';
 import { logger } from '@/lib/logger';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -101,10 +102,13 @@ const HeroBanner = ({ brokerProfile, onContactClick }: HeroBannerProps) => {
     return (
       <section id="hero" className="relative h-[60vh] sm:h-[70vh] md:h-[80vh] lg:h-[85vh] overflow-hidden">
         <div className="absolute inset-0">
-          <img
+          <Image
             src={backgroundImage}
             alt="Banner"
-            className="w-full h-full object-cover"
+            fill
+            className="object-cover"
+            sizes="100vw"
+            priority
           />
           <div 
             className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/40 to-black/60"

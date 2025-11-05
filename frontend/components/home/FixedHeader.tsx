@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { useRouter } from 'next/router';
 import type { BrokerProfile } from '@/shared/types/broker';
 
@@ -47,18 +48,20 @@ const FixedHeader = ({ brokerProfile }: FixedHeaderProps) => {
             aria-label="Voltar ao início"
           >
             {brokerProfile.logo_url && (
-               <div className="flex-shrink-0">
-                 <img
+               <div 
+                 className="flex-shrink-0 relative"
+                 style={{ 
+                   height: `${Math.min(brokerProfile.logo_size || 80, 60)}px`,
+                   width: `${Math.min(brokerProfile.logo_size || 80, 60) * 2}px`
+                 }}
+               >
+                 <Image
                    src={brokerProfile.logo_url}
                    alt={`Logo ${displayName}`}
+                   fill
                    className="object-contain rounded-md"
-                   style={{ 
-                     height: `${Math.min(brokerProfile.logo_size || 80, 60)}px`,
-                     width: 'auto'
-                   }}
-                   onError={(e) => {
-                     e.currentTarget.style.display = 'none';
-                   }}
+                   sizes="(max-width: 768px) 120px, 160px"
+                   priority
                  />
                </div>
             )}

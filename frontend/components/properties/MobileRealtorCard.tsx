@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 
@@ -42,11 +43,15 @@ const MobileRealtorCard = ({ property, brokerProfile, onWhatsAppClick }: MobileR
         {/* Informações do Corretor */}
         <div className="flex items-center space-x-3 mb-4">
           {property.realtor_avatar_url ? (
-            <img 
-              src={property.realtor_avatar_url} 
-              alt={property.realtor_name} 
-              className="h-12 w-12 rounded-full object-cover flex-shrink-0" 
-            />
+            <div className="relative h-12 w-12 rounded-full overflow-hidden flex-shrink-0">
+              <Image 
+                src={property.realtor_avatar_url} 
+                alt={property.realtor_name} 
+                fill
+                className="object-cover"
+                sizes="48px"
+              />
+            </div>
           ) : (
             <div 
               className="h-12 w-12 rounded-full text-white flex items-center justify-center font-bold text-lg flex-shrink-0"

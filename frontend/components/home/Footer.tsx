@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { useRouter } from 'next/router';
 import { Phone, Mail, MapPin, Globe, Twitter, Linkedin, Youtube } from 'lucide-react';
 import { FaFacebookF, FaInstagram, FaTwitter, FaLinkedinIn, FaYoutube, FaGlobe } from 'react-icons/fa';
@@ -109,12 +110,21 @@ const Footer = ({ brokerProfile, socialLinks = [], onContactRequest }: FooterPro
             <div className="md:col-span-2 space-y-4">
               <div className="flex items-center">
                 {brokerProfile?.logo_url ? (
-                  <img 
-                    src={brokerProfile.logo_url} 
-                    alt={brokerProfile.business_name} 
-                    className="w-auto mr-3" 
-                    style={{ height: `${Math.min(brokerProfile.logo_size || 80, 40)}px` }}
-                  />
+                  <div 
+                    className="relative mr-3"
+                    style={{ 
+                      height: `${Math.min(brokerProfile.logo_size || 80, 40)}px`,
+                      width: `${Math.min(brokerProfile.logo_size || 80, 40) * 2}px`
+                    }}
+                  >
+                    <Image 
+                      src={brokerProfile.logo_url} 
+                      alt={brokerProfile.business_name} 
+                      fill
+                      className="object-contain"
+                      sizes="(max-width: 768px) 80px, 160px"
+                    />
+                  </div>
                 ) : (
                   <div 
                     className="h-8 w-8 rounded-lg text-white flex items-center justify-center text-sm font-semibold mr-3"

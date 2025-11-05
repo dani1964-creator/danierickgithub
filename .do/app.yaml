@@ -11,7 +11,7 @@ services:
     build_command: npm run build
     run_command: ./start.sh
     environment_slug: node-js
-    instance_count: 2
+    instance_count: 1
     instance_size_slug: apps-s-1vcpu-1gb
     http_port: 3000
     routes:
@@ -58,6 +58,10 @@ services:
       timeout_seconds: 5
       success_threshold: 1
       failure_threshold: 3
+
+# Se você tiver mais containers/serviços, adicione aqui
+# - name: segundo-container
+#   ... configurações do segundo container
 
 features:
   - buildpack-stack=ubuntu-22

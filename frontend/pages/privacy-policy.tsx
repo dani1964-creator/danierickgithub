@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
 import { logger } from '@/lib/logger';
 import { useRouter } from 'next/router';
+import { useParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Helmet } from 'react-helmet-async';
 import DOMPurify from 'dompurify';
@@ -54,9 +55,8 @@ const PrivacyPolicy = () => {
         setLoading(false);
       }
     };
-
     fetchBrokerProfile();
-  }, [slug, navigate]);
+  }, [slug]);
 
   // Redirect effect for not found
   useEffect(() => {
@@ -137,11 +137,11 @@ const PrivacyPolicy = () => {
           </div>
 
           {/* Back to site button */}
-          <div className="mt-8 text-center">
+          <div className="mt-8">
             <button
               onClick={() => {
                 // Navigate back and let the PublicSite component handle context restoration
-                router.push(`/${slug}`, { replace: true });
+                router.replace(`/${slug}`);
               }}
               className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white transition-colors hover:opacity-90"
               style={{ 

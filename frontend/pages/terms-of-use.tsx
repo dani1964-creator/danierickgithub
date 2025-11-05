@@ -20,8 +20,8 @@ interface BrokerProfile {
 }
 
 const TermsOfUse = () => {
-  const { slug } = useParams<{ slug: string }>();
   const router = useRouter();
+  const { slug } = router.query;
   const [brokerProfile, setBrokerProfile] = useState<BrokerProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
@@ -36,7 +36,7 @@ const TermsOfUse = () => {
 
       try {
         const { data, error } = await supabase.rpc('get_public_broker_branding_secure', {
-          broker_website_slug: slug
+          broker_website_slug: Array.isArray(slug) ? slug[0] : slug
         });
 
         if (error) {
@@ -56,7 +56,7 @@ const TermsOfUse = () => {
     };
 
     fetchBrokerProfile();
-  }, [slug, navigate]);
+  }, [slug]);
 
   // Redirect effect for not found
   useEffect(() => {
@@ -141,7 +141,7 @@ const TermsOfUse = () => {
             <button
               onClick={() => {
                 // Navigate back and let the PublicSite component handle context restoration
-                router.push(`/${slug}`, { replace: true });
+                router.replace(`/${slug}`);
               }}
               className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white transition-colors hover:opacity-90"
               style={{ 

@@ -27,32 +27,40 @@ export async function middleware(request: NextRequest) {
   }
   
   // Para rotas públicas e admin, identificar tenant
+  // Se não há API_URL configurada, bypass tenant identification (modo standalone)
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || process.env.API_URL;
+  
+  if (!apiUrl) {
+    logger.info('⚠️ No API_URL configured - bypassing tenant identification (standalone mode)');
+    const response = NextResponse.next();
+    response.headers.set('x-tenant-domain', hostname);
+    response.headers.set('x-standalone-mode', 'true');
+    return response;
+  }
+  
   try {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || process.env.API_URL || 'http://localhost:8080';
-    
     const tenantResponse = await fetch(`${apiUrl}/api/tenant/identify?domain=${encodeURIComponent(hostname)}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
       },
-      // Timeout de 5 segundos
-      signal: AbortSignal.timeout(5000)
+      // Timeout de 3 segundos
+      signal: AbortSignal.timeout(3000)
     });
     
     if (!tenantResponse.ok) {
       logger.warn(`❌ Tenant not found for domain: ${hostname}`);
       
-      // Se for rota admin sem tenant, redirecionar para erro
-      if (isAdmin) {
-        return NextResponse.redirect(new URL('/tenant-not-found', request.url));
-      }
-      
-      // Para rotas públicas, mostrar página de erro amigável
-      return NextResponse.redirect(new URL('/site-not-found', request.url));
+      // Em produção sem backend, permitir acesso (bypass)
+      logger.info('⚠️ Allowing access without tenant data (backend unavailable)');
+      const response = NextResponse.next();
+      response.headers.set('x-tenant-domain', hostname);
+      response.headers.set('x-tenant-error', 'Tenant not found');
+      return response;
     }
     
-  const tenantData = await tenantResponse.json();
-  logger.info(`✅ Tenant identified: ${tenantData.tenant.business_name}`);
+    const tenantData = await tenantResponse.json();
+    logger.info(`✅ Tenant identified: ${tenantData.tenant.business_name}`);
     
     // Adicionar dados do tenant aos headers para uso na aplicação
     const response = NextResponse.next();
@@ -72,8 +80,10 @@ export async function middleware(request: NextRequest) {
     
     // Em caso de erro, permitir acesso mas sem dados de tenant
     // A aplicação deve lidar com a ausência de tenant
+    logger.info('⚠️ Allowing access without tenant data (error in identification)');
     const response = NextResponse.next();
     response.headers.set('x-tenant-error', 'Failed to identify tenant');
+    response.headers.set('x-tenant-domain', hostname);
     
     return response;
   }

@@ -79,17 +79,17 @@ function SuperAdminPage() {
     }
   };
 
-  // Função simples para toggle status
+  // Função para toggle status via API server-side
   const toggleBrokerStatus = async (brokerId: string, currentStatus: boolean) => {
     try {
-      const res = await fetch('/api/superadmin/toggle-broker-status', {
+      const res = await fetch('/api/superadmin/toggle-status', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           brokerId,
-          isActive: !currentStatus,
+          currentStatus,
         }),
       });
 
@@ -98,23 +98,23 @@ function SuperAdminPage() {
         throw new Error(json?.error || 'Erro ao atualizar status');
       }
       
-      // Atualizar estado local
+      // Atualizar estado local com o newStatus retornado pela API
       setBrokers(prev => prev.map(broker => 
         broker.id === brokerId 
-          ? { ...broker, is_active: !currentStatus }
+          ? { ...broker, is_active: json.newStatus }
           : broker
       ));
 
       toast({
         title: "Status atualizado",
-        description: `Imobiliária ${!currentStatus ? 'ativada' : 'desativada'} com sucesso.`,
+        description: `Imobiliária ${json.newStatus ? 'ativada' : 'desativada'} com sucesso.`,
       });
 
     } catch (error) {
       logger.error('Error toggling broker status:', error);
       toast({
         title: "Erro ao atualizar status",
-        description: "Não foi possível atualizar o status.",
+        description: error instanceof Error ? error.message : "Não foi possível atualizar o status.",
         variant: "destructive",
       });
     }

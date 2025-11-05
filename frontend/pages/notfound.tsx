@@ -5,7 +5,6 @@ import dynamic from 'next/dynamic';
 
 const NotFound = () => {
   const router = useRouter();
-  const router = useRouter();
 
   useEffect(() => {
     logger.error(

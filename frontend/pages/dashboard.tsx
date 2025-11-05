@@ -1,4 +1,4 @@
-import { Navigate, useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/router';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -17,7 +17,7 @@ import { logger } from '@/lib/logger';
 const Dashboard = () => {
   const { user, signOut, loading } = useAuth();
   const { toast } = useToast();
-  const navigate = useNavigate();
+  const router = useRouter();
   const [websiteSlug, setWebsiteSlug] = useState<string | null>(null);
   const [brokerId, setBrokerId] = useState<string | null>(null);
   const [customDomain, setCustomDomain] = useState<string | null>(null);
@@ -114,7 +114,7 @@ const Dashboard = () => {
   }
 
   if (!user) {
-    return <Navigate to="/auth" replace />;
+    return useEffect(() => { router.push("/auth"); }, [router]); return null;
   }
 
   if (dashboardLoading) {
@@ -165,7 +165,7 @@ const Dashboard = () => {
   }
 
   if (!user) {
-    return <Navigate to="/auth" replace />;
+    return useEffect(() => { router.push("/auth"); }, [router]); return null;
   }
 
   const handleSignOut = async () => {
@@ -327,7 +327,7 @@ const Dashboard = () => {
           <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
             <Button 
               className="h-auto p-6 flex flex-col items-center gap-3 text-sm group hover:scale-105 transition-all duration-200 bg-primary hover:bg-primary/90"
-              onClick={() => navigate('/dashboard/properties')}
+              onClick={() => router.push('/dashboard/properties')}
             >
               <Building2 className="h-6 w-6 group-hover:scale-110 transition-transform duration-200" />
               <span className="font-medium">Adicionar Imóvel</span>
@@ -336,7 +336,7 @@ const Dashboard = () => {
             <Button 
               variant="outline" 
               className="h-auto p-6 flex flex-col items-center gap-3 text-sm group hover:scale-105 transition-all duration-200 border-2"
-              onClick={() => navigate('/dashboard/settings')}
+              onClick={() => router.push('/dashboard/settings')}
             >
               <Settings className="h-6 w-6 group-hover:rotate-90 transition-transform duration-200" />
               <span className="font-medium">Configurações</span>
@@ -345,7 +345,7 @@ const Dashboard = () => {
             <Button 
               variant="outline" 
               className="h-auto p-6 flex flex-col items-center gap-3 text-sm group hover:scale-105 transition-all duration-200 border-2"
-              onClick={() => navigate('/dashboard/leads')}
+              onClick={() => router.push('/dashboard/leads')}
             >
               <Users className="h-6 w-6 group-hover:scale-110 transition-transform duration-200" />
               <span className="font-medium">Gerenciar Leads</span>
@@ -399,7 +399,7 @@ const Dashboard = () => {
                 <Button 
                   size="sm" 
                   variant="ghost"
-                  onClick={() => navigate('/dashboard/settings')}
+                  onClick={() => router.push('/dashboard/settings')}
                   className="text-primary hover:text-primary/80"
                 >
                   Configurar
@@ -417,7 +417,7 @@ const Dashboard = () => {
                 <Button 
                   size="sm" 
                   variant="ghost"
-                  onClick={() => navigate('/dashboard/properties')}
+                  onClick={() => router.push('/dashboard/properties')}
                   className="text-primary hover:text-primary/80"
                 >
                   Adicionar
@@ -435,7 +435,7 @@ const Dashboard = () => {
                 <Button 
                   size="sm" 
                   variant="ghost"
-                  onClick={() => navigate('/dashboard/website')}
+                  onClick={() => router.push('/dashboard/website')}
                   className="text-primary hover:text-primary/80"
                 >
                   Configurar

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { logger } from '@/lib/logger';
-import { useParams, Navigate, useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/router';
 import { supabase } from '@/integrations/supabase/client';
 import { Helmet } from 'react-helmet-async';
 import dynamic from 'next/dynamic';
@@ -21,7 +21,7 @@ interface BrokerProfile {
 
 const AboutUs = () => {
   const { slug } = useParams<{ slug: string }>();
-  const navigate = useNavigate();
+  const router = useRouter();
   const [brokerProfile, setBrokerProfile] = useState<BrokerProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
@@ -64,7 +64,7 @@ const AboutUs = () => {
   }
 
   if (notFound) {
-    return <Navigate to="/404" replace />;
+    return useEffect(() => { router.push("/404"); }, [router]); return null;
   }
 
   // Convert markdown-style content to HTML
@@ -133,7 +133,7 @@ const AboutUs = () => {
             <button
               onClick={() => {
                 // Navigate back and let the PublicSite component handle context restoration
-                navigate(`/${slug}`, { replace: true });
+                router.push(`/${slug}`, { replace: true });
               }}
               className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white transition-colors hover:opacity-90"
               style={{ 

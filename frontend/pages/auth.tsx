@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Navigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/router';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -12,11 +12,14 @@ const Auth = () => {
   const { user, signIn } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
+  const router = useRouter();
 
   // Redirecionar se já estiver logado
-  if (user) {
-    return <Navigate to="/dashboard" replace />;
-  }
+  useEffect(() => {
+    if (user) {
+      router.push('/dashboard');
+    }
+  }, [user, router]);
 
   const handleSignIn = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();

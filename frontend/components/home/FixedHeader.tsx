@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/router';
 import type { BrokerProfile } from '@src/types/broker';
 
 interface FixedHeaderProps {
@@ -8,7 +8,7 @@ interface FixedHeaderProps {
 
 const FixedHeader = ({ brokerProfile }: FixedHeaderProps) => {
   const [isScrolled, setIsScrolled] = useState(false);
-  const navigate = useNavigate();
+  const router = useRouter();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -24,7 +24,7 @@ const FixedHeader = ({ brokerProfile }: FixedHeaderProps) => {
   // Function to handle navigation to home
   const handleGoToHome = () => {
     const homeUrl = `/${brokerProfile.website_slug || ''}`;
-    navigate(homeUrl);
+    router.push(homeUrl);
   };
 
   return (

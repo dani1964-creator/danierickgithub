@@ -1,18 +1,18 @@
-import { useLocation, useNavigate } from "react-router-dom";
+import { useRouter } from 'next/router';
 import { useEffect } from "react";
 import { logger } from '@/lib/logger';
 import dynamic from 'next/dynamic';
 
 const NotFound = () => {
-  const location = useLocation();
-  const navigate = useNavigate();
+  const router = useRouter();
+  const router = useRouter();
 
   useEffect(() => {
     logger.error(
       "404 Error: User attempted to access non-existent route:",
-      location.pathname
+      router.pathname
     );
-  }, [location.pathname]);
+  }, [router.pathname]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background animate-fade-in px-6">
@@ -25,7 +25,7 @@ const NotFound = () => {
           </p>
         </div>
         <button 
-          onClick={() => navigate('/')}
+          onClick={() => router.push('/')}
           className="inline-flex items-center justify-center px-6 py-3 bg-primary text-primary-foreground font-medium rounded-lg hover:bg-primary/90 transition-all duration-200 shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-primary/20 focus:ring-offset-2"
         >
           Voltar ao início

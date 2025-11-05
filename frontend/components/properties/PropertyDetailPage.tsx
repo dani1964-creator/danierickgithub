@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/router';
 import { Helmet } from 'react-helmet-async';
 import { ChevronLeft, MapPin, Bed, Bath, Car, Square, Eye, Heart, Share2, MessageCircle, Phone, Mail, X, Play, Maximize2, ArrowLeft, Star, Calendar, Users, Zap, Moon, Sun } from 'lucide-react';
 import { ZoomableImage } from '@/components/ui/zoomable-image';
@@ -79,8 +79,8 @@ interface Property {
 import type { BrokerProfile, BrokerContact } from '@src/types/broker';
 
 const PropertyDetailPage = () => {
-  const { slug, propertySlug: propertySlugParam } = useParams();
-  const navigate = useNavigate();
+  const router = useRouter(); const { slug, propertySlug: propertySlugParam  } = router.query;
+  const router = useRouter();
   const { toast } = useToast();
   
   // Refs para evitar dependências desnecessárias no useCallback
@@ -509,7 +509,7 @@ const PropertyDetailPage = () => {
     if (contactInfo?.whatsapp_number && property) {
     // Generate clean URL based on domain type
       const currentOrigin = window.location.origin;
-      const currentPath = window.location.pathname;
+      const currentPath = window.router.pathname;
       
       // Sempre usar URL limpa baseada em slug do corretor e slug do imóvel
       const brokerSlug = brokerProfile?.website_slug || slug;
@@ -847,7 +847,7 @@ const PropertyDetailPage = () => {
             </Button>
             <Button 
               variant="outline"
-              onClick={() => navigate(`/${slug || ''}`)}
+              onClick={() => router.push(`/${slug || ''}`)}
               className={`w-full px-6 py-3 rounded-xl font-semibold transition-all duration-300 ${
                 isDarkMode 
                   ? 'border-gray-600 hover:border-gray-500 hover:bg-gray-700 text-gray-300 hover:text-white'
@@ -881,7 +881,7 @@ const PropertyDetailPage = () => {
         <div className={`text-center ${isDarkMode ? 'bg-[#1A2331] border border-[#1A2331]' : 'bg-white'} rounded-2xl shadow-xl p-12 animate-scale-in transition-colors duration-300`}>
           <h2 className={`text-3xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'} mb-6 transition-colors duration-300`}>Imóvel não encontrado</h2>
           <Button 
-            onClick={() => navigate(`/${slug || ''}`)}
+            onClick={() => router.push(`/${slug || ''}`)}
             className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-3 rounded-xl font-semibold shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-105"
           >
             Voltar ao início
@@ -1075,7 +1075,7 @@ const PropertyDetailPage = () => {
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => navigate(-1)}
+                  onClick={() => router.push(-1)}
                   className="hover:bg-gray-100 p-3 rounded-xl transition-all duration-200 hover:scale-105"
                 >
                   <ArrowLeft className="h-5 w-5 mr-2" />
@@ -1083,7 +1083,7 @@ const PropertyDetailPage = () => {
                 </Button>
                 
                 <button
-                  onClick={() => navigate(`/${brokerProfile?.website_slug || slug}`)}
+                  onClick={() => router.push(`/${brokerProfile?.website_slug || slug}`)}
                   className="flex items-center hover:opacity-80 transition-all duration-200 min-w-0 flex-1 group"
                 >
                   {brokerProfile.logo_url ? (
@@ -1155,7 +1155,7 @@ const PropertyDetailPage = () => {
         <div className="pt-20 sm:pt-24 pb-4">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <nav className="flex items-center text-xs text-gray-500">
-              <button onClick={() => navigate(`/${slug}`)} className="hover:text-gray-700 cursor-pointer transition-colors duration-200">
+              <button onClick={() => router.push(`/${slug}`)} className="hover:text-gray-700 cursor-pointer transition-colors duration-200">
                 Início
               </button>
               <span className="mx-2 text-gray-300">→</span>
@@ -1626,7 +1626,7 @@ const PropertyDetailPage = () => {
                       {similarProperties.slice(0, 4).map((similar) => (
                         <div
                           key={similar.id}
-                          onClick={() => navigate(`/${slug}/${similar.slug}`)}
+                          onClick={() => router.push(`/${slug}/${similar.slug}`)}
                           className="bg-gray-50 rounded-lg p-3 sm:p-4 cursor-pointer hover:shadow-md transition-shadow border border-gray-200"
                         >
                           <div className="aspect-video bg-gray-200 rounded-lg mb-2 sm:mb-3 overflow-hidden">

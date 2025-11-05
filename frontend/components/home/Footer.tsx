@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/router';
 import { Phone, Mail, MapPin, Globe, Twitter, Linkedin, Youtube } from 'lucide-react';
 import { FaFacebookF, FaInstagram, FaTwitter, FaLinkedinIn, FaYoutube, FaGlobe } from 'react-icons/fa';
 import type { BrokerProfile, BrokerContact } from '@src/types/broker';
@@ -20,7 +20,7 @@ interface FooterProps {
 const Footer = ({ brokerProfile, socialLinks = [], onContactRequest }: FooterProps) => {
   const [contactInfo, setContactInfo] = useState<BrokerContact | null>(null);
   const [contactRequested, setContactRequested] = useState(false);
-  const navigate = useNavigate();
+  const router = useRouter();
 
   // Function to request contact information when needed
   const handleContactRequest = useCallback(async () => {
@@ -92,7 +92,7 @@ const Footer = ({ brokerProfile, socialLinks = [], onContactRequest }: FooterPro
 
   // Function to handle internal navigation
   const handleInternalNavigation = (path: string) => {
-    navigate(path);
+    router.push(path);
   };
 
   // Verificar se há informações de contato válidas

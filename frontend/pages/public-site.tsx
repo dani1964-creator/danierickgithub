@@ -1,7 +1,7 @@
 import type { BrokerProfile, BrokerContact } from '@src/types/broker';
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import dynamic from 'next/dynamic';
-import { useParams } from 'react-router-dom';
+import { useRouter } from 'next/router';
 import { Helmet } from 'react-helmet-async';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -47,7 +47,7 @@ const PublicSite = () => {
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
 
   // Colocar slug/toast cedo para serem capturados nos callbacks abaixo
-  const { slug, propertySlug } = useParams();
+  const router = useRouter(); const { slug, propertySlug  } = router.query;
   const { toast } = useToast();
 
   const fetchContactInfo = useCallback(async () => {

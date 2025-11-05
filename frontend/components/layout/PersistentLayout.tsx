@@ -1,5 +1,5 @@
 import { ReactNode, Suspense } from 'react';
-import { Outlet, useLocation } from 'react-router-dom';
+import { useRouter } from 'next/router';
 import { PageTransition } from '@/components/ui/page-transition';
 
 interface PersistentLayoutProps {
@@ -7,10 +7,10 @@ interface PersistentLayoutProps {
 }
 
 export const PersistentLayout = ({ children }: PersistentLayoutProps) => {
-  const location = useLocation();
+  const router = useRouter();
   
   // Check if we're on a dashboard route
-  const isDashboardRoute = location.pathname.startsWith('/dashboard');
+  const isDashboardRoute = router.pathname.startsWith('/dashboard');
   
   return (
     <div className="min-h-screen bg-background">
@@ -23,7 +23,7 @@ export const PersistentLayout = ({ children }: PersistentLayoutProps) => {
         </div>
       }>
         <PageTransition>
-          {children || <Outlet />}
+          {children}
         </PageTransition>
       </Suspense>
     </div>

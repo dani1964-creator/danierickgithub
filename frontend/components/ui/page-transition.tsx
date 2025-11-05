@@ -1,5 +1,5 @@
 import { ReactNode, useEffect, useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useRouter } from 'next/router';
 
 interface PageTransitionProps {
   children: ReactNode;
@@ -7,7 +7,7 @@ interface PageTransitionProps {
 }
 
 export const PageTransition = ({ children, duration = 300 }: PageTransitionProps) => {
-  const location = useLocation();
+  const router = useRouter();
   const [displayLocation, setDisplayLocation] = useState(location);
   const [transitionStage, setTransitionStage] = useState<'fadeIn' | 'fadeOut'>('fadeIn');
 

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useRouter } from 'next/router';
 import { MapPin, Bed, Bath, Car, Eye, Heart, Share2, Square } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -32,8 +32,8 @@ const PropertyCard = ({
   isFavorited, 
   onImageClick 
 }: PropertyCardProps) => {
-  const navigate = useNavigate();
-  const { slug } = useParams();
+  const router = useRouter();
+  const router = useRouter(); const { slug  } = router.query;
   const { isCustomDomain, getBrokerByDomainOrSlug } = useDomainAware();
 
   const formatPrice = (price: number) => {
@@ -86,9 +86,9 @@ const PropertyCard = ({
     prefetchDetail();
     const propertySlug = property.slug || property.id;
     if (isCustomDomain()) {
-      navigate(`/${propertySlug}`);
+      router.push(`/${propertySlug}`);
     } else {
-      navigate(`/${slug}/${propertySlug}`);
+      router.push(`/${slug}/${propertySlug}`);
     }
   };
 

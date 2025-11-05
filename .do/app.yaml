@@ -1,46 +1,56 @@
-name: adminimobiliaria
+name: whale-app
 region: nyc
 
 services:
-  # Frontend Next.js (standalone - sem backend separado)
-  - name: web
+  - name: danierickgithub2
     github:
       branch: main
       deploy_on_push: true
       repo: dani1964-creator/danierickgithub
     source_dir: /frontend
-    build_command: npm install && npm run build
+    build_command: npm run build
     run_command: ./start.sh
     environment_slug: node-js
-    instance_count: 1
-    instance_size_slug: basic-xxs
+    instance_count: 2
+    instance_size_slug: apps-s-1vcpu-1gb
     http_port: 3000
     routes:
       - path: /
     envs:
       - key: NODE_ENV
         value: production
+        scope: RUN_AND_BUILD_TIME
+        type: SECRET
+        value: EV[1:aqdcy1Zhm2OQqmUAwW31kbCGozTX6mcW:o5FsOpmOtQtSV4fD44RZ1jW/p9oTNmc3y0Y=]
       - key: NEXT_PUBLIC_BASE_PUBLIC_DOMAIN
         scope: RUN_AND_BUILD_TIME
-        value: ${NEXT_PUBLIC_BASE_PUBLIC_DOMAIN}
+        value: adminimobiliaria.site
       - key: NEXT_PUBLIC_APP_URL
         scope: RUN_AND_BUILD_TIME
-        value: ${NEXT_PUBLIC_APP_URL}
+        value: https://adminimobiliaria.site
       - key: NEXT_PUBLIC_CNAME_TARGET
         scope: RUN_AND_BUILD_TIME
-        value: ${NEXT_PUBLIC_CNAME_TARGET}
+        value: adminimobiliaria.site
+      - key: NEXT_PUBLIC_BASE_DOMAIN
+        scope: RUN_AND_BUILD_TIME
+        value: adminimobiliaria.site
       - key: NEXT_PUBLIC_SUPABASE_URL
         scope: RUN_AND_BUILD_TIME
-        value: ${NEXT_PUBLIC_SUPABASE_URL}
+        value: https://demcjskpwcxqohzlyjxb.supabase.co
       - key: NEXT_PUBLIC_SUPABASE_ANON_KEY
         scope: RUN_AND_BUILD_TIME
-        value: ${NEXT_PUBLIC_SUPABASE_ANON_KEY}
+        value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRlbWNqc2twd2N4cW9oemx5anhiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUwNDIxMzUsImV4cCI6MjA3MDYxODEzNX0.9p5j5yUKF-HAJCuo8A2BqNhB8JVV9Sgc2KdekRuR4Ww
+      - key: NEXT_PUBLIC_API_URL
+        scope: RUN_AND_BUILD_TIME
+        value: https://adminimobiliaria.site
       - key: SUPABASE_URL
-        scope: RUN_TIME
-        value: ${SUPABASE_URL}
+        scope: RUN_AND_BUILD_TIME
+        type: SECRET
+        value: EV[1:QpFiarfXq2UkXWl8VJULXH6vVbkxs1MK:i1RlV83Rfh0IeVz1ZQRfaDsoSroedhx9sb4L9JzU3ATztoA3xOsltf6EM2Ogm3K3LF9dUQugyDE=]
       - key: SUPABASE_SERVICE_ROLE_KEY
-        scope: RUN_TIME
-        value: ${SUPABASE_SERVICE_ROLE_KEY}
+        scope: RUN_AND_BUILD_TIME
+        type: SECRET
+        value: EV[1:qHLkZ8AGIo7waZym7Zv3wdDiopH8TdU/:fk8wI4h1cUk49OOlZVoyGxNXCHeAfo+ZwyYG52wx1wOsht9uMQ+3vIWQ7gRro6Z4QJhKxQXWoyShVt8A+DIuhzkDin6HGrasVMdHRX14sebvmdLKS6frlNoLnbmDVPNWkcSq3mp1ApUAYoI6g9JTa6dZ0wyQuxfxaNtO50fxZorJGFOZ31eeQBgB9HrnGe+15o3vK6Gz1IhDFiF8pdzh7HF3o95fb1Xtm3P18ttjuBsjRfcX3ntVl7lvELZAxIBWCGqBZm0lnxFdhfB8migl6uXP5cDf0chW1PCI4+Gx1lJu/JQ77WxcX7p32A==]
     health_check:
       http_path: /
       initial_delay_seconds: 30
@@ -49,6 +59,9 @@ services:
       success_threshold: 1
       failure_threshold: 3
 
-# Configurações globais
 features:
   - buildpack-stack=ubuntu-22
+
+alerts:
+  - rule: DEPLOYMENT_FAILED
+  - rule: DOMAIN_FAILED

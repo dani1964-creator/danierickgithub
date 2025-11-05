@@ -1,5 +1,5 @@
 
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useRouter } from 'next/router';
 import { logger } from '@/lib/logger';
 import { Home, Building2, Users, Settings, BarChart3, Globe, UserCheck } from 'lucide-react';
 import { useSidebar } from '@/components/ui/sidebar-context';
@@ -18,8 +18,7 @@ import { Button } from '@/components/ui/button';
 import { useAuth } from '@shared/hooks/useAuth';
 
 const AppSidebar = () => {
-  const navigate = useNavigate();
-  const location = useLocation();
+  const router = useRouter();
   const { signOut } = useAuth();
   const { state, setOpen, open } = useSidebar();
   
@@ -61,7 +60,7 @@ const AppSidebar = () => {
   const handleSignOut = async () => {
     try {
       await signOut();
-      navigate('/auth');
+      router.push('/auth');
     } catch (error) {
       logger.error('Error signing out:', error);
     }
@@ -94,8 +93,8 @@ const AppSidebar = () => {
               {menuItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton
-                    onClick={() => navigate(item.url)}
-                    isActive={location.pathname === item.url}
+                    onClick={() => router.push(item.url)}
+                    isActive={router.pathname === item.url}
                     tooltip={isCollapsed ? item.title : undefined}
                     className="group transition-all duration-200 hover:bg-sidebar-accent/80 data-[state=open]:bg-sidebar-accent"
                   >

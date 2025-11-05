@@ -1,0 +1,60 @@
+# DigitalOcean App Platform - Arquivos a ignorar
+
+# Ignorar projeto Vite legado da raiz
+/src/
+/public/
+/index.html
+/vite.config.ts
+/package.json
+/package-lock.json
+/node_modules/
+/dist/
+
+# Ignorar arquivos de desenvolvimento e teste
+*.test.js
+*.test.ts
+*.spec.js
+*.spec.ts
+test-*.cjs
+test-*.mjs
+check-*.cjs
+debug-*.cjs
+apply-*.cjs
+apply-*.mjs
+fix-*.cjs
+fix-*.sql
+inspect-*.cjs
+list-*.cjs
+final-diagnosis.cjs
+
+# Ignorar arquivos temporários
+*.log
+*.tmp
+.env.local
+.env.development
+
+# Ignorar diretórios desnecessários
+/archive/
+/scripts/
+/backend/
+/shared/
+/deploy/
+/.git/
+
+# Docker files (não usado no App Platform)
+Dockerfile*
+docker-compose*.yml
+nginx*.conf
+
+# Documentação
+*.md
+/docs/
+
+# Configurações locais
+.eslintrc.cjs
+eslint.config.js.*
+tsconfig.*.json
+components.json
+tailwind.config.ts
+postcss.config.cjs
+bun.lockb

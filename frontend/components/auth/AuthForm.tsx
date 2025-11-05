@@ -1,4 +1,5 @@
 import { useState } from "react";
+import Image from 'next/image';
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -79,11 +80,15 @@ const AuthForm = () => {
       <div className="absolute z-10 left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md">
         <Card className="backdrop-blur-sm bg-card/95 border-border/50 shadow-2xl">
           <CardHeader className="text-center pb-8 pt-8">
-            <img
-              src="/imobideps-logo.svg"
-              alt="IMOBIDEPS"
-              className="mx-auto mb-4 w-12 h-12"
-            />
+            <div className="relative w-12 h-12 mx-auto mb-4">
+              <Image
+                src="/imobideps-logo.svg"
+                alt="IMOBIDEPS"
+                fill
+                className="object-contain"
+                priority
+              />
+            </div>
             <CardTitle className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
               IMOBIDEPS
             </CardTitle>

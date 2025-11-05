@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import Image from 'next/image';
 import { Upload, X, Globe } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -82,11 +83,13 @@ const FaviconUpload = ({ faviconUrl, onFaviconChange }: FaviconUploadProps) => {
         <Card>
           <CardContent className="flex items-center justify-between p-4">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-muted rounded-sm flex items-center justify-center overflow-hidden">
-                <img 
+              <div className="relative w-8 h-8 bg-muted rounded-sm flex items-center justify-center overflow-hidden">
+                <Image 
                   src={faviconUrl} 
                   alt="Favicon atual" 
-                  className="w-full h-full object-cover"
+                  fill
+                  className="object-cover"
+                  sizes="32px"
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
                     target.style.display = 'none';

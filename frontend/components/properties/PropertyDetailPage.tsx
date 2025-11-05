@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import Image from 'next/image';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 import { ChevronLeft, MapPin, Bed, Bath, Car, Square, Eye, Heart, Share2, MessageCircle, Phone, Mail, X, Play, Maximize2, ArrowLeft, Star, Calendar, Users, Zap, Moon, Sun } from 'lucide-react';
@@ -1088,11 +1089,15 @@ const PropertyDetailPage = () => {
                   className="flex items-center hover:opacity-80 transition-all duration-200 min-w-0 flex-1 group"
                 >
                   {brokerProfile.logo_url ? (
-                    <img 
-                      src={brokerProfile.logo_url} 
-                      alt={brokerProfile.business_name} 
-                      className="h-8 w-8 sm:h-12 sm:w-12 flex-shrink-0 rounded-xl object-contain shadow-sm group-hover:shadow-md transition-shadow" 
-                    />
+                    <div className="relative h-8 w-8 sm:h-12 sm:w-12 flex-shrink-0 rounded-xl overflow-hidden shadow-sm group-hover:shadow-md transition-shadow">
+                      <Image 
+                        src={brokerProfile.logo_url} 
+                        alt={brokerProfile.business_name} 
+                        fill
+                        className="object-contain"
+                        sizes="(max-width: 640px) 32px, 48px"
+                      />
+                    </div>
                   ) : (
                     <div 
                       className="h-8 w-8 sm:h-12 sm:w-12 rounded-xl text-white flex items-center justify-center font-bold text-sm flex-shrink-0 shadow-sm"
@@ -1188,12 +1193,14 @@ const PropertyDetailPage = () => {
                       {propertyImages.map((image, index) => (
                         <CarouselItem key={index}>
                            <div className="relative h-80 sm:h-96 bg-gradient-to-br from-gray-100 to-gray-200 overflow-hidden">
-                             <img
+                             <Image
                                src={image}
                                alt={`${property.title} - Imagem ${index + 1}`}
-                               className="w-full h-full object-cover cursor-pointer transition-transform duration-500 hover:scale-110"
+                               fill
+                               className="object-cover cursor-pointer transition-transform duration-500 hover:scale-110"
                                onClick={() => {setCurrentImageIndex(index); setIsImageModalOpen(true);}}
                                loading={index === 0 ? "eager" : "lazy"}
+                               sizes="(max-width: 640px) 100vw, 640px"
                              />
                              {/* Overlay gradiente para melhor legibilidade */}
                              <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent" />
@@ -1246,11 +1253,14 @@ const PropertyDetailPage = () => {
               <div className="hidden lg:block mb-8">
                 {propertyImages.length > 0 ? (
                   <div className="relative h-[600px] rounded-2xl overflow-hidden shadow-soft-3 bg-gradient-to-br from-gray-100 to-gray-200">
-                    <img
+                    <Image
                       src={propertyImages[currentImageIndex]}
                       alt={`${property.title} - Imagem ${currentImageIndex + 1}`}
-                      className="w-full h-full object-cover transition-all duration-500 hover:scale-105"
+                      fill
+                      className="object-cover transition-all duration-500 hover:scale-105"
                       loading="eager"
+                      sizes="(max-width: 1024px) 100vw, 1024px"
+                      priority
                     />
                     
                     {/* Overlay gradiente para melhor legibilidade */}
@@ -1301,17 +1311,19 @@ const PropertyDetailPage = () => {
                               key={index}
                               data-thumbnail-index={index}
                               onClick={() => handleThumbnailClick(index)}
-                              className={`flex-shrink-0 w-16 h-12 rounded-lg overflow-hidden border-2 transition-all duration-200 hover:scale-105 ${
+                              className={`relative flex-shrink-0 w-16 h-12 rounded-lg overflow-hidden border-2 transition-all duration-200 hover:scale-105 ${
                                 index === currentImageIndex 
                                   ? 'border-white shadow-lg' 
                                   : 'border-white/50 hover:border-white/75'
                               }`}
                             >
-                              <img
+                              <Image
                                 src={image}
                                 alt={`Miniatura ${index + 1}`}
-                                className="w-full h-full object-cover bg-gray-100"
+                                fill
+                                className="object-cover bg-gray-100"
                                 loading="lazy"
+                                sizes="64px"
                               />
                             </button>
                           ))}
@@ -1630,12 +1642,14 @@ const PropertyDetailPage = () => {
                           onClick={() => router.push(`/${slug}/${similar.slug}`)}
                           className="bg-gray-50 rounded-lg p-3 sm:p-4 cursor-pointer hover:shadow-md transition-shadow border border-gray-200"
                         >
-                          <div className="aspect-video bg-gray-200 rounded-lg mb-2 sm:mb-3 overflow-hidden">
+                          <div className="relative aspect-video bg-gray-200 rounded-lg mb-2 sm:mb-3 overflow-hidden">
                             {similar.main_image_url ? (
-                              <img
+                              <Image
                                 src={similar.main_image_url}
                                 alt={similar.title}
-                                className="w-full h-full object-cover"
+                                fill
+                                className="object-cover"
+                                sizes="(max-width: 640px) 100vw, 50vw"
                               />
                             ) : (
                               <div className="w-full h-full flex items-center justify-center text-gray-400">

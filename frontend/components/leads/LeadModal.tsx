@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import Image from 'next/image';
 import { logger } from '@/lib/logger';
 import type React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -146,11 +147,15 @@ const LeadModal = ({
         <DialogHeader className="space-y-4">
           <div className="flex items-center justify-center">
             {brokerProfile.logo_url ? (
-              <img 
-                src={brokerProfile.logo_url} 
-                alt={brokerProfile.business_name}
-                className="h-12 w-auto object-contain"
-              />
+              <div className="relative h-12 w-32">
+                <Image 
+                  src={brokerProfile.logo_url} 
+                  alt={brokerProfile.business_name}
+                  fill
+                  className="object-contain"
+                  sizes="128px"
+                />
+              </div>
             ) : (
               <div 
                 className="w-12 h-12 rounded-lg flex items-center justify-center text-white font-bold text-xl"

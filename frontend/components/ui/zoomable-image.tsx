@@ -1,4 +1,5 @@
 import * as React from "react"
+import Image from 'next/image'
 import { ZoomIn, ZoomOut, RotateCcw } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -98,21 +99,22 @@ export function ZoomableImage({ src, alt, className }: ZoomableImageProps) {
     <div className="relative w-full h-full group flex items-center justify-center">
       <div 
         ref={containerRef}
-        className="relative overflow-hidden cursor-move flex items-center justify-center"
+        className="relative overflow-hidden cursor-move flex items-center justify-center w-full h-full"
         onMouseDown={handleMouseDown}
         onWheel={handleWheel}
-        style={{ maxWidth: '100%', maxHeight: '100%' }}
       >
-        <img
+        <Image
           ref={imageRef}
           src={src}
           alt={alt}
-          className={cn("max-w-full max-h-full object-contain transition-transform duration-200", className)}
+          fill
+          className={cn("object-contain transition-transform duration-200", className)}
           style={{
             transform: `scale(${scale}) translate(${position.x / scale}px, ${position.y / scale}px)`,
             cursor: scale > 1 ? (isDragging ? 'grabbing' : 'grab') : 'default'
           }}
           draggable={false}
+          sizes="100vw"
         />
       </div>
       

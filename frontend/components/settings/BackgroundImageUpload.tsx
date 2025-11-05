@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import Image from 'next/image';
 import { Upload, X, ImageIcon, Link } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -64,11 +65,13 @@ const BackgroundImageUpload = ({ imageUrl, onImageChange }: BackgroundImageUploa
       <Label>Imagem de Fundo do Site</Label>
       
       {imageUrl ? (
-        <div className="relative inline-block">
-          <img
+        <div className="relative inline-block h-32 w-56">
+          <Image
             src={imageUrl}
             alt="Imagem de fundo"
-            className="h-32 w-56 rounded-lg border object-cover"
+            fill
+            className="rounded-lg border object-cover"
+            sizes="224px"
           />
           <Button
             type="button"

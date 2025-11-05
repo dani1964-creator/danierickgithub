@@ -1,5 +1,6 @@
 
 import { useState, useEffect, useCallback } from 'react';
+import Image from 'next/image';
 import dynamic from 'next/dynamic';
 import { Search, Trash2, Eye, Filter, RefreshCw, ChevronLeft, ChevronRight } from 'lucide-react';
 import { logger } from '@/lib/logger';
@@ -425,10 +426,12 @@ const Properties = () => {
               <Card key={property.id} className="overflow-hidden bg-card/50 backdrop-blur-sm border-border/50 shadow-lg hover:shadow-xl transition-all duration-300 group">
                 <div className="relative aspect-video overflow-hidden">
                   {property.main_image_url ? (
-                    <img
+                    <Image
                       src={property.main_image_url}
                       alt={property.title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      fill
+                      className="object-cover group-hover:scale-105 transition-transform duration-300"
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, (max-width: 1280px) 33vw, 25vw"
                     />
                   ) : (
                     <div className="flex items-center justify-center h-full text-muted-foreground bg-muted">
@@ -512,10 +515,12 @@ const Properties = () => {
                 <div className="flex flex-col lg:flex-row">
                   <div className="relative w-full h-48 lg:w-72 lg:h-48 flex-shrink-0 overflow-hidden">
                     {property.main_image_url ? (
-                      <img
+                      <Image
                         src={property.main_image_url}
                         alt={property.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        fill
+                        className="object-cover group-hover:scale-105 transition-transform duration-300"
+                        sizes="(max-width: 1024px) 100vw, 288px"
                       />
                     ) : (
                       <div className="flex items-center justify-center h-full text-muted-foreground bg-muted">

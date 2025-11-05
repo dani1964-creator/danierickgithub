@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import Image from 'next/image';
 import { logger } from '@/lib/logger';
 import { X, Upload } from 'lucide-react';
 import { useAuth } from '@/shared/hooks/useAuth';
@@ -893,11 +894,13 @@ const EditPropertyDialog = ({ property, open, onOpenChange, onPropertyUpdated }:
               <Label>Imagens Atuais</Label>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {currentImages.map((imageUrl, index) => (
-                  <div key={index} className="relative group">
-                    <img
+                  <div key={index} className="relative h-24 group">
+                    <Image
                       src={imageUrl}
                       alt={`Imagem ${index + 1}`}
-                      className="w-full h-24 object-cover rounded-lg"
+                      fill
+                      className="object-cover rounded-lg"
+                      sizes="(max-width: 768px) 50vw, 25vw"
                       onError={(e) => {
                           logger.error('Erro ao carregar imagem:', imageUrl);
                           (e.target as HTMLImageElement).style.display = 'none';
@@ -971,11 +974,13 @@ const EditPropertyDialog = ({ property, open, onOpenChange, onPropertyUpdated }:
                 <Label>Novos arquivos</Label>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   {selectedImages.map((file, index) => (
-                    <div key={index} className="relative">
-                      <img
+                    <div key={index} className="relative h-24">
+                      <Image
                         src={URL.createObjectURL(file)}
                         alt={`Preview ${index + 1}`}
-                        className="w-full h-24 object-cover rounded-lg"
+                        fill
+                        className="object-cover rounded-lg"
+                        sizes="(max-width: 768px) 50vw, 25vw"
                       />
                       <Button
                         type="button"
@@ -998,11 +1003,13 @@ const EditPropertyDialog = ({ property, open, onOpenChange, onPropertyUpdated }:
                 <Label>Imagens por URL</Label>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   {imageUrls.map((url, index) => (
-                    <div key={index} className="relative">
-                      <img
+                    <div key={index} className="relative h-24">
+                      <Image
                         src={url}
                         alt={`URL ${index + 1}`}
-                        className="w-full h-24 object-cover rounded-lg"
+                        fill
+                        className="object-cover rounded-lg"
+                        sizes="(max-width: 768px) 50vw, 25vw"
                         onError={(e) => {
                           (e.target as HTMLImageElement).style.border = '2px solid red';
                           (e.target as HTMLImageElement).title = 'Erro ao carregar imagem';

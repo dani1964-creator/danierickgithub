@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import Image from 'next/image';
 import { Upload, X, ImageIcon, Link } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -67,12 +68,13 @@ const LogoUpload = ({ logoUrl, logoSize = 80, onLogoChange, onLogoSizeChange }: 
       <Label>Logo da Imobiliária</Label>
       
       {logoUrl ? (
-        <div className="relative inline-block">
-          <img
+        <div className="relative inline-block" style={{ height: `${logoSize}px`, width: `${logoSize * 2}px` }}>
+          <Image
             src={logoUrl}
             alt="Logo da imobiliária"
-            className="w-auto rounded-lg border"
-            style={{ height: `${logoSize}px` }}
+            fill
+            className="rounded-lg border object-contain"
+            sizes={`${logoSize * 2}px`}
           />
           <Button
             type="button"

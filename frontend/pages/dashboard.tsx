@@ -66,6 +66,13 @@ const Dashboard = () => {
     }
   }, [user]); // Precisa depender do user para executar quando ele estiver disponível
 
+  // Redirect effect for authentication
+  useEffect(() => {
+    if (!user && !loading) {
+      router.push("/auth");
+    }
+  }, [user, loading, router]);
+
   if (loading) {
     return (
       <DashboardLayout>
@@ -113,10 +120,6 @@ const Dashboard = () => {
     );
   }
 
-  if (!user) {
-    return useEffect(() => { router.push("/auth"); }, [router]); return null;
-  }
-
   if (dashboardLoading) {
     return (
       <DashboardLayout>
@@ -162,10 +165,6 @@ const Dashboard = () => {
         </div>
       </DashboardLayout>
     );
-  }
-
-  if (!user) {
-    return useEffect(() => { router.push("/auth"); }, [router]); return null;
   }
 
   const handleSignOut = async () => {

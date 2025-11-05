@@ -58,13 +58,19 @@ const TermsOfUse = () => {
     fetchBrokerProfile();
   }, [slug, navigate]);
 
+  // Redirect effect for not found
+  useEffect(() => {
+    if (notFound) {
+      router.push("/404");
+    }
+  }, [notFound, router]);
 
   if (loading) {
     return <ContentPageSkeleton />;
   }
 
   if (notFound) {
-    return useEffect(() => { router.push("/404"); }, [router]); return null;
+    return null;
   }
 
   // Convert markdown-style content to HTML

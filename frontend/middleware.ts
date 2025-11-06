@@ -58,8 +58,11 @@ export async function middleware(request: NextRequest) {
   if (isPainelSubdomain) {
     logger.info(`🏢 Broker Panel access detected`);
     
-    // Redirecionar para /painel/* se não estiver lá
-    if (!isPainelPath && pathname === '/') {
+    // Permitir rotas de autenticação no painel
+    const isAuthPath = pathname.startsWith('/auth');
+    
+    // Redirecionar para /painel/* se não estiver lá e não for rota de auth
+    if (!isPainelPath && !isAuthPath && pathname === '/') {
       const url = request.nextUrl.clone();
       url.pathname = '/painel/dashboard';
       return NextResponse.redirect(url);

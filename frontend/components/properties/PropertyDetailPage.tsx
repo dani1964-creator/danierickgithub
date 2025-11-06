@@ -666,12 +666,12 @@ const PropertyDetailPage = () => {
 
   // Expor função de debug globalmente para testes manuais
   // Register testRPCFunctions globally for debugging in browser console
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     (window as any).testRPCFunctions = testRPCFunctions;
     return () => {
       delete (window as any).testRPCFunctions;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Remover dependência para evitar re-criação constante
 
   // Listen to carousel changes and sync thumbnails

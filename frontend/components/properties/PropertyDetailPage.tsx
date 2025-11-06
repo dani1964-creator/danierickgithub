@@ -665,11 +665,12 @@ const PropertyDetailPage = () => {
   }, [slug, effectivePropertySlug]);
 
   // Expor função de debug globalmente para testes manuais
+  // Register testRPCFunctions globally for debugging in browser console
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     (window as any).testRPCFunctions = testRPCFunctions;
     return () => {
       delete (window as any).testRPCFunctions;
-  // eslint-disable-next-line react-hooks/exhaustive-deps
     };
   }, []); // Remover dependência para evitar re-criação constante
 
@@ -706,17 +707,15 @@ const PropertyDetailPage = () => {
         }
       }
     };
-
+    
     carouselApi.on('select', onSelect);
     onSelect();
 
     return () => {
       carouselApi.off('select', onSelect);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
     };
-  }, [carouselApi, thumbnailCarouselApi]);
-
-  if (loading) {
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [carouselApi, thumbnailCarouselApi]);  if (loading) {
     return (
       <div className={`min-h-screen animate-fade-in transition-colors duration-300 ${
         isDarkMode 

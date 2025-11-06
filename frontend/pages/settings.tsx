@@ -119,9 +119,9 @@ const Settings = () => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Removido dependências para evitar re-renders constantes
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (user) {
-  // eslint-disable-next-line react-hooks/exhaustive-deps
       fetchProfile(user);
     }
   }, [user]); // Precisa depender do user para executar quando ele estiver disponível

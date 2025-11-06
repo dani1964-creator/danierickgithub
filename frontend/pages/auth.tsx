@@ -88,6 +88,7 @@ const Auth = () => {
                   name="email"
                   type="email"
                   placeholder="seu@email.com"
+                  autoComplete="email"
                   required
                   className="h-11 transition-all duration-200 focus:scale-[1.02] focus:shadow-lg"
                 />
@@ -103,6 +104,7 @@ const Auth = () => {
                   name="password"
                   type="password"
                   placeholder="••••••••"
+                  autoComplete="current-password"
                   required
                   className="h-11 transition-all duration-200 focus:scale-[1.02] focus:shadow-lg"
                 />

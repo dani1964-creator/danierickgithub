@@ -110,6 +110,7 @@ const AuthForm = () => {
                   placeholder="seu@email.com"
                   value={signInData.email}
                   onChange={(e) => setSignInData({ ...signInData, email: e.target.value })}
+                  autoComplete="email"
                   required
                   className="h-11 transition-all duration-200 focus:scale-[1.02] focus:shadow-lg"
                 />
@@ -126,6 +127,7 @@ const AuthForm = () => {
                   placeholder="••••••••"
                   value={signInData.password}
                   onChange={(e) => setSignInData({ ...signInData, password: e.target.value })}
+                  autoComplete="current-password"
                   required
                   className="h-11 transition-all duration-200 focus:scale-[1.02] focus:shadow-lg"
                 />

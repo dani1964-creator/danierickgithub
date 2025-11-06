@@ -5,7 +5,7 @@ const LeadsComponent = dynamic(() => import('../leads'), { ssr: false });
 
 /**
  * Página de Leads do Broker
- * Acesso: {slug}.painel.adminimobiliaria.site/painel/leads
+ * Acesso: painel.adminimobiliaria.site/painel/leads
  */
 export default function BrokerLeads() {
   return <LeadsComponent />;

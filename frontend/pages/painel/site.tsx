@@ -12,7 +12,7 @@ import { logger } from '@/lib/logger';
 
 /**
  * Página de Configurações do Site (Slug e Domínio Personalizado)
- * Acesso: {slug}.painel.adminimobiliaria.site/painel/site
+ * Acesso: painel.adminimobiliaria.site/painel/site
  */
 export default function WebsiteConfiguration() {
   const { toast } = useToast();
@@ -26,13 +26,8 @@ export default function WebsiteConfiguration() {
   const [verifying, setVerifying] = useState(false);
 
   useEffect(() => {
-    // TODO: Carregar dados do broker via API
-    // Simulação:
-    const hostname = typeof window !== 'undefined' ? window.location.hostname : '';
-    if (hostname.includes('.painel.')) {
-      const slug = hostname.split('.painel.')[0];
-      setWebsiteSlug(slug);
-    }
+    // TODO: Carregar dados do broker via API autenticada
+    // O broker será identificado pela sessão, não pelo subdomínio
   }, []);
 
   const handleSaveSlug = async () => {

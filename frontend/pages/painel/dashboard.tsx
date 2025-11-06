@@ -7,24 +7,14 @@ const DashboardComponent = dynamic(() => import('../dashboard'), { ssr: false })
 
 /**
  * Página do Dashboard do Broker
- * Acesso: {slug}.painel.adminimobiliaria.site/painel/dashboard
+ * Acesso: painel.adminimobiliaria.site/painel/dashboard
+ * O broker é identificado pela autenticação, não pelo subdomínio
  */
 export default function BrokerDashboard() {
   const router = useRouter();
-  const [brokerSlug, setBrokerSlug] = useState<string>('');
 
-  useEffect(() => {
-    // Ler o slug do broker dos headers injetados pelo middleware
-    if (typeof window !== 'undefined') {
-      const hostname = window.location.hostname;
-      const baseDomain = process.env.NEXT_PUBLIC_BASE_PUBLIC_DOMAIN || 'adminimobiliaria.site';
-      
-      if (hostname.includes(`.painel.${baseDomain}`)) {
-        const slug = hostname.split('.painel.')[0];
-        setBrokerSlug(slug);
-      }
-    }
-  }, []);
-
+  // Não precisa mais extrair slug do hostname
+  // O broker será identificado pela sessão autenticada
+  
   return <DashboardComponent />;
 }

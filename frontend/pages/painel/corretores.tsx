@@ -5,7 +5,7 @@ const RealtorsComponent = dynamic(() => import('../realtors'), { ssr: false });
 
 /**
  * Página de Corretores do Broker
- * Acesso: {slug}.painel.adminimobiliaria.site/painel/corretores
+ * Acesso: painel.adminimobiliaria.site/painel/corretores
  */
 export default function BrokerRealtors() {
   return <RealtorsComponent />;

@@ -5,7 +5,7 @@ const PropertiesComponent = dynamic(() => import('../properties'), { ssr: false 
 
 /**
  * Página de Imóveis do Broker
- * Acesso: {slug}.painel.adminimobiliaria.site/painel/imoveis
+ * Acesso: painel.adminimobiliaria.site/painel/imoveis
  */
 export default function BrokerProperties() {
   return <PropertiesComponent />;

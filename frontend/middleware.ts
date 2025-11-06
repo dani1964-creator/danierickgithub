@@ -5,7 +5,7 @@ import { logger } from '@/lib/logger';
  * Estrutura de roteamento multi-tenant:
  * 
  * 1. Super Admin: adminimobiliaria.site/admin
- * 2. Painel Broker: {slug}.painel.adminimobiliaria.site/painel/*
+ * 2. Painel Broker: painel.adminimobiliaria.site/* (autenticação separa cada broker)
  * 3. Vitrine Pública: {slug}.adminimobiliaria.site/* OU dominio-personalizado.com.br/*
  */
 export async function middleware(request: NextRequest) {
@@ -18,7 +18,7 @@ export async function middleware(request: NextRequest) {
   
   // Identificar tipo de acesso pelo hostname
   const isMainDomain = hostname === baseDomain || hostname === `www.${baseDomain}`;
-  const isPainelSubdomain = hostname.includes(`.painel.${baseDomain}`);
+  const isPainelSubdomain = hostname === `painel.${baseDomain}`;
   const isVitrineSubdomain = hostname.endsWith(`.${baseDomain}`) && !isPainelSubdomain && !isMainDomain;
   const isCustomDomain = !hostname.includes(baseDomain);
   
@@ -53,11 +53,10 @@ export async function middleware(request: NextRequest) {
   }
   
   // ========================================
-  // 2. PAINEL BROKER ({slug}.painel.adminimobiliaria.site/painel/*)
+  // 2. PAINEL BROKER (painel.adminimobiliaria.site/*)
   // ========================================
   if (isPainelSubdomain) {
-    const slug = hostname.split('.painel.')[0];
-    logger.info(`🏢 Broker Panel access detected - slug: ${slug}`);
+    logger.info(`🏢 Broker Panel access detected`);
     
     // Redirecionar para /painel/* se não estiver lá
     if (!isPainelPath && pathname === '/') {
@@ -68,7 +67,6 @@ export async function middleware(request: NextRequest) {
     
     const response = NextResponse.next();
     response.headers.set('x-app-type', 'broker-panel');
-    response.headers.set('x-broker-slug', slug);
     response.headers.set('x-hostname', hostname);
     return response;
   }

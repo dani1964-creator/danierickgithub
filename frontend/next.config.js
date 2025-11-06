@@ -1,13 +1,19 @@
 /** @type {import('next').NextConfig} */
+const path = require('path');
+
 const nextConfig = {
-  // Suporte para domínios personalizados
-  async rewrites() {
-    return [
+  // Configuração de imagens para domínios externos (Supabase, etc)
+  images: {
+    remotePatterns: [
       {
-        source: '/api/:path*',
-        destination: `${process.env.NEXT_PUBLIC_API_URL || process.env.API_URL || 'http://localhost:8080'}/api/:path*`
+        protocol: 'https',
+        hostname: '*.supabase.co',
+      },
+      {
+        protocol: 'https',
+        hostname: '*.supabase.com',
       }
-    ];
+    ],
   },
   
   // Headers de segurança
@@ -33,48 +39,19 @@ const nextConfig = {
     ];
   },
   
-  // Configuração de imagens para domínios externos (Supabase, etc)
-  images: {
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: '*.supabase.co',
-      },
-      {
-        protocol: 'https',
-        hostname: '*.supabase.com',
-      }
-    ],
-  },
-  
-  // Tell Next to transpile our local shared package by package name.
-  transpilePackages: ['@myorg/shared'],
-
   // Experimental features
   experimental: {
     serverComponentsExternalPackages: ['@supabase/supabase-js']
   },
   
-  // Environment variables que podem ser expostas ao cliente
-  env: {
-    CUSTOM_KEY: process.env.CUSTOM_KEY,
-  }
-};
-
-const path = require('path');
-
-// Ensure Next transpiles the monorepo `shared` folder which contains TypeScript
-// modules that must be compiled for the frontend build.
-module.exports = {
-  ...nextConfig,
+  // Transpile shared package
   transpilePackages: ['@shared'],
-  webpack: (config, { defaultLoaders }) => {
-    // Add rule to run Next's babel loader over the shared package files.
-    // Put the rule at the beginning so it runs before other loaders that may try
-    // to parse the same files.
+  
+  // Webpack config para processar arquivos da pasta shared
+  webpack: (config) => {
     config.module.rules.unshift({
       test: /\.[jt]sx?$/,
-      include: [path.resolve(__dirname, '../shared')],
+      include: [path.resolve(__dirname, '../shared'), path.resolve(__dirname, 'shared')],
       use: [
         {
           loader: require.resolve('babel-loader'),

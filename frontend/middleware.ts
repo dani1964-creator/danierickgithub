@@ -103,8 +103,9 @@ export async function middleware(request: NextRequest) {
     // assim o servidor irá entregar a página de vitrine (SSR/SSG) em vez da homepage de marketing.
     const url = request.nextUrl.clone();
     if (url.pathname === '/') {
-      url.pathname = '/vitrine';
-      const rewriteResponse = NextResponse.rewrite(url);
+      // Usar URL completa baseada na requisição original para garantir rewrite correto
+      const target = new URL('/vitrine', request.url);
+      const rewriteResponse = NextResponse.rewrite(target);
       rewriteResponse.headers.set('x-app-type', 'public-site');
       rewriteResponse.headers.set('x-broker-slug', slug);
       rewriteResponse.headers.set('x-custom-domain', customDomain);

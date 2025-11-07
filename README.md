@@ -47,12 +47,12 @@ Este projeto suporta subdomínios por corretora e domínios personalizados via t
 	- Vitrine base: `adminimobiliaria.site` (opcional, pode manter apenas wildcard)
 	- Wildcard para subdomínios de corretores: `*.adminimobiliaria.site`
 
-Checklist prático (DO + Cloudflare):
-- [ ] Criar app estático na DO a partir do GitHub
-- [ ] Definir envs (VITE_*)
-- [ ] Anotar o domínio `SEU_APP.ondigitalocean.app` e setar `VITE_CNAME_TARGET`
+Checklist prático (DigitalOcean App Platform):
+- [ ] Criar app na DO a partir do GitHub
+- [ ] Definir envs (VITE_*) no painel do App Platform
+- [ ] Anotar o domínio `SEU_APP.ondigitalocean.app` e setar `VITE_CNAME_TARGET` se aplicável
 - [ ] Adicionar domínios do SaaS no app (admin + wildcard)
-- [ ] No Cloudflare, criar CNAME `app` e `*` para `SEU_APP.ondigitalocean.app`
+- [ ] Criar registros DNS (CNAME/A) no seu provedor apontando para o target fornecido pelo App Platform
 - [ ] Verificar emissão de certificados na DO
 
 ### DNS (exemplo usando adminimobiliaria.site)
@@ -84,15 +84,23 @@ Provedores de domínio (clientes):
 
 ### Hospedagem e DNS
 
-- Foco atual: DigitalOcean App Platform com Cloudflare na frente.
-- Use o domínio `.ondigitalocean.app` como `VITE_CNAME_TARGET` e configure os domínios/custom domains no painel da DO.
-- Com Cloudflare na frente, você pode manter um único `CNAME alvo` (por exemplo, um subdomínio seu) e proxyar para o provedor real (DO). Ajuste o `VITE_CNAME_TARGET` para o host “público” que você quer expor aos clientes.
+- Foco atual: DigitalOcean App Platform. Use o domínio `.ondigitalocean.app` como `VITE_CNAME_TARGET` e configure os domínios/custom domains no painel da DO.
+
+Se você optar por um provedor de proxy/CDN (ex.: Cloudflare) fique atento às instruções desse provedor — porém o fluxo padrão é apontar CNAME/A para o target do App Platform.
 
 ### Subdomínios do SaaS x Admin
 
 - Subdomínios do SaaS: `*.adminimobiliaria.site` servem as vitrines públicas por corretora.
 - Admin/painel: idealmente fica em `app.adminimobiliaria.site` (ou outro subdomínio fixo).
 - Domínios personalizados cadastrados por cada corretora (na UI de Configurações) afetam apenas a vitrine pública dessa corretora. As telas de administração continuam sob `app.adminimobiliaria.site` (ou o domínio fixo do SaaS), não migram para o domínio do cliente.
+
+### Observação sobre o subdomínio do painel
+- `VITE_PUBLIC_APP_URL` — URL do app admin (usado em links), ex.: `https://painel.adminimobiliaria.site`
+
+	- App admin / Painel: `painel.adminimobiliaria.site` (opcional)
+
+- Admin/painel: idealmente fica em `painel.adminimobiliaria.site` (ou outro subdomínio fixo).
+- Domínios personalizados cadastrados por cada corretora (na UI de Configurações) afetam apenas a vitrine pública dessa corretora. As telas de administração continuam sob `painel.adminimobiliaria.site` (ou o domínio fixo do SaaS), não migram para o domínio do cliente.
 
 ### Build local
 

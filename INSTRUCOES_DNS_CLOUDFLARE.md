@@ -1,23 +1,8 @@
-# 🌐 INSTRUÇÕES DNS - CONFIGURAR CLOUDFLARE
+# INSTRUÇÕES DE CLOUD PROVIDERS
 
-## ⚠️ EXECUTE ESTAS CONFIGURAÇÕES NO CLOUDFLARE DASHBOARD
+Este documento continha instruções específicas para o Cloudflare. Como este projeto foi configurado para utilizar a DigitalOcean App Platform por padrão, as instruções Cloudflare foram removidas para evitar confusão.
 
-### 🎯 **OBJETIVO**
-Configurar DNS para suportar:
-- Domínio principal da aplicação
-- Subdomínios wildcard para tenants
-- Domínios personalizados dos clientes
-
----
-
-## 🔧 **ETAPA 1: Configuração do Domínio Principal**
-
-### **1.1 Adicionar Domínio ao Cloudflare**
-1. Acesse o [Cloudflare Dashboard](https://dash.cloudflare.com/)
-2. Clique em **"Add a Site"**
-3. Digite seu domínio principal (ex: `meuapp.com`)
-4. Escolha o plano (Free é suficiente para começar)
-5. Siga as instruções para alterar os nameservers na Hostinger
+Se você precisar das instruções do Cloudflare, solicite que eu as restaure ou gere um documento separado contendo apenas as etapas opcionais do Cloudflare.
 
 ### **1.2 Configurar Registros DNS Básicos**
 

@@ -5,7 +5,7 @@
 
 set -e
 
-echo "🚀 Deploy Automático - Digital Ocean + Supabase + Cloudflare"
+echo "🚀 Deploy Automático - Digital Ocean + Supabase"
 echo "============================================================="
 
 # Verificar se Docker está instalado
@@ -70,6 +70,6 @@ echo "  Parar: docker compose -f docker-compose.prod.yml down"
 echo "  Restart: docker compose -f docker-compose.prod.yml restart"
 echo ""
 echo "🔧 Próximos passos:"
-echo "1. Configure DNS no Cloudflare apontando para este IP"
-echo "2. Adicione domínios personalizados no dashboard"
-echo "3. Configure SSL/TLS no Cloudflare (Full Strict)"
+echo "1. Adicione domínios personalizados no painel do provedor (DigitalOcean / registrador)"
+echo "2. Configure registros DNS (A/CNAME/wildcard) conforme instruções do App Platform"
+echo "3. Verifique emissão de certificados no painel da DigitalOcean"

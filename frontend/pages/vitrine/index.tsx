@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 import { logger } from '@/lib/logger';
+import DiagnosticBanner from '@/components/DiagnosticBanner';
 
 /**
  * Homepage da Vitrine Pública
@@ -87,6 +88,11 @@ export default function PublicHomepage() {
         <title>{brokerData.business_name}</title>
         <meta name="description" content={brokerData.description} />
       </Head>
+
+      {/* Banner de diagnóstico útil para debugging de DNS/hostname */}
+      <div className="container mx-auto px-6 pt-6">
+        <DiagnosticBanner />
+      </div>
 
       {/* Hero Section */}
       <section className="bg-gradient-to-br from-primary/10 to-background py-20">

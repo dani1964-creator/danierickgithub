@@ -25,12 +25,11 @@ JWT_SECRET=uma_string_super_secreta_de_pelo_menos_32_caracteres_aleatórios
 CORS_ORIGIN=https://meusite.com.br
 # Mesmo domínio acima, com https://
 
-# 4️⃣ CLOUDFLARE (OPCIONAL)
-CLOUDFLARE_ZONE_ID=abc123def456
-# Só se usar Cloudflare: Dashboard > domínio > Zone ID
-
-CLOUDFLARE_API_TOKEN=xyz789
-# Só se usar Cloudflare: My Profile > API Tokens
+# 4️⃣ (OPCIONAL) SERVIÇOS DE CDN/PROXY
+# Se você usar um provedor de proxy/CDN (ex.: Cloudflare), adicione aqui as variáveis necessárias no seu ambiente privado.
+# Exemplo (apenas se usar Cloudflare):
+# CLOUDFLARE_ZONE_ID=abc123def456
+# CLOUDFLARE_API_TOKEN=xyz789
 
 # ============================================
 # ESTES PODEM FICAR ASSIM:

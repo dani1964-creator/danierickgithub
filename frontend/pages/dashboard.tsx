@@ -183,7 +183,7 @@ const Dashboard = () => {
   };
 
   const handleViewPublicSite = () => {
-    // Prioridade: domínio personalizado -> subdomínio -> path
+    // Prioridade: domínio personalizado -> subdomínio
     if (customDomain) {
       const hasProtocol = customDomain.startsWith('http://') || customDomain.startsWith('https://');
       const url = hasProtocol ? customDomain : `https://${customDomain}`;
@@ -192,27 +192,14 @@ const Dashboard = () => {
     }
 
     if (websiteSlug) {
-      // usar subdomínio padrão
-      const url = `https://${websiteSlug}.adminimobiliaria.site`;
+      // Usar subdomínio padrão: {slug}.adminimobiliaria.site
+      const baseDomain = process.env.NEXT_PUBLIC_BASE_PUBLIC_DOMAIN || 'adminimobiliaria.site';
+      const url = `https://${websiteSlug}.${baseDomain}`;
       window.open(url, '_blank', 'noopener,noreferrer');
     } else {
       toast({
         title: "URL não configurada",
-        description: "Configure sua URL nas configurações do site primeiro.",
-        variant: "destructive"
-      });
-    }
-  };
-
-  const handleViewDashboardSite = () => {
-    // Abre o painel via subdomínio painel.{slug}.adminimobiliaria.site
-    if (websiteSlug) {
-      const url = `https://${websiteSlug}.painel.adminimobiliaria.site`;
-      window.open(url, '_blank', 'noopener,noreferrer');
-    } else {
-      toast({
-        title: "URL do painel não configurada",
-        description: "Configure sua URL nas configurações do site primeiro.",
+        description: "Configure seu slug nas configurações do site primeiro.",
         variant: "destructive"
       });
     }
@@ -357,15 +344,6 @@ const Dashboard = () => {
             >
               <Globe className="h-6 w-6 group-hover:scale-110 transition-transform duration-200" />
               <span className="font-medium">Ver Site Público</span>
-            </Button>
-            
-            <Button 
-              variant="outline" 
-              className="h-auto p-6 flex flex-col items-center gap-3 text-sm group hover:scale-105 transition-all duration-200 border-2"
-              onClick={handleViewDashboardSite}
-            >
-              <Settings className="h-6 w-6 group-hover:rotate-90 transition-transform duration-200" />
-              <span className="font-medium">Abrir Painel (subdomínio)</span>
             </Button>
           </div>
         </div>

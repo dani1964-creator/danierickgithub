@@ -506,19 +506,19 @@ const WebsiteSettings = () => {
                   
                   <div className="space-y-4">
                     <div className="space-y-2">
-                      <Label htmlFor="website_slug_config">URL do Site</Label>
+                      <Label htmlFor="website_slug_config">Subdomínio do Site Público</Label>
                       <div className="flex items-center space-x-2">
-                        <span className="text-sm text-muted-foreground">meusite.com/</span>
                         <Input
                           id="website_slug_config"
                           value={profile.website_slug || ''}
                           onChange={(e) => updateProfile('website_slug', e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '-'))}
-                          placeholder="deps"
+                          placeholder="danierick"
                           className="flex-1"
                         />
+                        <span className="text-sm text-muted-foreground">.adminimobiliaria.site</span>
                       </div>
                       <p className="text-sm text-muted-foreground">
-                        URL amigável para o seu site público. Ex: meusite.com/deps
+                        Subdomínio do seu site público. Ex: <strong>danierick</strong>.adminimobiliaria.site
                       </p>
                     </div>
 

@@ -183,23 +183,32 @@ const Dashboard = () => {
   };
 
   const handleViewPublicSite = () => {
+    const baseDomain = process.env.NEXT_PUBLIC_BASE_PUBLIC_DOMAIN || 'adminimobiliaria.site';
+    
+    console.log('🔍 Debug - View Public Site:', {
+      customDomain,
+      websiteSlug,
+      baseDomain
+    });
+    
     // Prioridade: domínio personalizado -> subdomínio
     if (customDomain) {
       const hasProtocol = customDomain.startsWith('http://') || customDomain.startsWith('https://');
       const url = hasProtocol ? customDomain : `https://${customDomain}`;
+      console.log('✅ Opening custom domain:', url);
       window.open(url, '_blank', 'noopener,noreferrer');
       return;
     }
 
     if (websiteSlug) {
       // Usar subdomínio padrão: {slug}.adminimobiliaria.site
-      const baseDomain = process.env.NEXT_PUBLIC_BASE_PUBLIC_DOMAIN || 'adminimobiliaria.site';
       const url = `https://${websiteSlug}.${baseDomain}`;
+      console.log('✅ Opening subdomain:', url);
       window.open(url, '_blank', 'noopener,noreferrer');
     } else {
       toast({
-        title: "URL não configurada",
-        description: "Configure seu slug nas configurações do site primeiro.",
+        title: "Slug não configurado",
+        description: "Configure seu subdomínio em: Configurações do Site → Subdomínio do Site Público",
         variant: "destructive"
       });
     }

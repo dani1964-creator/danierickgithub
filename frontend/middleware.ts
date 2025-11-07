@@ -99,7 +99,19 @@ export async function middleware(request: NextRequest) {
       customDomain = hostname;
       logger.info(`🎨 Public Site (custom domain) access - domain: ${customDomain}`);
     }
-    
+    // Se o usuário acessou a raiz do host público, reescrever para a rota interna '/vitrine'
+    // assim o servidor irá entregar a página de vitrine (SSR/SSG) em vez da homepage de marketing.
+    const url = request.nextUrl.clone();
+    if (url.pathname === '/') {
+      url.pathname = '/vitrine';
+      const rewriteResponse = NextResponse.rewrite(url);
+      rewriteResponse.headers.set('x-app-type', 'public-site');
+      rewriteResponse.headers.set('x-broker-slug', slug);
+      rewriteResponse.headers.set('x-custom-domain', customDomain);
+      rewriteResponse.headers.set('x-hostname', hostname);
+      return rewriteResponse;
+    }
+
     const response = NextResponse.next();
     response.headers.set('x-app-type', 'public-site');
     response.headers.set('x-broker-slug', slug);

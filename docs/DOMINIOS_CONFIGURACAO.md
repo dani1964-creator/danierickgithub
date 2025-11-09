@@ -5,7 +5,7 @@
 O sistema suporta **4 tipos de acesso**:
 
 1. **Super Admin**: `adminimobiliaria.site/admin`
-2. **Painel do Broker**: `{slug}.painel.adminimobiliaria.site`
+2. **Painel do Broker**: `painel.adminimobiliaria.site`
 3. **Vitrine Pública (Subdomínio)**: `{slug}.adminimobiliaria.site`
 4. **Vitrine Pública (Domínio Personalizado)**: `imobiliariajoao.com.br`
 
@@ -45,22 +45,22 @@ CNAME   www     adminimobiliaria.site                  ✅      Auto
 
 1. Em **Settings** → **Domains**, adicione:
    - `*.adminimobiliaria.site` (para vitrines: `{slug}.adminimobiliaria.site`)
-   - `*.painel.adminimobiliaria.site` (para painéis: `{slug}.painel.adminimobiliaria.site`)
+   - `painel.adminimobiliaria.site` (subdomínio fixo do painel)
 
 ### No Cloudflare
 
-Adicione registros wildcard:
+Adicione registros:
 
 ```
-Tipo    Nome              Conteúdo                              Proxy   TTL
-------------------------------------------------------------------------------
-CNAME   *                 adminimobiliaria.site                  ✅      Auto
-CNAME   *.painel          adminimobiliaria.site                  ✅      Auto
+Tipo    Nome     Conteúdo                              Proxy   TTL
+----------------------------------------------------------------------
+CNAME   *        adminimobiliaria.site                  ✅      Auto
+A       @        <IP-DO-DIGITALOCEAN>                  ✅      Auto
+CNAME   painel   adminimobiliaria.site                  ✅      Auto
 ```
 
 ⚠️ **Importante:** 
-- Mantenha o **Proxy Status** como **Proxied** (nuvem laranja) no Cloudflare
-- Isso permite SSL automático e proteção DDoS
+- Se usar Cloudflare, durante a configuração inicial deixe o proxy DESATIVADO (gray cloud) para evitar problemas de resolução enquanto os registros e certificados são provisionados. Depois de tudo funcionando, você pode avaliar ativar recursos do Cloudflare.
 
 ---
 
@@ -160,7 +160,7 @@ Adicione no `/etc/hosts` (para testar localmente):
 ```
 127.0.0.1  adminimobiliaria.site
 127.0.0.1  danierick.adminimobiliaria.site
-127.0.0.1  danierick.painel.adminimobiliaria.site
+127.0.0.1  painel.adminimobiliaria.site
 127.0.0.1  imobiliariajoao.com.br
 ```
 
@@ -172,7 +172,7 @@ npm run dev
 
 Acesse:
 - http://adminimobiliaria.site:3000/admin (Super Admin)
-- http://danierick.painel.adminimobiliaria.site:3000/painel/dashboard (Painel)
+- http://painel.adminimobiliaria.site:3000/painel/dashboard (Painel)
 - http://danierick.adminimobiliaria.site:3000 (Vitrine)
 
 ### Testes em Produção
@@ -181,14 +181,14 @@ Acesse:
 # Verificar DNS
 dig adminimobiliaria.site
 dig danierick.adminimobiliaria.site
-dig danierick.painel.adminimobiliaria.site
+dig painel.adminimobiliaria.site
 
 # Testar SSL
 curl -I https://adminimobiliaria.site
-curl -I https://danierick.painel.adminimobiliaria.site
+curl -I https://painel.adminimobiliaria.site
 
 # Verificar headers do middleware
-curl -I https://danierick.painel.adminimobiliaria.site | grep x-app-type
+curl -I https://painel.adminimobiliaria.site | grep x-app-type
 ```
 
 ---

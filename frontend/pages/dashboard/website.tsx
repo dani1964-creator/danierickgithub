@@ -520,6 +520,41 @@ const WebsiteSettings = () => {
                       <p className="text-sm text-muted-foreground">
                         Subdomínio do seu site público. Ex: <strong>danierick</strong>.adminimobiliaria.site
                       </p>
+                      {/* Preview do URL público configurado e botão para abrir */}
+                      <div className="mt-3 flex items-center gap-3">
+                        <div className="text-sm text-muted-foreground flex-1">
+                          <strong>Site público:</strong>{' '}
+                          {profile.custom_domain && (
+                            <span>{profile.custom_domain}</span>
+                          )}
+                          {!profile.custom_domain && profile.website_slug && (
+                            <span>{`${profile.website_slug}.${(process.env.NEXT_PUBLIC_BASE_PUBLIC_DOMAIN || process.env.NEXT_PUBLIC_BASE_DOMAIN || 'adminimobiliaria.site')}`}</span>
+                          )}
+                          {!profile.custom_domain && !profile.website_slug && (
+                            <span className="text-destructive">Slug não configurado</span>
+                          )}
+                        </div>
+                        <div>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              const baseDomain = process.env.NEXT_PUBLIC_BASE_PUBLIC_DOMAIN || process.env.NEXT_PUBLIC_BASE_DOMAIN || 'adminimobiliaria.site';
+                              let url = '';
+                              if (profile.custom_domain) {
+                                url = profile.custom_domain.startsWith('http') ? profile.custom_domain : `https://${profile.custom_domain}`;
+                              } else if (profile.website_slug) {
+                                url = `https://${profile.website_slug}.${baseDomain}`;
+                              }
+                              if (url) window.open(url, '_blank', 'noopener,noreferrer');
+                            }}
+                            disabled={!profile.custom_domain && !profile.website_slug}
+                          >
+                            <Globe className="h-4 w-4 mr-2" />
+                            Ver Site Público
+                          </Button>
+                        </div>
+                      </div>
                     </div>
 
                     <div className="space-y-2">

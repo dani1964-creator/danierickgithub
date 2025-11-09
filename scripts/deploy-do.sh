@@ -152,42 +152,40 @@ fifi
 
 
 
-echo ""echo ""
+echo ""
 
-echo "📋 Próximos passos:"echo "📋 Próximos passos:"
+echo "📋 Próximos passos:"
 
-echo "1. Configure as environment variables no dashboard do Digital Ocean"echo "1. Configure as environment variables no dashboard do Digital Ocean"
+echo "1. Configure as environment variables no dashboard do Digital Ocean"
 
-echo "2. Configure os domínios personalizados"echo "2. Configure os domínios personalizados"
+echo "2. Configure os domínios personalizados no App Platform"
 
-echo "3. Execute os comandos SQL no Supabase"echo "3. Execute os comandos SQL no Supabase"
+echo "3. Execute os comandos SQL no Supabase"
 
-echo "4. Configure o DNS no Cloudflare"echo "4. Configure o DNS no Cloudflare"
-
-
-
-echo ""echo ""
-
-echo "🔧 Environment variables necessárias:"echo "🔧 Environment variables necessárias:"
-
-echo "   - SUPABASE_URL"echo "   - SUPABASE_URL"
-
-echo "   - SUPABASE_ANON_KEY"  echo "   - SUPABASE_ANON_KEY"  
-
-echo "   - SUPABASE_SERVICE_ROLE_KEY"echo "   - SUPABASE_SERVICE_ROLE_KEY"
+echo "4. Configure os registros DNS (A/CNAME/wildcard) apontando para o target informado pelo App Platform"
 
 
+echo ""
 
-echo ""echo ""
+echo "🔧 Environment variables necessárias:"
 
-echo "🌐 Domínios para configurar:"echo "🌐 Domínios para configurar:"
+echo "   - SUPABASE_URL"
 
-echo "   - Domínio principal (ex: meuapp.com)"echo "   - Domínio principal (ex: meuapp.com)"
+echo "   - SUPABASE_ANON_KEY"
 
-echo "   - Wildcard subdomínio (ex: *.meuapp.com)"echo "   - Wildcard subdomínio (ex: *.meuapp.com)"
+echo "   - SUPABASE_SERVICE_ROLE_KEY"
+
+
+echo ""
+
+echo "🌐 Domínios para configurar:"
+
+echo "   - Domínio principal (ex: meuapp.com)"
+
+echo "   - Wildcard subdomínio (ex: *.meuapp.com)"
 
 
 
-echo ""echo ""
+echo ""
 
-echo "✅ Deploy concluído!"echo "✅ Deploy concluído!"
+echo "✅ Deploy concluído!"

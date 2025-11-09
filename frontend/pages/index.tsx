@@ -15,11 +15,20 @@ const Index = () => {
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const hostname = window.location.hostname;
-      const isPainelSubdomain = hostname.startsWith('painel.');
-      
+      const baseDomain = process.env.NEXT_PUBLIC_BASE_PUBLIC_DOMAIN || 'adminimobiliaria.site';
+      const isPainelSubdomain = hostname === `painel.${baseDomain}` || hostname.startsWith('painel.');
+      const isVitrineSubdomain = hostname.endsWith(`.${baseDomain}`) && !isPainelSubdomain && hostname !== baseDomain && hostname !== `www.${baseDomain}`;
+
+      // Painel: redireciona para /auth
       if (isPainelSubdomain) {
-        // Se está no painel.adminimobiliaria.site, redirecionar para /auth
         router.push('/auth');
+        return;
+      }
+
+      // Vitrine (subdomínio): redireciona para /vitrine onde a vitrine carrega os dados
+      if (isVitrineSubdomain) {
+        router.replace('/vitrine');
+        return;
       }
     }
   }, [router]);

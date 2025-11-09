@@ -33,16 +33,15 @@ export function getAppContext(): AppContext {
     };
   }
 
-  // 2. Painel Broker ({slug}.painel.adminimobiliaria.site)
-  if (hostname.includes(`.painel.${baseDomain}`)) {
-    const brokerSlug = hostname.split('.painel.')[0];
-    return {
-      type: 'broker-panel',
-      brokerSlug,
-      hostname,
-      baseDomain,
-    };
-  }
+  // 2. Painel Broker (painel.adminimobiliaria.site)
+  // Usamos um subdomínio fixo 'painel' para o painel administrativo.
+    if (hostname === `painel.${baseDomain}`) {
+      return {
+        type: 'broker-panel',
+        hostname,
+        baseDomain,
+      };
+    }
 
   // 3. Vitrine Pública - Subdomínio ({slug}.adminimobiliaria.site)
   if (hostname.endsWith(`.${baseDomain}`) && !hostname.includes('.painel.') && !isMainDomain) {

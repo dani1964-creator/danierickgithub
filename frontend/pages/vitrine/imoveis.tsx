@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import Head from 'next/head';
 import { logger } from '@/lib/logger';
+import DiagnosticBanner from '@/components/DiagnosticBanner';
 
 /**
  * Listagem de Imóveis - Vitrine Pública
@@ -43,6 +44,7 @@ export default function PublicProperties() {
       </Head>
 
       <div className="container mx-auto px-6 py-12">
+        <DiagnosticBanner />
         <h1 className="text-4xl font-bold mb-8">Nossos Imóveis</h1>
 
         {loading ? (

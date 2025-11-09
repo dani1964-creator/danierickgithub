@@ -34,6 +34,7 @@ function SuperAdminPage() {
   const { toast } = useToast();
   // Safe origin for Helmet canonical when rendering on server
   const origin = typeof window !== 'undefined' ? window.location.origin : '';
+  const baseDomain = process.env.NEXT_PUBLIC_BASE_PUBLIC_DOMAIN || process.env.NEXT_PUBLIC_BASE_DOMAIN || 'adminimobiliaria.site';
   
   // NOTE: Do NOT instantiate a Service Role client in the browser.
   // Server-side endpoints under /api/superadmin/* provide privileged operations.
@@ -407,15 +408,15 @@ function SuperAdminPage() {
                         </TableCell>
                         <TableCell className="min-w-[60px]">
                           {broker.website_slug && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => window.open(`/${broker.website_slug}`, '_blank')}
-                              className="h-8 w-8 p-0"
-                            >
-                              <ExternalLink className="h-3 w-3" />
-                            </Button>
-                          )}
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => window.open(`https://${broker.website_slug}.${baseDomain}`, '_blank')}
+                                className="h-8 w-8 p-0"
+                              >
+                                <ExternalLink className="h-3 w-3" />
+                              </Button>
+                            )}
                         </TableCell>
                         <TableCell className="min-w-[100px] text-sm">
                           {format(new Date(broker.created_at), "dd/MM/yyyy", { locale: ptBR })}

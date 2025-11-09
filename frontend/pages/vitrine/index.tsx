@@ -12,6 +12,7 @@ import DiagnosticBanner from '@/components/DiagnosticBanner';
  */
 import { createClient } from '@supabase/supabase-js';
 import type { GetServerSideProps } from 'next';
+import { getPublicBroker } from '@/lib/publicQueries';
 
 export default function PublicHomepage({ initialTenant }: { initialTenant?: any }) {
   const router = useRouter();
@@ -24,7 +25,7 @@ export default function PublicHomepage({ initialTenant }: { initialTenant?: any 
     if (typeof window === 'undefined') return;
 
     const hostname = window.location.hostname;
-    const baseDomain = process.env.NEXT_PUBLIC_BASE_PUBLIC_DOMAIN || 'adminimobiliaria.site';
+  const baseDomain = process.env.NEXT_PUBLIC_BASE_PUBLIC_DOMAIN || process.env.NEXT_PUBLIC_BASE_DOMAIN || 'adminimobiliaria.site';
 
     // Detectar se é subdomínio ou domínio personalizado
     if (hostname.endsWith(`.${baseDomain}`) && !hostname.includes('.painel.')) {
@@ -51,18 +52,19 @@ export default function PublicHomepage({ initialTenant }: { initialTenant?: any 
 
   const loadBrokerData = async () => {
     try {
-      // TODO: Implementar chamada API
-      // const res = await fetch(`/api/public/broker?slug=${brokerSlug || ''}&domain=${customDomain || ''}`);
-      // const data = await res.json();
-      // setBrokerData(data);
-      
-      // Simulação temporária
-      setBrokerData({
-        business_name: 'Imobiliária Exemplo',
-        description: 'A melhor imobiliária da região',
-        phone: '(11) 99999-9999',
-        email: 'contato@exemplo.com',
-      });
+      // Usar o helper público que resolve broker via Edge Function ou fallback
+      const { data, error } = await getPublicBroker();
+      if (error) {
+        logger.warn('Public broker query não retornou dados:', error);
+        setBrokerData(null);
+      } else if (data) {
+        setBrokerData(data);
+        // atualizar slug/domínio localmente caso não tenhamos detectado ainda
+        setBrokerSlug((prev) => prev || data.website_slug || '');
+        setCustomDomain((prev) => prev || data.custom_domain || '');
+      } else {
+        setBrokerData(null);
+      }
     } catch (error) {
       logger.error('Error loading broker data:', error);
     } finally {

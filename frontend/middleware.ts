@@ -103,15 +103,18 @@ export async function middleware(request: NextRequest) {
     // assim o servidor irá entregar a página de vitrine (SSR/SSG) em vez da homepage de marketing.
     const url = request.nextUrl.clone();
     if (url.pathname === '/') {
-      // Em builds exportados/estáticos a reescrita pode não surtir efeito no CDN.
-      // Fazer redirect para `/vitrine` garante que o HTML correto seja servido.
-      const target = new URL('/vitrine', request.url);
-      const redirectResponse = NextResponse.redirect(target);
-      redirectResponse.headers.set('x-app-type', 'public-site');
-      redirectResponse.headers.set('x-broker-slug', slug);
-      redirectResponse.headers.set('x-custom-domain', customDomain);
-      redirectResponse.headers.set('x-hostname', hostname);
-      return redirectResponse;
+      // Preferir reescrita interna para entregar a rota de vitrine sem alterar a URL
+      // (funciona quando o Next.js está rodando em modo server). Em builds estáticos
+      // a reescrita pode não surtir efeito no CDN — por isso recomendamos deploy SSR
+      // e purge de cache no CDN.
+      const rewriteUrl = request.nextUrl.clone();
+      rewriteUrl.pathname = '/vitrine';
+      const rewriteResponse = NextResponse.rewrite(rewriteUrl);
+      rewriteResponse.headers.set('x-app-type', 'public-site');
+      rewriteResponse.headers.set('x-broker-slug', slug);
+      rewriteResponse.headers.set('x-custom-domain', customDomain);
+      rewriteResponse.headers.set('x-hostname', hostname);
+      return rewriteResponse;
     }
 
     const response = NextResponse.next();

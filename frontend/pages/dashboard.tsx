@@ -183,7 +183,7 @@ const Dashboard = () => {
   };
 
   const handleViewPublicSite = () => {
-    const baseDomain = process.env.NEXT_PUBLIC_BASE_PUBLIC_DOMAIN || 'adminimobiliaria.site';
+  const baseDomain = process.env.NEXT_PUBLIC_BASE_PUBLIC_DOMAIN || process.env.NEXT_PUBLIC_BASE_DOMAIN || 'adminimobiliaria.site';
     
     console.log('🔍 Debug - View Public Site:', {
       customDomain,

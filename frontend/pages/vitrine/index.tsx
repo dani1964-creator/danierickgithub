@@ -36,6 +36,15 @@ export default function PublicHomepage({ initialTenant }: { initialTenant?: any 
       logger.info(`Public site loaded with custom domain: ${hostname}`);
     }
 
+    // Se o servidor já injetou o tenant (SSR), usar direto e pular fetch
+    if (initialTenant) {
+      setBrokerData(initialTenant);
+      setBrokerSlug(initialTenant.website_slug || '');
+      setCustomDomain(initialTenant.custom_domain || '');
+      setLoading(false);
+      return;
+    }
+
     // TODO: Carregar dados do broker via API usando slug ou custom_domain
     loadBrokerData();
   }, []);
@@ -88,8 +97,11 @@ export default function PublicHomepage({ initialTenant }: { initialTenant?: any 
   return (
     <div className="min-h-screen bg-background">
       <Head>
-        <title>{brokerData.business_name}</title>
-        <meta name="description" content={brokerData.description} />
+        <title>{brokerData?.business_name || 'Vitrine'}</title>
+        <meta name="description" content={brokerData?.description || ''} />
+        {initialTenant && (
+          <meta name="x-tenant-data" content={JSON.stringify(initialTenant)} />
+        )}
       </Head>
 
       {/* Banner de diagnóstico útil para debugging de DNS/hostname */}

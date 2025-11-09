@@ -10,7 +10,10 @@ import DiagnosticBanner from '@/components/DiagnosticBanner';
  * 
  * Esta é a página principal do site público da imobiliária
  */
-export default function PublicHomepage() {
+import { createClient } from '@supabase/supabase-js';
+import type { GetServerSideProps } from 'next';
+
+export default function PublicHomepage({ initialTenant }: { initialTenant?: any }) {
   const router = useRouter();
   const [brokerSlug, setBrokerSlug] = useState('');
   const [customDomain, setCustomDomain] = useState('');
@@ -142,3 +145,65 @@ export default function PublicHomepage() {
     </div>
   );
 }
+
+// Server-side fetch para fornecer dados iniciais da vitrine no HTML (evita flash de marketing)
+export const getServerSideProps: GetServerSideProps = async (ctx) => {
+  try {
+    const host = (ctx.req.headers.host || '').toLowerCase();
+    const baseDomain = (process.env.NEXT_PUBLIC_BASE_PUBLIC_DOMAIN || 'adminimobiliaria.site').toLowerCase();
+
+    // Usar service role key NO SERVIDOR apenas (NUNCA embutir no cliente)
+    const SUPABASE_URL = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+    if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+      // Não conseguimos fazer consultas seguras no servidor sem a chave apropriada
+      return { props: {} };
+    }
+
+    const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, { auth: { persistSession: false } });
+
+    let broker = null;
+
+    if (host.endsWith(`.${baseDomain}`)) {
+      const slug = host.split(`.${baseDomain}`)[0];
+      const { data, error } = await supabaseAdmin
+        .from('brokers')
+        .select('*')
+        .eq('website_slug', slug)
+        .eq('is_active', true)
+        .maybeSingle();
+      if (!error && data) broker = data;
+    } else {
+      // domínio customizado
+      const { data: domainData, error: domainError } = await supabaseAdmin
+        .from('broker_domains')
+        .select('broker_id')
+        .eq('domain', host)
+        .eq('is_active', true)
+        .maybeSingle();
+      if (!domainError && domainData?.broker_id) {
+        const { data: brokerData, error: brokerError } = await supabaseAdmin
+          .from('brokers')
+          .select('*')
+          .eq('id', domainData.broker_id)
+          .eq('is_active', true)
+          .maybeSingle();
+        if (!brokerError && brokerData) broker = brokerData;
+      }
+    }
+
+    if (!broker) {
+      // Não encontrado — retornar props vazias (página client-side pode exibir mensagem)
+      return { props: {} };
+    }
+
+    // Remover campos sensíveis antes de expor ao cliente
+    const safeBroker = { ...broker };
+    // Expor apenas os campos públicos necessários
+    return { props: { initialTenant: safeBroker } };
+  } catch (err) {
+    // Em caso de erro, não falhar o build; a página continuará tentando no cliente
+    return { props: {} };
+  }
+};

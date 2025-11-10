@@ -24,8 +24,10 @@ const FixedHeader = ({ brokerProfile }: FixedHeaderProps) => {
 
   // Function to handle navigation to home
   const handleGoToHome = () => {
-    const homeUrl = `/${brokerProfile.website_slug || ''}`;
-    router.push(homeUrl);
+    // On the public site the correct home is the host root (e.g. danierick.adminimobiliaria.site)
+    // so we must NOT include the broker slug in the path. Previously this pushed to
+    // `/${website_slug}` which produced URLs like /danierick.
+    router.push('/');
   };
 
   return (

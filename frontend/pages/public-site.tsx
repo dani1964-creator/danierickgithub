@@ -86,9 +86,16 @@ const PublicSite = () => {
   // Função para compartilhar imóvel
   const handleShare = useCallback((property: Property) => {
     if (!brokerProfile) return;
-    // Compartilhar usando URL direta baseada no slug do corretor e do imóvel
+    // Compartilhar usando URL correta dependendo do tipo de domínio.
+    // - Se for um subdomínio do tipo <slug>.adminimobiliaria.site, o broker slug já está implícito no host,
+    //   então o caminho do imóvel deve ser `/propertySlug`.
+    // - Se for um domínio customizado (ou se o projeto usar rotas com slug no path), precisamos manter
+    //   o comportamento antigo e colocar `/{brokerSlug}/{propertySlug}`.
     const brokerSlug = brokerProfile.website_slug;
-    const shareUrl = `${window.location.origin}/${brokerSlug}/${property.slug || property.id}`;
+    const isCustom = isCustomDomain();
+    const shareUrl = isCustom
+      ? `${window.location.origin}/${brokerSlug}/${property.slug || property.id}`
+      : `${window.location.origin}/${property.slug || property.id}`;
     if (navigator.share) {
       navigator.share({
         title: `${property.title} - ${brokerProfile?.business_name}`,

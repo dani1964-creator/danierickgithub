@@ -534,6 +534,8 @@ const PublicSite = ({ initialBrokerProfile, initialProperties }: PublicSiteProps
 
 export default PublicSite;
 
+import { getPublicBrokerByHost } from '@/lib/server/brokerService';
+
 export async function getServerSideProps(context: any) {
   try {
     const headers = context.req?.headers || {};
@@ -541,16 +543,8 @@ export async function getServerSideProps(context: any) {
     const brokerSlug = (headers['x-broker-slug'] || '') as string;
     const customDomain = (headers['x-custom-domain'] || '') as string;
 
-    // Import supabase client (uses publishable key, sufficient for public reads)
-    const { supabase } = await import('@/integrations/supabase/client');
-
     // Simple in-memory cache to avoid repeating broker lookups on each SSR request
-    // Keyed by hostname or brokerSlug. TTL is small to keep freshness but avoid DB thundering.
     const cacheKey = brokerSlug || customDomain || hostname || 'unknown';
-    // NOTE: keep the cache at module-level so it survives between invocations (cold starts aside)
-    // We attach it to the global object to avoid reinitializing during HMR in dev.
-    // structure: { value: any, expiresAt: number }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const globalAny: any = globalThis as any;
     if (!globalAny.__publicSiteBrokerCache) globalAny.__publicSiteBrokerCache = new Map();
     const brokerCache: Map<string, { value: any; expiresAt: number }> = globalAny.__publicSiteBrokerCache;
@@ -561,34 +555,8 @@ export async function getServerSideProps(context: any) {
       return { props: { initialBrokerProfile: cached.value || null } };
     }
 
-    let broker: any = null;
-
-    if (brokerSlug) {
-      const { data, error } = await supabase
-        .from('brokers')
-        .select('*')
-        .eq('website_slug', brokerSlug)
-        .eq('is_active', true)
-        .maybeSingle();
-      if (!error && data) broker = data;
-    } else if (customDomain && hostname) {
-      // Resolve broker by custom domain
-      const { data: domainData, error: domainErr } = await supabase
-        .from('broker_domains')
-        .select('broker_id')
-        .eq('domain', hostname)
-        .eq('is_active', true)
-        .maybeSingle();
-      if (!domainErr && domainData?.broker_id) {
-        const { data: brokerData, error: brokerErr } = await supabase
-          .from('brokers')
-          .select('*')
-          .eq('id', domainData.broker_id)
-          .eq('is_active', true)
-          .maybeSingle();
-        if (!brokerErr && brokerData) broker = brokerData;
-      }
-    }
+    // Delegate to server-side service that returns only public fields
+    const broker = await getPublicBrokerByHost({ hostname: String(hostname || ''), brokerSlug: String(brokerSlug || ''), customDomain: String(customDomain || '') });
 
     // populate cache
     brokerCache.set(cacheKey, { value: broker || null, expiresAt: Date.now() + TTL });

@@ -14,6 +14,8 @@ function BrokerNotFound() {
     if (typeof window !== 'undefined') window.history.back();
   };
 
+  "use client";
+
   const currentHost = typeof window !== 'undefined' ? window.location.host : '';
 
   return (

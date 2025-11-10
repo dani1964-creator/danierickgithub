@@ -10,8 +10,38 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const hostHeader = (req.headers['x-forwarded-host'] || req.headers.host || '') as string;
     const host = hostHeader.split(':')[0].toLowerCase();
 
-    // Resolver broker explicitamente pelo host aqui (evita uso de `window` no servidor)
-    const brokerId = await BrokerResolver.resolveBrokerByHost(host || undefined);
+    // Forçar limpeza de cache do BrokerResolver neste endpoint diagnóstico
+    try {
+      BrokerResolver.clearCache();
+    } catch (e) {
+      // ignore
+    }
+
+    // Se o query param ?force_local=1 for passado, forçamos resolução local
+    const forceLocal = req.query?.force_local === '1' || req.query?.force_local === 'true';
+
+    let brokerId: string | null = null;
+    let resolution_method = 'auto';
+
+    try {
+      if (forceLocal) {
+        brokerId = await BrokerResolver.resolveBrokerLocally(host || '');
+        resolution_method = 'local';
+      } else {
+        brokerId = await BrokerResolver.resolveBrokerByHost(host || undefined);
+        resolution_method = 'auto';
+      }
+    } catch (e) {
+      // Se falhar em modo auto e não for forceLocal, tentar fallback local
+      if (!forceLocal) {
+        try {
+          brokerId = await BrokerResolver.resolveBrokerLocally(host || '');
+          resolution_method = 'local-fallback';
+        } catch (e2) {
+          // leave brokerId null
+        }
+      }
+    }
     if (!brokerId) {
       return res.status(404).json({ ok: false, error: 'Broker not found for host: ' + host });
     }
@@ -28,7 +58,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(500).json({ ok: false, error: error.message || error });
     }
 
-    return res.status(200).json({ ok: true, broker: data || null, host });
+    return res.status(200).json({ ok: true, broker: data || null, host, resolution_method });
   } catch (err) {
     return res.status(500).json({ ok: false, error: String(err) });
   }

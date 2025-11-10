@@ -20,7 +20,7 @@ import ContactCTA from '@/components/home/ContactCTA';
 import Footer from '@/components/home/Footer';
 import LeadModal from '@/components/leads/LeadModal';
 import { getErrorMessage } from '@/lib/utils';
-import { getPublicUrl } from '@/lib/seo';
+import { getPublicUrl, getSafeOrigin } from '@/lib/seo';
 import { logger } from '@/lib/logger';
 import { getPrefetchedDetail, setPrefetchedDetail } from '@/lib/detail-prefetch';
 import getPropertyUrl from '@/lib/getPropertyUrl';
@@ -901,8 +901,8 @@ const PropertyDetailPage = () => {
     );
   }
 
-  const origin = typeof window !== 'undefined' ? window.location.origin : '';
-  const href = typeof window !== 'undefined' ? window.location.href : '';
+  const origin = getSafeOrigin();
+  const href = (typeof window !== 'undefined' && window.location && window.location.href) ? window.location.href : '';
 
   return (
     <>
@@ -1000,15 +1000,30 @@ const PropertyDetailPage = () => {
         <meta property="og:image:type" content="image/jpeg" />
         <meta property="og:type" content="website" />
   <meta property="og:site_name" content={brokerProfile?.business_name || 'Imobiliária'} />
-  <meta property="og:url" content={href} />
+        {/* Canonical / OG URL: prefer custom domain when configured, else use public subdomain URL */}
+        <meta property="og:url" content={(() => {
+          try {
+            const preferCustom = brokerProfile?.canonical_prefer_custom_domain ?? true;
+            if (preferCustom && brokerProfile?.custom_domain) {
+              return `https://${brokerProfile.custom_domain}/${property?.slug}`;
+            }
+            // fallback to public URL helper
+            return getPublicUrl(brokerProfile?.website_slug || '', property?.slug || property?.id || '');
+          } catch (e) {
+            return href || '';
+          }
+        })()} />
         <meta name="robots" content={`${(brokerProfile?.robots_index ?? true) ? 'index' : 'noindex'}, ${(brokerProfile?.robots_follow ?? true) ? 'follow' : 'nofollow'}`} />
         <link rel="canonical" href={(() => {
-          const preferCustom = brokerProfile?.canonical_prefer_custom_domain ?? true;
-          const useCustom = preferCustom && brokerProfile?.custom_domain;
-          if (useCustom) {
-            return `https://${brokerProfile!.custom_domain!}/${property?.slug}`;
+          try {
+            const preferCustom = brokerProfile?.canonical_prefer_custom_domain ?? true;
+            if (preferCustom && brokerProfile?.custom_domain) {
+              return `https://${brokerProfile.custom_domain}/${property?.slug}`;
+            }
+            return getPublicUrl(brokerProfile?.website_slug || '', property?.slug || property?.id || '');
+          } catch (e) {
+            return href || '';
           }
-          return `${origin}/${brokerProfile?.website_slug}/${property?.slug}`;
         })()} />
         
         {/* Twitter Card */}

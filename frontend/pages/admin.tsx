@@ -13,6 +13,7 @@ import { Building2, Users, Globe, Trash2, Plus, Eye, EyeOff, ExternalLink, Refre
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import Head from 'next/head';
+import { getSafeOrigin } from '@/lib/seo';
 import { logger } from '@/lib/logger';
 import dynamic from 'next/dynamic';
 
@@ -33,7 +34,7 @@ function SuperAdminPage() {
   const SUPER_ADMIN_TOKEN_KEY = "sa_auth";
   const { toast } = useToast();
   // Safe origin for Helmet canonical when rendering on server
-  const origin = typeof window !== 'undefined' ? window.location.origin : '';
+  const origin = getSafeOrigin();
   const baseDomain = process.env.NEXT_PUBLIC_BASE_PUBLIC_DOMAIN || process.env.NEXT_PUBLIC_BASE_DOMAIN || 'adminimobiliaria.site';
   
   // NOTE: Do NOT instantiate a Service Role client in the browser.

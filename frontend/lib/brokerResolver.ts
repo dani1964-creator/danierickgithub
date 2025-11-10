@@ -24,22 +24,30 @@ export class BrokerResolver {
     }
 
     try {
-      // Tentar Edge Function primeiro (recomendado)
+      // Em desenvolvimento, pular chamada para Edge Function e usar resolução local
+      // Isso evita erros em dev quando a Edge Function não está implantada ou acessível.
+      if (process.env.NODE_ENV !== 'production') {
+        const brokerId = await this.resolveViaLocalQuery(targetHost);
+        this.cache.set(targetHost, { brokerId, timestamp: Date.now() });
+        return brokerId;
+      }
+
+      // Tentar Edge Function primeiro (recomendado em produção)
       const brokerId = await this.resolveViaEdgeFunction(targetHost);
-      
+
       // Cache o resultado
       this.cache.set(targetHost, { brokerId, timestamp: Date.now() });
-      
+
       return brokerId;
     } catch (error) {
       logger.warn('Edge Function falhou, usando fallback local:', error);
-      
+
       // Fallback para resolução local
       const brokerId = await this.resolveViaLocalQuery(targetHost);
-      
+
       // Cache o resultado
       this.cache.set(targetHost, { brokerId, timestamp: Date.now() });
-      
+
       return brokerId;
     }
   }
@@ -113,6 +121,13 @@ export class BrokerResolver {
       logger.error('Erro na resolução local do broker:', error);
       return null;
     }
+  }
+  
+  /**
+   * Método público para forçar resolução local (útil para diagnóstico e ambientes dev)
+   */
+  static async resolveBrokerLocally(host: string): Promise<string | null> {
+    return this.resolveViaLocalQuery(host);
   }
 
   /**

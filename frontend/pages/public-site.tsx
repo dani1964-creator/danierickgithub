@@ -24,7 +24,8 @@ import { Separator } from '@/components/ui/separator';
 import { ThemeProvider } from '@/theme/ThemeProvider';
 import { useDomainAware } from '@/hooks/useDomainAware';
 import { SEODebugPanel } from '@/components/debug/SEODebugPanel';
-import { getCanonicalBase, applyTemplate } from '@/lib/seo';
+import { getCanonicalBase, applyTemplate, getSafeOrigin } from '@/lib/seo';
+import getPropertyUrl from '@/lib/getPropertyUrl';
 import { usePropertyTypes } from '@/hooks/usePropertyTypes';
 import { getErrorMessage } from '@/lib/utils';
 import { logger } from '@/lib/logger';
@@ -94,9 +95,13 @@ const PublicSite = () => {
     //   o comportamento antigo e colocar `/{brokerSlug}/{propertySlug}`.
     const brokerSlug = brokerProfile.website_slug;
     const isCustom = isCustomDomain();
-    const shareUrl = isCustom
-      ? `${window.location.origin}/${brokerSlug}/${property.slug || property.id}`
-      : `${window.location.origin}/${property.slug || property.id}`;
+    const propertySlug = property.slug || property.id;
+    const shareUrl = getPropertyUrl({
+      isCustomDomain: isCustom,
+      brokerSlug: brokerSlug,
+      propertySlug,
+      propertyId: property.id,
+    });
     if (navigator.share) {
       navigator.share({
         title: `${property.title} - ${brokerProfile?.business_name}`,
@@ -156,8 +161,8 @@ const PublicSite = () => {
   }, [slug, toast]);
 
   // Safe origin/href values to avoid SSR failures when rendering Helmet
-  const origin = typeof window !== 'undefined' ? window.location.origin : '';
-  const href = typeof window !== 'undefined' ? window.location.href : '';
+  const origin = getSafeOrigin();
+  const href = (typeof window !== 'undefined' && window.location && window.location.href) ? window.location.href : '';
 
   const {
     searchTerm,
@@ -283,10 +288,10 @@ const PublicSite = () => {
     );
   }
 
-  // Se há um propertySlug na URL, mostrar página de detalhes
-  if (propertySlug) {
-    return <PropertyDetailPage />;
-  }
+
+  // Nota: não retornamos a página de detalhes aqui diretamente —
+  // precisamos renderizá-la dentro do `ThemeProvider`/Head para que o
+  // `brokerProfile` (favicon, cores e meta) sejam aplicados corretamente.
 
   return (
     <ThemeProvider broker={brokerProfile}>
@@ -415,61 +420,68 @@ const PublicSite = () => {
       </Head>
       
       <div className="public-site-layout min-h-screen bg-background">
-      <TrackingScripts trackingScripts={brokerProfile?.tracking_scripts} />
-      <FixedHeader brokerProfile={brokerProfile} />
-      <HeroBanner brokerProfile={brokerProfile} />
-      
-      <div id="search" className="w-full py-8">
-        <div className="content-container">
-          <SearchFilters
-            searchTerm={searchTerm}
-            setSearchTerm={setSearchTerm}
-            filters={filters}
-            setFilters={setFilters}
-            hasActiveFilters={hasActiveFilters}
-            primaryColor={brokerProfile?.primary_color || '#2563eb'}
-            secondaryColor={brokerProfile?.secondary_color || '#64748b'}
-            propertyTypeOptions={propertyTypeOptions}
-            propertyTypeGroups={sortedTypeGroups.map(g => ({ label: g.label, options: g.options.map(o => ({ value: o.value, label: o.label })) }))}
-          />
-        </div>
+        {propertySlug ? (
+          // Página de detalhe renderizada dentro do layout para garantir Head/Theme
+          <PropertyDetailPage />
+        ) : (
+          <>
+            <TrackingScripts trackingScripts={brokerProfile?.tracking_scripts} />
+            <FixedHeader brokerProfile={brokerProfile} />
+            <HeroBanner brokerProfile={brokerProfile} />
+          
+            <div id="search" className="w-full py-8">
+              <div className="content-container">
+                <SearchFilters
+                  searchTerm={searchTerm}
+                  setSearchTerm={setSearchTerm}
+                  filters={filters}
+                  setFilters={setFilters}
+                  hasActiveFilters={hasActiveFilters}
+                  primaryColor={brokerProfile?.primary_color || '#2563eb'}
+                  secondaryColor={brokerProfile?.secondary_color || '#64748b'}
+                  propertyTypeOptions={propertyTypeOptions}
+                  propertyTypeGroups={sortedTypeGroups.map(g => ({ label: g.label, options: g.options.map(o => ({ value: o.value, label: o.label })) }))}
+                />
+              </div>
+            </div>
+
+            {featuredProperties.length > 0 && (
+              <FeaturedProperties
+                properties={featuredProperties}
+                brokerProfile={brokerProfile}
+                onContactLead={handleContactLead}
+                onShare={handleShare}
+                onFavorite={handleFavorite}
+                isFavorited={isFavorited}
+                onImageClick={handleImageClick}
+              />
+            )}
+
+            {featuredProperties.length > 0 && regularProperties.length > 0 && (
+              <div className="content-container py-8">
+                <Separator className="bg-black/20" />
+              </div>
+            )}
+
+          {regularProperties.length > 0 && (
+            <PropertiesGrid
+              properties={regularProperties}
+              brokerProfile={brokerProfile}
+              onContactLead={handleContactLead}
+              onShare={handleShare}
+              onFavorite={handleFavorite}
+              isFavorited={isFavorited}
+              onImageClick={handleImageClick}
+            />
+          )}
+
+            <WhatsAppFloat 
+              brokerProfile={brokerProfile} 
+              onContactRequest={fetchContactInfo}
+            />
+          </>
+        )}
       </div>
-
-      {featuredProperties.length > 0 && (
-        <FeaturedProperties
-          properties={featuredProperties}
-          brokerProfile={brokerProfile}
-          onContactLead={handleContactLead}
-          onShare={handleShare}
-          onFavorite={handleFavorite}
-          isFavorited={isFavorited}
-          onImageClick={handleImageClick}
-        />
-      )}
-
-      {featuredProperties.length > 0 && regularProperties.length > 0 && (
-        <div className="content-container py-8">
-          <Separator className="bg-black/20" />
-        </div>
-      )}
-
-      {regularProperties.length > 0 && (
-        <PropertiesGrid
-          properties={regularProperties}
-          brokerProfile={brokerProfile}
-          onContactLead={handleContactLead}
-          onShare={handleShare}
-          onFavorite={handleFavorite}
-          isFavorited={isFavorited}
-          onImageClick={handleImageClick}
-        />
-      )}
-
-      <WhatsAppFloat 
-        brokerProfile={brokerProfile} 
-        onContactRequest={fetchContactInfo}
-      />
-    </div>
 
     {/* Contact CTA Section - Fora do container principal para ocupar toda a largura */}
     {properties.length > 0 && (

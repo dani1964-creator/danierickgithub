@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 import { logger } from '@/lib/logger';
@@ -21,11 +21,33 @@ export default function PublicHomepage({ initialTenant }: { initialTenant?: any 
   const [brokerData, setBrokerData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
+  const loadBrokerData = useCallback(async () => {
+    try {
+      // Usar o helper público que resolve broker via Edge Function ou fallback
+      const { data, error } = await getPublicBroker();
+      if (error) {
+        logger.warn('Public broker query não retornou dados:', error);
+        setBrokerData(null);
+      } else if (data) {
+        setBrokerData(data);
+        // atualizar slug/domínio localmente caso não tenhamos detectado ainda
+        setBrokerSlug((prev) => prev || data.website_slug || '');
+        setCustomDomain((prev) => prev || data.custom_domain || '');
+      } else {
+        setBrokerData(null);
+      }
+    } catch (error) {
+      logger.error('Error loading broker data:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
     const hostname = window.location.hostname;
-  const baseDomain = process.env.NEXT_PUBLIC_BASE_PUBLIC_DOMAIN || process.env.NEXT_PUBLIC_BASE_DOMAIN || 'adminimobiliaria.site';
+    const baseDomain = process.env.NEXT_PUBLIC_BASE_PUBLIC_DOMAIN || process.env.NEXT_PUBLIC_BASE_DOMAIN || 'adminimobiliaria.site';
 
     // Detectar se é subdomínio ou domínio personalizado
     if (hostname.endsWith(`.${baseDomain}`) && !hostname.includes('.painel.')) {
@@ -46,31 +68,11 @@ export default function PublicHomepage({ initialTenant }: { initialTenant?: any 
       return;
     }
 
-    // TODO: Carregar dados do broker via API usando slug ou custom_domain
+    // Carregar dados do broker via API usando slug ou custom_domain
     loadBrokerData();
-  }, []);
+  }, [initialTenant, loadBrokerData]);
 
-  const loadBrokerData = async () => {
-    try {
-      // Usar o helper público que resolve broker via Edge Function ou fallback
-      const { data, error } = await getPublicBroker();
-      if (error) {
-        logger.warn('Public broker query não retornou dados:', error);
-        setBrokerData(null);
-      } else if (data) {
-        setBrokerData(data);
-        // atualizar slug/domínio localmente caso não tenhamos detectado ainda
-        setBrokerSlug((prev) => prev || data.website_slug || '');
-        setCustomDomain((prev) => prev || data.custom_domain || '');
-      } else {
-        setBrokerData(null);
-      }
-    } catch (error) {
-      logger.error('Error loading broker data:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  
 
   if (loading) {
     return (

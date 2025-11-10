@@ -517,8 +517,8 @@ const PropertyDetailPage = () => {
 
     if (contactInfo?.whatsapp_number && property) {
     // Generate clean URL based on domain type
-      const currentOrigin = window.location.origin;
-      const currentPath = router.pathname;
+  const currentOrigin = getSafeOrigin();
+  // const currentPath intentionally unused — kept for future use if needed
       
       // Sempre usar URL limpa baseada em slug do corretor e slug do imóvel
       const brokerSlug = brokerProfile?.website_slug || slug;
@@ -902,7 +902,7 @@ const PropertyDetailPage = () => {
   }
 
   const origin = getSafeOrigin();
-  const href = (typeof window !== 'undefined' && window.location && window.location.href) ? window.location.href : '';
+  const href = `${origin}${(typeof window !== 'undefined' ? window.location.pathname + window.location.search + window.location.hash : router.asPath || '')}`;
 
   return (
     <>

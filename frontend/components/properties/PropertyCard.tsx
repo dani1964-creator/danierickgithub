@@ -52,7 +52,7 @@ const PropertyCard = ({
       ? [property.main_image_url] 
       : [];
 
-  const prefetchDetail = async () => {
+  const prefetchDetail = async (): Promise<string | null> => {
     try {
       // Determina o slug efetivo do corretor
       let effectiveSlug = slug as string | undefined;
@@ -73,20 +73,44 @@ const PropertyCard = ({
       const { data: propertyArr } = propertyResult;
       const { data: brokerArr } = brokerResult;
       if (propertyArr && propertyArr[0] && brokerArr && brokerArr[0]) {
+        const realSlug = propertyArr[0].slug || null;
+        // Store under the requested key (may be id) so existing lookups work
         setPrefetchedDetail(effectiveSlug, propertySlug, {
           property: propertyArr[0],
           brokerProfile: brokerArr[0] as any,
         });
+        // If RPC returned a proper slug (different from the temporary key), cache under the real slug too
+        if (realSlug && realSlug !== propertySlug) {
+          setPrefetchedDetail(effectiveSlug, realSlug, {
+            property: propertyArr[0],
+            brokerProfile: brokerArr[0] as any,
+          });
+        }
+        return realSlug;
       }
+      return null;
     } catch (e) {
       // ignora erros de prefetch
+      return null;
     }
   };
 
   const handleViewDetails = async () => {
-    // Dispara prefetch e navega em seguida
-    prefetchDetail();
-    const propertySlug = property.slug || property.id;
+    // Dispara prefetch e aguarda brevemente pelo slug real (se disponível)
+    const prefetchPromise = prefetchDetail();
+    // Aguarda up to 800ms pelo prefetch para evitar bloquear a navegação
+    let realSlug: string | null = null;
+    try {
+      realSlug = await Promise.race([
+        prefetchPromise,
+        new Promise<string | null>((res) => setTimeout(() => res(null), 800)),
+      ]) as string | null;
+    } catch (e) {
+      realSlug = null;
+    }
+
+    const propertySlug = realSlug || property.slug || property.id;
+
     try {
       // Determina um slug efetivo para evitar 'undefined' na URL.
       // Prioriza o `brokerProfile.website_slug` quando disponível, depois o `slug` da rota.

@@ -15,7 +15,7 @@ export class BrokerResolver {
    * Tenta usar Edge Function primeiro, fallback para resolução local
    */
   static async resolveBrokerByHost(host?: string): Promise<string | null> {
-    const targetHost = host || window.location.host.toLowerCase();
+  const targetHost = host || (typeof window !== 'undefined' && window.location && window.location.host ? window.location.host.toLowerCase() : '');
     
     // Verificar cache primeiro
     const cached = this.cache.get(targetHost);

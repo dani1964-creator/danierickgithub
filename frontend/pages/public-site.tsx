@@ -162,7 +162,7 @@ const PublicSite = () => {
 
   // Safe origin/href values to avoid SSR failures when rendering Helmet
   const origin = getSafeOrigin();
-  const href = (typeof window !== 'undefined' && window.location && window.location.href) ? window.location.href : '';
+  const href = `${origin}${(typeof window !== 'undefined' ? window.location.pathname + window.location.search + window.location.hash : router.asPath || '')}`;
 
   const {
     searchTerm,
@@ -238,7 +238,7 @@ const PublicSite = () => {
       setFavorites(JSON.parse(savedFavorites));
     }
   // Check if it's first visit and user hasn't submitted a lead yet
-  const visitIdentifier = isCustomDomain() ? (typeof window !== 'undefined' ? window.location.hostname : '') : slug;
+  const visitIdentifier = isCustomDomain() ? (typeof window !== 'undefined' ? window.location.hostname : '') : (Array.isArray(slug) ? slug[0] : slug);
     if (visitIdentifier) {
       const visitKey = `first-visit-${visitIdentifier}`;
       const leadSubmittedKey = `lead-submitted-${visitIdentifier}`;

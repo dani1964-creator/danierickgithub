@@ -49,6 +49,7 @@ const PublicSite = () => {
   // Colocar slug/toast cedo para serem capturados nos callbacks abaixo
   const router = useRouter(); const { slug, propertySlug  } = router.query;
   const { toast } = useToast();
+  const { getBrokerByDomainOrSlug, getPropertiesByDomainOrSlug, isCustomDomain } = useDomainAware();
 
   const fetchContactInfo = useCallback(async () => {
     try {
@@ -114,7 +115,7 @@ const PublicSite = () => {
         });
       }
     }
-  }, [brokerProfile, toast]);
+  }, [brokerProfile, toast, isCustomDomain]);
 
   // Função para favoritar imóvel
   const handleFavorite = useCallback((propertyId: string) => {
@@ -153,7 +154,6 @@ const PublicSite = () => {
       description: "Entraremos em contato em breve.",
     });
   }, [slug, toast]);
-  const { getBrokerByDomainOrSlug, getPropertiesByDomainOrSlug, isCustomDomain } = useDomainAware();
 
   // Safe origin/href values to avoid SSR failures when rendering Helmet
   const origin = typeof window !== 'undefined' ? window.location.origin : '';

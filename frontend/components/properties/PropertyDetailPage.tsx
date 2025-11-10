@@ -126,6 +126,13 @@ const PropertyDetailPage = () => {
   }, [isDarkMode]);
   const { getBrokerByDomainOrSlug, isCustomDomain } = useDomainAware();
 
+  // Utility para navegação segura: determina um slug efetivo do broker para montar URLs
+  const effectiveBrokerForNav = (brokerProfile as unknown as { website_slug?: string })?.website_slug || (slug as string | undefined) || undefined;
+  const navigateToBrokerRoot = () => {
+    if (effectiveBrokerForNav) router.push(`/${effectiveBrokerForNav}`);
+    else router.push('/');
+  };
+
   // Para domínios customizados, a rota é /:propertySlug (sem broker slug). Tratar isso aqui.
   const effectivePropertySlug = propertySlugParam || (isCustomDomain() ? slug : undefined);
 
@@ -848,7 +855,7 @@ const PropertyDetailPage = () => {
             </Button>
             <Button 
               variant="outline"
-              onClick={() => router.push(`/${slug || ''}`)}
+              onClick={() => navigateToBrokerRoot()}
               className={`w-full px-6 py-3 rounded-xl font-semibold transition-all duration-300 ${
                 isDarkMode 
                   ? 'border-gray-600 hover:border-gray-500 hover:bg-gray-700 text-gray-300 hover:text-white'
@@ -882,7 +889,7 @@ const PropertyDetailPage = () => {
         <div className={`text-center ${isDarkMode ? 'bg-[#1A2331] border border-[#1A2331]' : 'bg-white'} rounded-2xl shadow-xl p-12 animate-scale-in transition-colors duration-300`}>
           <h2 className={`text-3xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'} mb-6 transition-colors duration-300`}>Imóvel não encontrado</h2>
           <Button 
-            onClick={() => router.push(`/${slug || ''}`)}
+            onClick={() => navigateToBrokerRoot()}
             className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-3 rounded-xl font-semibold shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-105"
           >
             Voltar ao início
@@ -1638,7 +1645,16 @@ const PropertyDetailPage = () => {
                       {similarProperties.slice(0, 4).map((similar) => (
                         <div
                           key={similar.id}
-                          onClick={() => router.push(`/${slug}/${similar.slug}`)}
+                          onClick={() => {
+                            const propertySlug = similar.slug || similar.id;
+                            if (isCustomDomain()) {
+                              router.push(`/${propertySlug}`);
+                            } else if (effectiveBrokerForNav) {
+                              router.push(`/${effectiveBrokerForNav}/${propertySlug}`);
+                            } else {
+                              router.push(`/${propertySlug}`);
+                            }
+                          }}
                           className="bg-gray-50 rounded-lg p-3 sm:p-4 cursor-pointer hover:shadow-md transition-shadow border border-gray-200"
                         >
                           <div className="relative aspect-video bg-gray-200 rounded-lg mb-2 sm:mb-3 overflow-hidden">

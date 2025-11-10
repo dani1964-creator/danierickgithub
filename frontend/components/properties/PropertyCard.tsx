@@ -88,15 +88,17 @@ const PropertyCard = ({
     const propertySlug = property.slug || property.id;
     try {
       // Determina um slug efetivo para evitar 'undefined' na URL.
-      // Prioriza o `brokerProfile.website_slug` quando disponível (caso de subdomínio/root rewrite),
-      // depois `slug` vindo da rota, e por fim faz fallback para apenas o propertySlug.
+      // Prioriza o `brokerProfile.website_slug` quando disponível, depois o `slug` da rota.
       const effectiveBrokerSlug = (brokerProfile as unknown as { website_slug?: string })?.website_slug || (slug as string | undefined) || undefined;
-      if (isCustomDomain()) {
+      // Comportamento desejado:
+      // - Se estamos em subdomínio (isCustomDomain() === false), a URL do imóvel deve ser `/<propertySlug>`
+      // - Se estamos em domínio compartilhado/custom onde é necessário distinguir brokers por path,
+      //   usamos `/<brokerSlug>/<propertySlug>` quando disponível.
+      if (!isCustomDomain()) {
         router.push(`/${propertySlug}`);
       } else if (effectiveBrokerSlug) {
         router.push(`/${effectiveBrokerSlug}/${propertySlug}`);
       } else {
-        // sem slug definido — navegar apenas para o detalhe por id/slug no root
         router.push(`/${propertySlug}`);
       }
     } catch (e) {

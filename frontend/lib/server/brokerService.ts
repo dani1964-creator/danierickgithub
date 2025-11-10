@@ -50,6 +50,9 @@ export async function getPublicBrokerByHost({ hostname, brokerSlug, customDomain
       site_share_image_url: broker.site_share_image_url,
       primary_color: broker.primary_color,
       secondary_color: broker.secondary_color,
+      // Backwards-compatible aliases used across the frontend theme system
+      brand_primary: broker.primary_color,
+      brand_secondary: broker.secondary_color,
       is_active: broker.is_active,
       canonical_prefer_custom_domain: broker.canonical_prefer_custom_domain,
       custom_domain: broker.custom_domain,

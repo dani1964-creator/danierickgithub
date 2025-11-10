@@ -428,6 +428,17 @@ const PublicSite = ({ initialBrokerProfile, initialProperties }: PublicSiteProps
   <meta name="robots" content={`${((brokerProfile as unknown as { robots_index?: boolean })?.robots_index ?? true) ? 'index' : 'noindex'}, ${((brokerProfile as unknown as { robots_follow?: boolean })?.robots_follow ?? true) ? 'follow' : 'nofollow'}`} />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
+        {/* Inline theme CSS for SSR to avoid initial flash of unstyled brand colors.
+            We set both --color-* and shorter aliases (--primary/--secondary) used in global CSS. */}
+        {(brokerProfile?.primary_color || (brokerProfile as any)?.brand_primary || brokerProfile?.secondary_color || (brokerProfile as any)?.brand_secondary) && (
+          <style id="tenant-theme">{`
+            :root {
+              ${brokerProfile?.primary_color || (brokerProfile as any)?.brand_primary ? `--color-primary: ${brokerProfile?.primary_color || (brokerProfile as any)?.brand_primary}; --primary: ${brokerProfile?.primary_color || (brokerProfile as any)?.brand_primary};` : ''}
+              ${brokerProfile?.secondary_color || (brokerProfile as any)?.brand_secondary ? `--color-secondary: ${brokerProfile?.secondary_color || (brokerProfile as any)?.brand_secondary}; --secondary: ${brokerProfile?.secondary_color || (brokerProfile as any)?.brand_secondary};` : ''}
+            }
+          `}</style>
+        )}
+
         {/* JSON-LD Structured Data: Organization/RealEstateAgent */}
         <script type="application/ld+json">
           {JSON.stringify({

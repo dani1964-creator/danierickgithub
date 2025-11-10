@@ -20,6 +20,7 @@ export class BrokerResolver {
     // Verificar cache primeiro
     const cached = this.cache.get(targetHost);
     if (cached && Date.now() - cached.timestamp < this.CACHE_TTL) {
+      logger.info('BrokerResolver cache hit', { host: targetHost, brokerId: cached.brokerId });
       return cached.brokerId;
     }
 
@@ -29,26 +30,29 @@ export class BrokerResolver {
       if (process.env.NODE_ENV !== 'production') {
         const brokerId = await this.resolveViaLocalQuery(targetHost);
         this.cache.set(targetHost, { brokerId, timestamp: Date.now() });
+        logger.info('BrokerResolver resolved (local)', { host: targetHost, brokerId });
         return brokerId;
       }
 
       // Tentar Edge Function primeiro (recomendado em produção)
-      const brokerId = await this.resolveViaEdgeFunction(targetHost);
+  const brokerId = await this.resolveViaEdgeFunction(targetHost);
 
-      // Cache o resultado
-      this.cache.set(targetHost, { brokerId, timestamp: Date.now() });
+  // Cache o resultado
+  this.cache.set(targetHost, { brokerId, timestamp: Date.now() });
+  logger.info('BrokerResolver resolved (edge)', { host: targetHost, brokerId });
 
-      return brokerId;
+  return brokerId;
     } catch (error) {
-      logger.warn('Edge Function falhou, usando fallback local:', error);
+  logger.warn('Edge Function falhou, usando fallback local:', error);
 
       // Fallback para resolução local
-      const brokerId = await this.resolveViaLocalQuery(targetHost);
+  const brokerId = await this.resolveViaLocalQuery(targetHost);
 
-      // Cache o resultado
-      this.cache.set(targetHost, { brokerId, timestamp: Date.now() });
+  // Cache o resultado
+  this.cache.set(targetHost, { brokerId, timestamp: Date.now() });
+  logger.info('BrokerResolver resolved (fallback-local)', { host: targetHost, brokerId });
 
-      return brokerId;
+  return brokerId;
     }
   }
 

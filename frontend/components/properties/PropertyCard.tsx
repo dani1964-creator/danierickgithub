@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { SwipeableCarousel } from '@/components/ui/swipeable-carousel';
 import { setPrefetchedDetail } from '@/lib/detail-prefetch';
 import { supabase } from '@/integrations/supabase/client';
+import clientLog from '@/lib/client-logger';
 import { useDomainAware } from '@/hooks/useDomainAware';
 import { Property } from '@/shared/types/tenant';
 import { BrokerProfile } from '@/shared/types/broker';
@@ -86,6 +87,13 @@ const PropertyCard = ({
             brokerProfile: brokerArr[0] as any,
           });
         }
+        // enviar log ao servidor para debugar comportamento do cliente
+        clientLog('info', 'prefetch_detail', {
+          effectiveSlug,
+          requestedPropertySlug: propertySlug,
+          realSlug,
+          propertyId: property.id,
+        });
         return realSlug;
       }
       return null;
@@ -121,6 +129,13 @@ const PropertyCard = ({
         propertySlug: propertySlug,
         propertyId: property.id,
       });
+      // log de navegação do cliente antes de redirecionar
+      clientLog('info', 'navigate_property', {
+        effectiveBrokerSlug,
+        propertySlug,
+        url,
+        propertyId: property.id,
+      });
       router.push(url);
     } catch (e) {
       // fallback seguro
@@ -131,6 +146,7 @@ const PropertyCard = ({
         propertySlug: property.slug || property.id,
         propertyId: property.id,
       });
+      clientLog('warn', 'navigate_property_fallback', { effectiveBrokerSlug, fallbackUrl, propertyId: property.id });
       router.push(fallbackUrl);
     }
   };

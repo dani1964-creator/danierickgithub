@@ -25,6 +25,7 @@ import { ThemeProvider } from '@/theme/ThemeProvider';
 import { useDomainAware } from '@/hooks/useDomainAware';
 import { SEODebugPanel } from '@/components/debug/SEODebugPanel';
 import { getCanonicalBase, applyTemplate, getSafeOrigin } from '@/lib/seo';
+import clientLog from '@/lib/client-logger';
 import getPropertyUrl from '@/lib/getPropertyUrl';
 import { usePropertyTypes } from '@/hooks/usePropertyTypes';
 import { getErrorMessage } from '@/lib/utils';
@@ -252,6 +253,18 @@ const PublicSite = () => {
       }
     }
   }, [slug, fetchBrokerData, isCustomDomain]);
+
+  // Enviar log ao servidor quando o brokerProfile estiver disponível (após hidratação)
+  useEffect(() => {
+    if (brokerProfile?.id) {
+      clientLog('info', 'broker_profile_loaded', {
+        id: brokerProfile.id,
+        website_slug: brokerProfile.website_slug,
+        favicon: brokerProfile.site_favicon_url,
+        share_image: brokerProfile.site_share_image_url,
+      });
+    }
+  }, [brokerProfile?.id, brokerProfile?.website_slug, brokerProfile?.site_favicon_url, brokerProfile?.site_share_image_url]);
 
   // Fetch contact info when broker profile is loaded
   useEffect(() => {

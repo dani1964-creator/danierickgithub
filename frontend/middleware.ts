@@ -128,6 +128,38 @@ export async function middleware(request: NextRequest) {
       return rewriteResponse;
     }
 
+    // --- deep-link detection: /<propertySlug> or /<propertySlug>/<id> -> /public-site?propertySlug=...
+    // Avoid rewriting known app routes by checking a denylist and ensuring the path
+    // does not look like a static asset.
+    try {
+      const path = url.pathname || '/';
+      const denylist = new Set([
+        'imoveis','vitrine','painel','auth','admin','dashboard','api','_next','static','favicon.ico',
+        'properties','realtors','leads','notfound','about-us','privacy-policy','terms-of-use','website-settings','settings','contact'
+      ]);
+      if (!path.includes('.')) {
+        const segments = path.split('/').filter(Boolean);
+        if (segments.length >= 1 && segments.length <= 2) {
+          const first = segments[0].toLowerCase();
+          if (!denylist.has(first)) {
+            const rewriteUrl2 = request.nextUrl.clone();
+            rewriteUrl2.pathname = '/public-site';
+            rewriteUrl2.searchParams.set('propertySlug', first);
+            if (segments[1]) rewriteUrl2.searchParams.set('propertyId', segments[1]);
+            const rewriteResponse2 = NextResponse.rewrite(rewriteUrl2);
+            rewriteResponse2.headers.set('x-app-type', 'public-site');
+            rewriteResponse2.headers.set('x-broker-slug', slug);
+            rewriteResponse2.headers.set('x-custom-domain', customDomain);
+            rewriteResponse2.headers.set('x-hostname', hostname);
+            logger.info(`↪️ Rewriting deep-link ${path} -> /public-site?propertySlug=${first}`);
+            return rewriteResponse2;
+          }
+        }
+      }
+    } catch (e) {
+      logger.warn('Deep-link detection failed', { err: (e as Error).message });
+    }
+
     const response = NextResponse.next();
     response.headers.set('x-app-type', 'public-site');
     response.headers.set('x-broker-slug', slug);

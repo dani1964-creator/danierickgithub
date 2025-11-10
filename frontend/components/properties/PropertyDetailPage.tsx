@@ -23,6 +23,7 @@ import { getErrorMessage } from '@/lib/utils';
 import { getPublicUrl } from '@/lib/seo';
 import { logger } from '@/lib/logger';
 import { getPrefetchedDetail, setPrefetchedDetail } from '@/lib/detail-prefetch';
+import getPropertyUrl from '@/lib/getPropertyUrl';
 
 interface Property {
   id: string;
@@ -129,7 +130,8 @@ const PropertyDetailPage = () => {
   // Utility para navegação segura: determina um slug efetivo do broker para montar URLs
   const effectiveBrokerForNav = (brokerProfile as unknown as { website_slug?: string })?.website_slug || (slug as string | undefined) || undefined;
   const navigateToBrokerRoot = () => {
-    if (effectiveBrokerForNav) router.push(`/${effectiveBrokerForNav}`);
+    if (isCustomDomain()) router.push('/');
+    else if (effectiveBrokerForNav) router.push(`/${effectiveBrokerForNav}`);
     else router.push('/');
   };
 
@@ -1091,7 +1093,7 @@ const PropertyDetailPage = () => {
                 </Button>
                 
                 <button
-                  onClick={() => router.push(`/${brokerProfile?.website_slug || slug}`)}
+                  onClick={() => navigateToBrokerRoot()}
                   className="flex items-center hover:opacity-80 transition-all duration-200 min-w-0 flex-1 group"
                 >
                   {brokerProfile.logo_url ? (
@@ -1167,7 +1169,7 @@ const PropertyDetailPage = () => {
         <div className="pt-20 sm:pt-24 pb-4">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <nav className="flex items-center text-xs text-gray-500">
-              <button onClick={() => router.push(`/${slug}`)} className="hover:text-gray-700 cursor-pointer transition-colors duration-200">
+              <button onClick={() => navigateToBrokerRoot()} className="hover:text-gray-700 cursor-pointer transition-colors duration-200">
                 Início
               </button>
               <span className="mx-2 text-gray-300">→</span>
@@ -1647,13 +1649,13 @@ const PropertyDetailPage = () => {
                           key={similar.id}
                           onClick={() => {
                             const propertySlug = similar.slug || similar.id;
-                            if (isCustomDomain()) {
-                              router.push(`/${propertySlug}`);
-                            } else if (effectiveBrokerForNav) {
-                              router.push(`/${effectiveBrokerForNav}/${propertySlug}`);
-                            } else {
-                              router.push(`/${propertySlug}`);
-                            }
+                            const url = getPropertyUrl({
+                              isCustomDomain: isCustomDomain(),
+                              brokerSlug: effectiveBrokerForNav,
+                              propertySlug,
+                              propertyId: similar.id,
+                            });
+                            router.push(url);
                           }}
                           className="bg-gray-50 rounded-lg p-3 sm:p-4 cursor-pointer hover:shadow-md transition-shadow border border-gray-200"
                         >

@@ -11,6 +11,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useDomainAware } from '@/hooks/useDomainAware';
 import { Property } from '@/shared/types/tenant';
 import { BrokerProfile } from '@/shared/types/broker';
+import getPropertyUrl from '@/lib/getPropertyUrl';
 
 interface PropertyCardProps {
   id?: string;
@@ -90,20 +91,23 @@ const PropertyCard = ({
       // Determina um slug efetivo para evitar 'undefined' na URL.
       // Prioriza o `brokerProfile.website_slug` quando disponível, depois o `slug` da rota.
       const effectiveBrokerSlug = (brokerProfile as unknown as { website_slug?: string })?.website_slug || (slug as string | undefined) || undefined;
-      // Comportamento desejado:
-      // - Se estamos em subdomínio (isCustomDomain() === false), a URL do imóvel deve ser `/<propertySlug>`
-      // - Se estamos em domínio compartilhado/custom onde é necessário distinguir brokers por path,
-      //   usamos `/<brokerSlug>/<propertySlug>` quando disponível.
-      if (!isCustomDomain()) {
-        router.push(`/${propertySlug}`);
-      } else if (effectiveBrokerSlug) {
-        router.push(`/${effectiveBrokerSlug}/${propertySlug}`);
-      } else {
-        router.push(`/${propertySlug}`);
-      }
+      const url = getPropertyUrl({
+        isCustomDomain: isCustomDomain(),
+        brokerSlug: effectiveBrokerSlug,
+        propertySlug: propertySlug,
+        propertyId: property.id,
+      });
+      router.push(url);
     } catch (e) {
       // fallback seguro
-      router.push(`/${property.slug || property.id}`);
+      const effectiveBrokerSlug = (brokerProfile as unknown as { website_slug?: string })?.website_slug || (slug as string | undefined) || undefined;
+      const fallbackUrl = getPropertyUrl({
+        isCustomDomain: isCustomDomain(),
+        brokerSlug: effectiveBrokerSlug,
+        propertySlug: property.slug || property.id,
+        propertyId: property.id,
+      });
+      router.push(fallbackUrl);
     }
   };
 

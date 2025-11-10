@@ -121,7 +121,7 @@ export default function PublicHomepage({ initialTenant }: { initialTenant?: any 
             </p>
             <div className="flex gap-4 justify-center">
               <button
-                onClick={() => router.push('/vitrine/imoveis')}
+                onClick={() => router.push('/imoveis')}
                 className="bg-primary text-primary-foreground px-8 py-3 rounded-lg font-semibold hover:bg-primary/90 transition"
               >
                 Ver Imóveis

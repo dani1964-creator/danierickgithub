@@ -9,10 +9,22 @@ import { logger } from '@/lib/logger';
  * 3. Vitrine Pública: {slug}.adminimobiliaria.site/* OU dominio-personalizado.com.br/*
  */
 export async function middleware(request: NextRequest) {
-  const hostname = request.headers.get('host') || '';
+  const hostHeader = request.headers.get('host') || '';
+  // Alguns proxies (ex: DO App Platform / internal LB) podem sobrescrever o `host`.
+  // Preferir `x-forwarded-host` quando disponível para obter o hostname original
+  // que o cliente utilizou na requisição. `x-forwarded-host` pode conter uma lista
+  // (se houver múltiplos proxies) — preferimos o primeiro valor.
+  const rawXForwardedHost = request.headers.get('x-forwarded-host') || request.headers.get('x-forwarded-server') || '';
+  const xForwardedHost = rawXForwardedHost.split(',')[0].trim();
+  let hostname = xForwardedHost || hostHeader || '';
+  // Normalizar: remover porta se presente (ex: 10.244.44.29:3000) e lowercase
+  hostname = hostname.split(':')[0].toLowerCase();
+  const xfFor = request.headers.get('x-forwarded-for') || '';
+  const xRealIp = request.headers.get('x-real-ip') || '';
+  const xProto = request.headers.get('x-forwarded-proto') || '';
   const pathname = request.nextUrl.pathname;
-  
-  logger.info(`🔍 Middleware: ${hostname}${pathname}`);
+
+  logger.info(`🔍 Middleware: hostHeader=${hostHeader} x-forwarded-host=${xForwardedHost} x-forwarded-for=${xfFor} x-real-ip=${xRealIp} x-forwarded-proto=${xProto} resolved-host=${hostname} path=${pathname}`);
   
   const baseDomain = process.env.NEXT_PUBLIC_BASE_PUBLIC_DOMAIN || 'adminimobiliaria.site';
   

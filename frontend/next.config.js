@@ -22,6 +22,20 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'cdn.supabase.co'
       }
+      ,
+      {
+        protocol: 'https',
+        hostname: 'i.ibb.co'
+      },
+      {
+        protocol: 'https',
+        hostname: 'encrypted-tbn0.gstatic.com'
+      }
+      ,
+      {
+        protocol: 'https',
+        hostname: 'img.freepik.com'
+      }
     ],
     // Durante diagnóstico era necessário desabilitar otimização; aqui reativamos
     // a otimização e incluímos padrões remotos comuns (Supabase / GCS) para

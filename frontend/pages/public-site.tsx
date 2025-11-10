@@ -33,14 +33,19 @@ import { logger } from '@/lib/logger';
 
 // BrokerContact importado do tipo compartilhado
 
-const PublicSite = () => {
+interface PublicSiteProps {
+  initialBrokerProfile?: BrokerProfile | null;
+  initialProperties?: Property[];
+}
+
+const PublicSite = ({ initialBrokerProfile, initialProperties }: PublicSiteProps) => {
   // Função para buscar contato do corretor
   const [properties, setProperties] = useState<Property[]>([]);
-  const [brokerProfile, setBrokerProfile] = useState<BrokerProfile | null>(null);
+  const [brokerProfile, setBrokerProfile] = useState<BrokerProfile | null>(initialBrokerProfile || null);
   const [brokerContact, setBrokerContact] = useState<BrokerContact | null>(null);
   interface SocialLink { id: string; platform: string; url: string; icon_url?: string | null; display_order?: number | null; is_active?: boolean; }
   const [socialLinks, setSocialLinks] = useState<SocialLink[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState<boolean>(initialBrokerProfile ? false : true);
   const [favorites, setFavorites] = useState<string[]>([]);
   const [lightboxImages, setLightboxImages] = useState<string[]>([]);
   const [lightboxIndex, setLightboxIndex] = useState(0);
@@ -232,6 +237,13 @@ const PublicSite = () => {
   }, [getBrokerByDomainOrSlug, getPropertiesByDomainOrSlug, isCustomDomain, slug, toast]);
 
   useEffect(() => {
+    // Se o servidor já injetou o broker profile via SSR, use-o imediatamente e pule fetch
+    if (initialBrokerProfile) {
+      setBrokerProfile(initialBrokerProfile);
+      if (initialProperties) setProperties(initialProperties as Property[]);
+      setLoading(false);
+      return;
+    }
     fetchBrokerData();
     // Load favorites from localStorage
     const savedFavorites = localStorage.getItem('favorites');
@@ -520,5 +532,73 @@ const PublicSite = () => {
   );
 };
 
-const DynamicPublicSite = dynamic(() => Promise.resolve(PublicSite), { ssr: false });
-export default DynamicPublicSite;
+export default PublicSite;
+
+export async function getServerSideProps(context: any) {
+  try {
+    const headers = context.req?.headers || {};
+    const hostname = (headers['x-hostname'] || headers['host'] || '') as string;
+    const brokerSlug = (headers['x-broker-slug'] || '') as string;
+    const customDomain = (headers['x-custom-domain'] || '') as string;
+
+    // Import supabase client (uses publishable key, sufficient for public reads)
+    const { supabase } = await import('@/integrations/supabase/client');
+
+    // Simple in-memory cache to avoid repeating broker lookups on each SSR request
+    // Keyed by hostname or brokerSlug. TTL is small to keep freshness but avoid DB thundering.
+    const cacheKey = brokerSlug || customDomain || hostname || 'unknown';
+    // NOTE: keep the cache at module-level so it survives between invocations (cold starts aside)
+    // We attach it to the global object to avoid reinitializing during HMR in dev.
+    // structure: { value: any, expiresAt: number }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const globalAny: any = globalThis as any;
+    if (!globalAny.__publicSiteBrokerCache) globalAny.__publicSiteBrokerCache = new Map();
+    const brokerCache: Map<string, { value: any; expiresAt: number }> = globalAny.__publicSiteBrokerCache;
+    const TTL = 1000 * 60 * 2; // 2 minutes
+
+    const cached = brokerCache.get(cacheKey);
+    if (cached && cached.expiresAt > Date.now()) {
+      return { props: { initialBrokerProfile: cached.value || null } };
+    }
+
+    let broker: any = null;
+
+    if (brokerSlug) {
+      const { data, error } = await supabase
+        .from('brokers')
+        .select('*')
+        .eq('website_slug', brokerSlug)
+        .eq('is_active', true)
+        .maybeSingle();
+      if (!error && data) broker = data;
+    } else if (customDomain && hostname) {
+      // Resolve broker by custom domain
+      const { data: domainData, error: domainErr } = await supabase
+        .from('broker_domains')
+        .select('broker_id')
+        .eq('domain', hostname)
+        .eq('is_active', true)
+        .maybeSingle();
+      if (!domainErr && domainData?.broker_id) {
+        const { data: brokerData, error: brokerErr } = await supabase
+          .from('brokers')
+          .select('*')
+          .eq('id', domainData.broker_id)
+          .eq('is_active', true)
+          .maybeSingle();
+        if (!brokerErr && brokerData) broker = brokerData;
+      }
+    }
+
+    // populate cache
+    brokerCache.set(cacheKey, { value: broker || null, expiresAt: Date.now() + TTL });
+
+    return {
+      props: {
+        initialBrokerProfile: broker || null,
+      },
+    };
+  } catch (e) {
+    return { props: { initialBrokerProfile: null } };
+  }
+}

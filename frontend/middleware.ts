@@ -115,12 +115,11 @@ export async function middleware(request: NextRequest) {
     // assim o servidor irá entregar a página de vitrine (SSR/SSG) em vez da homepage de marketing.
     const url = request.nextUrl.clone();
     if (url.pathname === '/') {
-      // Preferir reescrita interna para entregar a rota de vitrine sem alterar a URL
-      // (funciona quando o Next.js está rodando em modo server). Em builds estáticos
-      // a reescrita pode não surtir efeito no CDN — por isso recomendamos deploy SSR
-      // e purge de cache no CDN.
+      // Preferir reescrita interna para entregar a rota de public site sem alterar a URL
+      // Assim a URL permanece como `https://<slug>.adminimobiliaria.site/` enquanto
+      // o Next.js entrega o conteúdo do componente `pages/public-site`.
       const rewriteUrl = request.nextUrl.clone();
-      rewriteUrl.pathname = '/vitrine';
+      rewriteUrl.pathname = '/public-site';
       const rewriteResponse = NextResponse.rewrite(rewriteUrl);
       rewriteResponse.headers.set('x-app-type', 'public-site');
       rewriteResponse.headers.set('x-broker-slug', slug);

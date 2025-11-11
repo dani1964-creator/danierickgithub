@@ -119,6 +119,27 @@ export async function middleware(request: NextRequest) {
       // Domínio personalizado
       customDomain = hostname;
     }
+    
+    // Detectar UUID na URL e redirecionar para slug
+    const uuidPattern = /^\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$/i;
+    const uuidMatch = pathname.match(uuidPattern);
+    
+    if (uuidMatch) {
+      const propertyId = uuidMatch[1];
+      
+      // Tentar buscar o slug correspondente
+      // Nota: Esta é uma query síncrona no middleware, pode adicionar latência
+      // Uma alternativa seria usar uma Edge Function ou aceitar o erro
+      logger.debug(`Detected UUID in URL: ${propertyId}, redirecting to slug...`);
+      
+      // Por enquanto, apenas redirecionar para home com mensagem de erro
+      // Para implementar busca do slug, seria necessário usar Edge Function
+      const url = request.nextUrl.clone();
+      url.pathname = '/';
+      url.searchParams.set('error', 'uuid-deprecated');
+      return NextResponse.redirect(url, 301);
+    }
+    
     // Se o usuário acessou a raiz do host público, reescrever para a rota interna '/vitrine'
     // assim o servidor irá entregar a página de vitrine (SSR/SSG) em vez da homepage de marketing.
     const url = request.nextUrl.clone();

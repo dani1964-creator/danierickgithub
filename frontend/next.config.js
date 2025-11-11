@@ -12,6 +12,18 @@ const nextConfig = {
       {
         protocol: 'https',
         hostname: '*.supabase.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'img.freepik.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'i.ibb.co',
+      },
+      {
+        protocol: 'https',
+        hostname: 'encrypted-tbn0.gstatic.com',
       }
     ],
     // Otimização de imagens habilitada para melhor performance

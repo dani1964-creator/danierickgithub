@@ -57,7 +57,10 @@ export function TenantProvider({ children, initialTenant }: TenantProviderProps)
       const tenantData: TenantData = {
         ...brokerData,
         name: brokerData.business_name, // TenantData exige 'name'
-        theme_settings: brokerData.theme_settings || {}
+        theme_settings: {
+          primary_color: brokerData.primary_color,
+          secondary_color: brokerData.secondary_color
+        }
       };
       
       setTenant(tenantData);

@@ -1036,30 +1036,128 @@ const PropertyDetailPage = () => {
           } 
         />
 
-        {/* JSON-LD Structured Data: Product/Offer for real estate */}
-        <script type="application/ld+json">
-          {JSON.stringify({
-            '@context': 'https://schema.org',
-            '@type': 'Product',
-            name: property?.title,
-            description: property?.description?.slice(0, 160),
-            image: property?.main_image_url
-              ? (property.main_image_url.startsWith('http') ? property.main_image_url : `${origin}${property.main_image_url}`)
-              : undefined,
-            sku: property?.property_code || property?.id,
-            brand: {
-              '@type': 'Organization',
-              name: brokerProfile?.business_name || 'Imobiliária'
-            },
-            offers: {
-              '@type': 'Offer',
-              priceCurrency: 'BRL',
-              price: property?.price,
-              availability: 'https://schema.org/InStock',
-              url: href
-            }
-          })}
-        </script>
+        {/* JSON-LD Structured Data: RealEstateListing para SEO aprimorado */}
+        {property && (
+          <>
+            <script type="application/ld+json">
+              {JSON.stringify({
+                '@context': 'https://schema.org',
+                '@type': ['RealEstateListing', 'Product'],
+                name: property.title,
+                description: property.description,
+                url: href,
+                image: propertyImages.map(img => 
+                  img.startsWith('http') ? img : `${origin}${img}`
+                ),
+                sku: property.property_code || property.id,
+                
+                // Informações do imóvel
+                ...(() => {
+                  const listingType = property.transaction_type === 'sale' ? 'ForSale' : 'ForRent';
+                  return {
+                    '@type': 'RealEstateListing',
+                    listingType: listingType,
+                    address: {
+                      '@type': 'PostalAddress',
+                      streetAddress: property.address,
+                      addressLocality: property.neighborhood,
+                      addressRegion: property.uf,
+                      addressCountry: 'BR'
+                    },
+                    numberOfRooms: property.bedrooms,
+                    numberOfBathroomsTotal: property.bathrooms,
+                    floorSize: {
+                      '@type': 'QuantitativeValue',
+                      value: property.area_m2,
+                      unitCode: 'MTK'
+                    }
+                  };
+                })(),
+
+                // Oferta
+                offers: {
+                  '@type': 'Offer',
+                  price: property.price,
+                  priceCurrency: 'BRL',
+                  availability: 'https://schema.org/InStock',
+                  url: href,
+                  priceValidUntil: new Date(new Date().setMonth(new Date().getMonth() + 3)).toISOString().split('T')[0],
+                  seller: {
+                    '@type': 'RealEstateAgent',
+                    name: brokerProfile?.business_name || 'Imobiliária',
+                    url: origin,
+                    logo: brokerProfile?.logo_url ? 
+                      (brokerProfile.logo_url.startsWith('http') ? brokerProfile.logo_url : `${origin}${brokerProfile.logo_url}`) : 
+                      undefined,
+                    telephone: brokerContact?.whatsapp_number,
+                    email: brokerContact?.contact_email
+                  }
+                },
+
+                // Informações adicionais
+                additionalProperty: [
+                  ...(property.bedrooms ? [{
+                    '@type': 'PropertyValue',
+                    name: 'Quartos',
+                    value: property.bedrooms
+                  }] : []),
+                  ...(property.bathrooms ? [{
+                    '@type': 'PropertyValue',
+                    name: 'Banheiros',
+                    value: property.bathrooms
+                  }] : []),
+                  ...(property.parking_spaces ? [{
+                    '@type': 'PropertyValue',
+                    name: 'Vagas de Garagem',
+                    value: property.parking_spaces
+                  }] : []),
+                  ...(property.area_m2 ? [{
+                    '@type': 'PropertyValue',
+                    name: 'Área',
+                    value: `${property.area_m2}m²`
+                  }] : [])
+                ],
+
+                // Corretor responsável (se disponível)
+                ...(property.realtor_name ? {
+                  agent: {
+                    '@type': 'RealEstateAgent',
+                    name: property.realtor_name,
+                    ...(property.realtor_creci ? { creci: property.realtor_creci } : {})
+                  }
+                } : {})
+              })}
+            </script>
+
+            {/* BreadcrumbList para navegação */}
+            <script type="application/ld+json">
+              {JSON.stringify({
+                '@context': 'https://schema.org',
+                '@type': 'BreadcrumbList',
+                itemListElement: [
+                  {
+                    '@type': 'ListItem',
+                    position: 1,
+                    name: brokerProfile?.business_name || 'Imobiliária',
+                    item: origin
+                  },
+                  {
+                    '@type': 'ListItem',
+                    position: 2,
+                    name: 'Imóveis',
+                    item: `${origin}/imoveis`
+                  },
+                  {
+                    '@type': 'ListItem',
+                    position: 3,
+                    name: property.title,
+                    item: href
+                  }
+                ]
+              })}
+            </script>
+          </>
+        )}
       </Head>
 
       {/* Container principal do conteúdo da propriedade */}
@@ -1084,7 +1182,7 @@ const PropertyDetailPage = () => {
                 </Button>
                 
                 <button
-                  onClick={() => router.push(`/${brokerProfile?.website_slug || slug}`)}
+                  onClick={() => router.push('/')}
                   className="flex items-center hover:opacity-80 transition-all duration-200 min-w-0 flex-1 group"
                 >
                   {brokerProfile.logo_url ? (

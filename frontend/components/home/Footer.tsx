@@ -5,6 +5,7 @@ import { Phone, Mail, MapPin, Globe, Twitter, Linkedin, Youtube } from 'lucide-r
 import { FaFacebookF, FaInstagram, FaTwitter, FaLinkedinIn, FaYoutube, FaGlobe } from 'react-icons/fa';
 import type { BrokerProfile, BrokerContact } from '@/shared/types/broker';
 import { useCallback } from 'react';
+import { useDomainAware } from '@/hooks/useDomainAware';
 
 type SocialLink = {
   id: string | number;
@@ -22,6 +23,7 @@ const Footer = ({ brokerProfile, socialLinks = [], onContactRequest }: FooterPro
   const [contactInfo, setContactInfo] = useState<BrokerContact | null>(null);
   const [contactRequested, setContactRequested] = useState(false);
   const router = useRouter();
+  const { isCustomDomain } = useDomainAware();
 
   // Function to request contact information when needed
   const handleContactRequest = useCallback(async () => {
@@ -93,7 +95,12 @@ const Footer = ({ brokerProfile, socialLinks = [], onContactRequest }: FooterPro
 
   // Function to handle internal navigation
   const handleInternalNavigation = (path: string) => {
-    router.push(path);
+    // Em subdomínios (*.adminimobiliaria.site), não incluir o broker slug na URL
+    // Apenas em domínios customizados precisamos incluir o broker slug
+    const finalPath = isCustomDomain() 
+      ? `/${brokerProfile?.website_slug || ''}${path}`
+      : path;
+    router.push(finalPath);
   };
 
   // Verificar se há informações de contato válidas
@@ -228,19 +235,19 @@ const Footer = ({ brokerProfile, socialLinks = [], onContactRequest }: FooterPro
               </h3>
               <div className="space-y-2">
                 <button 
-                  onClick={() => handleInternalNavigation(`/${brokerProfile?.website_slug || ''}/sobre-nos`)}
+                  onClick={() => handleInternalNavigation('/sobre-nos')}
                   className="block text-sm text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"
                 >
                   Sobre Nós
                 </button>
                 <button 
-                  onClick={() => handleInternalNavigation(`/${brokerProfile?.website_slug || ''}/politica-de-privacidade`)}
+                  onClick={() => handleInternalNavigation('/politica-de-privacidade')}
                   className="block text-sm text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"
                 >
                   Política de Privacidade
                 </button>
                 <button 
-                  onClick={() => handleInternalNavigation(`/${brokerProfile?.website_slug || ''}/termos-de-uso`)}
+                  onClick={() => handleInternalNavigation('/termos-de-uso')}
                   className="block text-sm text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"
                 >
                   Termos de Uso

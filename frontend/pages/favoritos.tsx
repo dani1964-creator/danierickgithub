@@ -11,12 +11,14 @@ import { useNotifications } from '@/hooks/useNotifications';
 import { SafeImage } from '@/components/ui/SafeImage';
 import { PropertyListSkeleton } from '@/components/skeletons/PropertySkeletons';
 import { analytics } from '@/lib/analytics';
+import { useDomainAware } from '@/hooks/useDomainAware';
 
 /**
  * Página de Favoritos - Estilo premium (Airbnb/Booking.com)
  */
 export default function FavoritesPage() {
   const router = useRouter();
+  const { isCustomDomain } = useDomainAware();
   const {
     favorites,
     isLoading,
@@ -52,7 +54,14 @@ export default function FavoritesPage() {
   };
 
   const handlePropertyClick = (slug: string, brokerSlug: string) => {
-    router.push(`/${brokerSlug}/${slug}`);
+    // Em subdomínios (ex: rfimobiliaria.adminimobiliaria.site), não incluir brokerSlug na URL
+    // Em domínios customizados, incluir brokerSlug
+    if (isCustomDomain()) {
+      router.push(`/${brokerSlug}/${slug}`);
+    } else {
+      // Subdomínio - URL limpa sem broker slug
+      router.push(`/${slug}`);
+    }
   };
 
   const handleRemoveFavorite = (propertyId: string, propertyTitle: string) => {

@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import Image from 'next/image';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 import { ChevronLeft, MapPin, Bed, Bath, Car, Square, Eye, Heart, Share2, MessageCircle, Phone, Mail, X, Play, Maximize2, ArrowLeft, Star, Calendar, Users, Zap, Moon, Sun } from 'lucide-react';
 import { ZoomableImage } from '@/components/ui/zoomable-image';
+import { SafeImage } from '@/components/ui/SafeImage';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -975,6 +975,14 @@ const PropertyDetailPage = () => {
 
       {/* Meta tags dinâmicas para compartilhamento */}
       <Head>
+        {/* Favicon dinâmico da imobiliária */}
+        {brokerProfile?.site_favicon_url && (
+          <>
+            <link rel="icon" type="image/x-icon" href={brokerProfile.site_favicon_url} />
+            <link rel="apple-touch-icon" href={brokerProfile.site_favicon_url} />
+          </>
+        )}
+        
         <title>
           {(() => {
             const base = property ? `${property.title} - ${brokerProfile?.business_name || 'Imobiliária'}` : `${brokerProfile?.business_name || 'Imobiliária'}`;
@@ -1226,12 +1234,13 @@ const PropertyDetailPage = () => {
                 >
                   {brokerProfile.logo_url ? (
                     <div className="relative h-8 w-8 sm:h-12 sm:w-12 flex-shrink-0 rounded-xl overflow-hidden shadow-sm group-hover:shadow-md transition-shadow">
-                      <Image 
+                      <SafeImage 
                         src={brokerProfile.logo_url} 
                         alt={brokerProfile.business_name} 
                         fill
                         className="object-contain"
                         sizes="(max-width: 640px) 32px, 48px"
+                        fallbackColor={brokerProfile.primary_color}
                       />
                     </div>
                   ) : (
@@ -1329,7 +1338,7 @@ const PropertyDetailPage = () => {
                       {propertyImages.map((image, index) => (
                         <CarouselItem key={index}>
                            <div className="relative h-80 sm:h-96 bg-gradient-to-br from-gray-100 to-gray-200 overflow-hidden">
-                             <Image
+                             <SafeImage
                                src={image}
                                alt={`${property.title} - Imagem ${index + 1}`}
                                fill
@@ -1337,7 +1346,7 @@ const PropertyDetailPage = () => {
                                onClick={() => {setCurrentImageIndex(index); setIsImageModalOpen(true);}}
                                loading={index === 0 ? "eager" : "lazy"}
                                sizes="(max-width: 640px) 100vw, 640px"
-                               onError={() => handleImageError(index)}
+                               fallbackColor={brokerProfile?.primary_color}
                              />
                              {/* Overlay gradiente para melhor legibilidade */}
                              <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent" />
@@ -1390,7 +1399,7 @@ const PropertyDetailPage = () => {
               <div className="hidden lg:block mb-8">
                 {propertyImages.length > 0 ? (
                   <div className="relative h-[600px] rounded-2xl overflow-hidden shadow-soft-3 bg-gradient-to-br from-gray-100 to-gray-200">
-                    <Image
+                    <SafeImage
                       key={`desktop-image-${currentImageIndex}`}
                       src={propertyImages[currentImageIndex]}
                       alt={`${property.title} - Imagem ${currentImageIndex + 1}`}
@@ -1399,7 +1408,7 @@ const PropertyDetailPage = () => {
                       loading="eager"
                       sizes="(max-width: 1024px) 100vw, 1024px"
                       priority
-                      onError={() => handleImageError(currentImageIndex)}
+                      fallbackColor={brokerProfile?.primary_color}
                     />
                     
                     {/* Overlay gradiente para melhor legibilidade */}
@@ -1456,13 +1465,14 @@ const PropertyDetailPage = () => {
                                   : 'border-white/50 hover:border-white/75'
                               }`}
                             >
-                              <Image
+                              <SafeImage
                                 src={image}
                                 alt={`Miniatura ${index + 1}`}
                                 fill
                                 className="object-cover bg-gray-100"
                                 loading="lazy"
                                 sizes="64px"
+                                fallbackColor={brokerProfile?.primary_color}
                               />
                             </button>
                           ))}
@@ -1783,12 +1793,13 @@ const PropertyDetailPage = () => {
                         >
                           <div className="relative aspect-video bg-gray-200 rounded-lg mb-2 sm:mb-3 overflow-hidden">
                             {similar.main_image_url ? (
-                              <Image
+                              <SafeImage
                                 src={similar.main_image_url}
                                 alt={similar.title}
                                 fill
                                 className="object-cover"
                                 sizes="(max-width: 640px) 100vw, 50vw"
+                                fallbackColor={brokerProfile?.primary_color}
                               />
                             ) : (
                               <div className="w-full h-full flex items-center justify-center text-gray-400">
@@ -1881,12 +1892,13 @@ const PropertyDetailPage = () => {
                     <div className={`pt-4 border-t ${isDarkMode ? 'border-gray-700' : 'border-gray-100'} transition-colors duration-300`}>
                       <div className="flex items-center space-x-3">
                         {property?.realtor_avatar_url ? (
-                          <Image 
+                          <SafeImage 
                             src={property.realtor_avatar_url} 
                             alt={property.realtor_name}
                             width={48}
                             height={48}
                             className="w-12 h-12 rounded-full object-cover border-2 border-gray-200 dark:border-gray-600"
+                            fallbackColor={brokerProfile?.primary_color}
                           />
                         ) : (
                           <div className={`w-12 h-12 rounded-full flex items-center justify-center text-lg font-semibold ${

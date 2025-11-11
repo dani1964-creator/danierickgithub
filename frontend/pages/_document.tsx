@@ -5,8 +5,7 @@ export default function Document() {
     <Html lang="pt-BR">
       <Head>
         <meta charSet="utf-8" />
-        <link rel="icon" type="image/svg+xml" href="/imobideps-logo.svg" />
-        <link rel="apple-touch-icon" href="/imobideps-logo.svg" />
+        {/* Favicon é carregado condicionalmente em _app.tsx ou nas páginas individuais */}
         <meta name="theme-color" content="#000000" />
       </Head>
       <body>

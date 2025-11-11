@@ -315,9 +315,10 @@ const PublicSite = () => {
           } 
         />
         
-        {/* Favicon */}
-        {brokerProfile?.site_favicon_url && (
-          <link 
+        {/* Favicon - usa configuração do corretor ou logo como fallback */}
+        {brokerProfile?.site_favicon_url ? (
+          <>
+            <link 
               rel="icon" 
               href={brokerProfile.site_favicon_url.startsWith('http') ? 
                 brokerProfile.site_favicon_url : 
@@ -325,7 +326,33 @@ const PublicSite = () => {
               } 
               type="image/png" 
             />
-        )}
+            <link 
+              rel="apple-touch-icon" 
+              href={brokerProfile.site_favicon_url.startsWith('http') ? 
+                brokerProfile.site_favicon_url : 
+                `${origin}${brokerProfile.site_favicon_url}`
+              }
+            />
+          </>
+        ) : brokerProfile?.logo_url ? (
+          <>
+            <link 
+              rel="icon" 
+              href={brokerProfile.logo_url.startsWith('http') ? 
+                brokerProfile.logo_url : 
+                `${origin}${brokerProfile.logo_url}`
+              } 
+              type="image/png" 
+            />
+            <link 
+              rel="apple-touch-icon" 
+              href={brokerProfile.logo_url.startsWith('http') ? 
+                brokerProfile.logo_url : 
+                `${origin}${brokerProfile.logo_url}`
+              }
+            />
+          </>
+        ) : null}
         
         {/* Open Graph */}
         <meta 

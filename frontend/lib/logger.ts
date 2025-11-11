@@ -19,7 +19,9 @@ export const logger = {
   debug: (...args: unknown[]) => {
     if (isDev) console.debug(...(args as any));
   },
-  info: (...args: unknown[]) => console.info(...(args as any)),
+  info: (...args: unknown[]) => {
+    if (isDev) console.info(...(args as any));
+  },
   warn: (...args: unknown[]) => console.warn(...(args as any)),
   error: (...args: unknown[]) => console.error(...(args as any)),
 };

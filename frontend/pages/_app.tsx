@@ -28,7 +28,8 @@ export default function MyApp({ Component, pageProps }: AppProps) {
       
       setIsSaasDomain(isSaas);
     }
-  }, [router.asPath]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Só executa uma vez ao montar o componente
 
   return (
     <TenantProvider initialTenant={pageProps?.initialTenant}>

@@ -10,15 +10,9 @@ import { usePropertyFilters } from '@/hooks/usePropertyFilters';
 import { PublicSiteSkeleton } from '@/components/ui/loading-skeleton';
 import HeroBanner from '@/components/home/HeroBanner';
 import SearchFilters from '@/components/home/SearchFilters';
-import FeaturedProperties from '@/components/home/FeaturedProperties';
-import PropertiesGrid from '@/components/home/PropertiesGrid';
-import ContactCTA from '@/components/home/ContactCTA';
-import Footer from '@/components/home/Footer';
-import WhatsAppFloat from '@/components/home/WhatsAppFloat';
 import FixedHeader from '@/components/home/FixedHeader';
 import TrackingScripts from '@/components/tracking/TrackingScripts';
 import PropertyDetailPage from '@/components/properties/PropertyDetailPage';
-import LeadModal from '@/components/leads/LeadModal';
 import { EnhancedSecurity } from '@/lib/enhanced-security';
 import { Separator } from '@/components/ui/separator';
 import { ThemeProvider } from '@/theme/ThemeProvider';
@@ -29,7 +23,31 @@ import { usePropertyTypes } from '@/hooks/usePropertyTypes';
 import { getErrorMessage } from '@/lib/utils';
 import { logger } from '@/lib/logger';
 
+// Lazy loading de componentes pesados para melhor performance
+const FeaturedProperties = dynamic(() => import('@/components/home/FeaturedProperties'), {
+  loading: () => <div className="animate-pulse h-96 bg-gray-200 rounded-lg"></div>,
+});
+const PropertiesGrid = dynamic(() => import('@/components/home/PropertiesGrid'), {
+  loading: () => <div className="animate-pulse h-96 bg-gray-200 rounded-lg"></div>,
+});
+const ContactCTA = dynamic(() => import('@/components/home/ContactCTA'), {
+  loading: () => <div className="animate-pulse h-48 bg-gray-200 rounded-lg"></div>,
+});
+const Footer = dynamic(() => import('@/components/home/Footer'), {
+  loading: () => <div className="animate-pulse h-64 bg-gray-200 rounded-lg"></div>,
+});
+const WhatsAppFloat = dynamic(() => import('@/components/home/WhatsAppFloat'), {
+  ssr: false, // Componente de WhatsApp não precisa de SSR
+});
+const LeadModal = dynamic(() => import('@/components/leads/LeadModal'), {
+  ssr: false, // Modal não precisa de SSR
+});
+
 // BrokerContact importado do tipo compartilhado
+
+// Cache simples em memória para dados do broker (evita refetch desnecessário)
+const brokerCache = new Map<string, { data: any; timestamp: number }>();
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutos
 
 const PublicSite = () => {
   // Função para buscar contato do corretor
@@ -192,6 +210,19 @@ const PublicSite = () => {
       // Garantir que slug seja string | undefined (router.query pode retornar string[])
       const slugString = Array.isArray(slug) ? slug[0] : slug;
       const effectiveSlug = isCustomDomain() ? undefined : slugString;
+      const cacheKey = effectiveSlug || (typeof window !== 'undefined' ? window.location.hostname : '');
+      
+      // Verificar cache
+      const cached = brokerCache.get(cacheKey);
+      if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+        logger.debug('Using cached broker data for:', cacheKey);
+        setBrokerProfile(cached.data.broker);
+        setProperties(cached.data.properties);
+        setSocialLinks(cached.data.socialLinks);
+        setLoading(false);
+        return;
+      }
+      
       logger.debug('Fetching broker data - Custom domain:', isCustomDomain(), 'Slug:', effectiveSlug);
       const brokerData = await getBrokerByDomainOrSlug(effectiveSlug);
       logger.debug('Broker data from domain-aware hook:', brokerData);
@@ -213,6 +244,16 @@ const PublicSite = () => {
       if (!socialError) {
         setSocialLinks((socialLinksData || []) as SocialLink[]);
       }
+      
+      // Salvar no cache
+      brokerCache.set(cacheKey, {
+        data: {
+          broker: brokerData,
+          properties: propertiesData || [],
+          socialLinks: socialLinksData || []
+        },
+        timestamp: Date.now()
+      });
     } catch (error: unknown) {
       logger.error('Error fetching data:', error);
       toast({
@@ -292,6 +333,10 @@ const PublicSite = () => {
     <ThemeProvider broker={brokerProfile}>
       {/* Meta tags dinâmicas para cada imobiliária */}
       <Head>
+        
+        {/* Preconnect para domínios externos - reduz latência de DNS/TLS */}
+        <link rel="preconnect" href="https://xyzcompany.supabase.co" />
+        <link rel="dns-prefetch" href="https://xyzcompany.supabase.co" />
         
         <title>
           {applyTemplate(

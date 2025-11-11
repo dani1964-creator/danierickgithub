@@ -31,12 +31,12 @@ export async function middleware(request: NextRequest) {
   // Normalizar: remover porta se presente (ex: example.com:3000) e lowercase
   hostname = hostname.split(':')[0].toLowerCase();
   
-  const xfFor = request.headers.get('x-forwarded-for') || '';
-  const xRealIp = request.headers.get('x-real-ip') || '';
-  const xProto = request.headers.get('x-forwarded-proto') || '';
   const pathname = request.nextUrl.pathname;
 
-  logger.info(`🔍 Middleware: hostHeader=${hostHeader} x-forwarded-host=${rawXForwardedHost} resolved-host=${hostname} path=${pathname}`);
+  // Log apenas em desenvolvimento para evitar overhead em produção
+  if (process.env.NODE_ENV !== 'production') {
+    logger.debug(`Middleware: host=${hostname} path=${pathname}`);
+  }
   
   const baseDomain = process.env.NEXT_PUBLIC_BASE_PUBLIC_DOMAIN || 'adminimobiliaria.site';
   
@@ -69,7 +69,6 @@ export async function middleware(request: NextRequest) {
   // 1. SUPER ADMIN (adminimobiliaria.site/admin)
   // ========================================
   if (isMainDomain && isSuperAdminPath) {
-    logger.info('� Super Admin access detected');
     const response = NextResponse.next();
     response.headers.set('x-app-type', 'super-admin');
     response.headers.set('x-hostname', hostname);
@@ -80,7 +79,6 @@ export async function middleware(request: NextRequest) {
   // 2. PAINEL BROKER (painel.adminimobiliaria.site/*)
   // ========================================
   if (isPainelSubdomain) {
-    logger.info(`🏢 Broker Panel access detected`);
     
     // Permitir rotas específicas do painel
     const isAuthPath = pathname.startsWith('/auth');
@@ -117,11 +115,9 @@ export async function middleware(request: NextRequest) {
     if (isVitrineSubdomain) {
       // Extrair slug do subdomínio (ex: danierick.adminimobiliaria.site → danierick)
       slug = hostname.split(`.${baseDomain}`)[0];
-      logger.info(`🌐 Public Site (subdomain) access - slug: ${slug}`);
     } else {
       // Domínio personalizado
       customDomain = hostname;
-      logger.info(`🎨 Public Site (custom domain) access - domain: ${customDomain}`);
     }
     // Se o usuário acessou a raiz do host público, reescrever para a rota interna '/vitrine'
     // assim o servidor irá entregar a página de vitrine (SSR/SSG) em vez da homepage de marketing.
@@ -152,7 +148,6 @@ export async function middleware(request: NextRequest) {
   // 4. FALLBACK - Domínio principal sem /admin (homepage do SaaS)
   // ========================================
   if (isMainDomain) {
-    logger.info('🏠 Main domain homepage access');
     const response = NextResponse.next();
     response.headers.set('x-app-type', 'saas-homepage');
     response.headers.set('x-hostname', hostname);
@@ -160,7 +155,6 @@ export async function middleware(request: NextRequest) {
   }
   
   // Fallback genérico
-  logger.warn(`⚠️ Unhandled route pattern: ${hostname}${pathname}`);
   return NextResponse.next();
 }
 

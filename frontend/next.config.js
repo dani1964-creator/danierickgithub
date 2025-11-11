@@ -14,12 +14,11 @@ const nextConfig = {
         hostname: '*.supabase.com',
       }
     ],
-    // Durante o diagnóstico/compatibilidade com hosts externos, desabilitamos
-    // a otimização de imagens do Next.js para evitar bloqueio por whitelist.
-    // Isso faz o next/image renderizar as URLs externas sem passar pelo loader
-    // do Next (tradeoff: sem otimização). Remover/ajustar quando definirmos
-    // uma lista exata de domínios remotos.
-    unoptimized: true,
+    // Otimização de imagens habilitada para melhor performance
+    // Formatos modernos (WebP, AVIF) são servidos automaticamente
+    formats: ['image/avif', 'image/webp'],
+    // Cache de imagens otimizadas por 60 dias
+    minimumCacheTTL: 5184000,
   },
   
   // Headers de segurança

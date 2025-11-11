@@ -206,6 +206,19 @@ const PublicSite = ({ initialBrokerProfile, initialProperties }: PublicSiteProps
       logger.debug('Fetching broker data - Custom domain:', isCustomDomain(), 'Slug:', effectiveSlug);
       const brokerData = await getBrokerByDomainOrSlug(effectiveSlug);
       logger.debug('Broker data from domain-aware hook:', brokerData);
+      // Diagnostic: log missing/empty broker fields to help debug what's rendered
+      const missingBrokerFields: string[] = [];
+      const expectedFields = ['id','website_slug','business_name','logo_url','site_favicon_url','site_share_image_url','primary_color','secondary_color','site_title','site_description','tracking_scripts'];
+      expectedFields.forEach((f) => {
+        if (!(brokerData as any)[f]) missingBrokerFields.push(f);
+      });
+      if (missingBrokerFields.length > 0) {
+        logger.warn('Broker is missing public fields:', { missing: missingBrokerFields });
+        try { clientLog('warn', 'broker_missing_fields', { brokerSlug: (brokerData as any)?.website_slug || null, missing: missingBrokerFields }); } catch (e) {}
+      } else {
+        logger.info('Broker public fields present for', (brokerData as any)?.website_slug || brokerData?.id);
+        try { clientLog('info', 'broker_fields_ok', { brokerSlug: (brokerData as any)?.website_slug || null }); } catch (e) {}
+      }
       if (!brokerData) {
         logger.warn('No broker found for slug/domain:', effectiveSlug);
         setBrokerProfile(null);
@@ -214,7 +227,25 @@ const PublicSite = ({ initialBrokerProfile, initialProperties }: PublicSiteProps
       // Converte brokerData para BrokerProfile (Row) com cast via unknown para evitar conflito de tipos gerados
       setBrokerProfile(brokerData as unknown as BrokerProfile);
       const propertiesData = await getPropertiesByDomainOrSlug(effectiveSlug, 50, 0);
-      setProperties((propertiesData || []) as unknown as Property[]);
+      const propsArr = (propertiesData || []) as unknown as Property[];
+      setProperties(propsArr);
+      // Diagnostic: report if properties are empty or items missing expected fields
+      if (!propsArr || propsArr.length === 0) {
+        logger.warn('No properties returned for broker:', (brokerData as any)?.website_slug || effectiveSlug);
+        try { clientLog('warn', 'properties_empty', { brokerSlug: (brokerData as any)?.website_slug || effectiveSlug, count: 0 }); } catch (e) {}
+      } else {
+        // check for common missing property fields
+        const sample = propsArr[0] as any;
+        const missingPropertyFields: string[] = [];
+        ['id','slug','title','price','main_image_url'].forEach(f => { if (!sample[f]) missingPropertyFields.push(f); });
+        if (missingPropertyFields.length > 0) {
+          logger.warn('Sample property is missing fields:', missingPropertyFields, 'broker:', (brokerData as any)?.website_slug || effectiveSlug);
+          try { clientLog('warn', 'property_missing_fields', { brokerSlug: (brokerData as any)?.website_slug || effectiveSlug, missing: missingPropertyFields, sampleId: sample.id || null }); } catch (e) {}
+        } else {
+          logger.info('Properties loaded, count:', propsArr.length);
+          try { clientLog('info', 'properties_loaded', { brokerSlug: (brokerData as any)?.website_slug || effectiveSlug, count: propsArr.length }); } catch (e) {}
+        }
+      }
       const { data: socialLinksData, error: socialError } = await supabase
         .from('social_links')
         .select('*')
@@ -223,6 +254,17 @@ const PublicSite = ({ initialBrokerProfile, initialProperties }: PublicSiteProps
         .order('display_order');
       if (!socialError) {
         setSocialLinks((socialLinksData || []) as SocialLink[]);
+        const s = (socialLinksData || []) as SocialLink[];
+        if (!s || s.length === 0) {
+          logger.info('No social links for broker:', (brokerData as any)?.website_slug || effectiveSlug);
+          try { clientLog('info', 'social_links_empty', { brokerSlug: (brokerData as any)?.website_slug || effectiveSlug }); } catch (e) {}
+        } else {
+          logger.info('Social links loaded, count:', s.length);
+          try { clientLog('info', 'social_links_loaded', { brokerSlug: (brokerData as any)?.website_slug || effectiveSlug, count: s.length }); } catch (e) {}
+        }
+      } else {
+        logger.warn('Error loading social links for broker:', (brokerData as any)?.website_slug || effectiveSlug, socialError);
+        try { clientLog('warn', 'social_links_error', { brokerSlug: (brokerData as any)?.website_slug || effectiveSlug, error: socialError?.message || String(socialError) }); } catch (e) {}
       }
     } catch (error: unknown) {
       logger.error('Error fetching data:', error);
@@ -239,6 +281,15 @@ const PublicSite = ({ initialBrokerProfile, initialProperties }: PublicSiteProps
   useEffect(() => {
     // Se o servidor já injetou o broker profile via SSR, use-o imediatamente e pule fetch
     if (initialBrokerProfile) {
+      // Diagnostic for SSR-injected broker
+      logger.debug('Using initialBrokerProfile from SSR:', initialBrokerProfile);
+      const missingFromSSR: string[] = [];
+      const expectedFieldsSSR = ['id','website_slug','business_name','logo_url','site_favicon_url','site_share_image_url','primary_color','secondary_color'];
+      expectedFieldsSSR.forEach(f => { if (!(initialBrokerProfile as any)[f]) missingFromSSR.push(f); });
+      if (missingFromSSR.length > 0) {
+        logger.warn('SSR initialBrokerProfile missing fields:', missingFromSSR);
+        try { clientLog('warn', 'ssr_broker_missing_fields', { missing: missingFromSSR, brokerSlug: (initialBrokerProfile as any)?.website_slug || null }); } catch (e) {}
+      }
       setBrokerProfile(initialBrokerProfile);
       if (initialProperties) setProperties(initialProperties as Property[]);
       setLoading(false);
@@ -264,7 +315,7 @@ const PublicSite = ({ initialBrokerProfile, initialProperties }: PublicSiteProps
         }, 2000);
       }
     }
-  }, [slug, fetchBrokerData, isCustomDomain]);
+  }, [slug, fetchBrokerData, isCustomDomain, initialBrokerProfile, initialProperties]);
 
   // Enviar log ao servidor quando o brokerProfile estiver disponível (após hidratação)
   useEffect(() => {
@@ -296,6 +347,8 @@ const PublicSite = ({ initialBrokerProfile, initialProperties }: PublicSiteProps
   }
 
   if (!brokerProfile) {
+    logger.warn('public-site: brokerProfile is null for slug/domain', { slug, initialBrokerProfile });
+    try { clientLog('warn', 'broker_profile_null', { slug: Array.isArray(slug) ? slug[0] : slug || null }); } catch (e) {}
     return (
       <div className="min-h-screen flex items-center justify-center w-full">
         <div className="text-center">
@@ -456,9 +509,27 @@ const PublicSite = ({ initialBrokerProfile, initialProperties }: PublicSiteProps
       </Head>
       
       <div className="public-site-layout min-h-screen bg-background">
+        {/* 🔍 PAINEL DE DEBUG - apenas em desenvolvimento */}
+        {process.env.NODE_ENV === 'development' && (
+          <div className="fixed bottom-4 right-4 z-50 bg-black/90 text-white p-4 rounded-lg shadow-xl max-w-sm text-xs font-mono">
+            <h3 className="font-bold mb-2 text-sm">🐛 Debug Info</h3>
+            <div className="space-y-1">
+              <div>Broker: <span className="text-green-400">{brokerProfile?.business_name || 'N/A'}</span></div>
+              <div>Slug: <span className="text-blue-400">{brokerProfile?.website_slug || 'N/A'}</span></div>
+              <div>Propriedades: <span className="text-yellow-400">{properties.length}</span></div>
+              <div>PropertySlug param: <span className="text-purple-400">{propertySlug || 'N/A'}</span></div>
+              <div>Custom Domain: <span className="text-cyan-400">{isCustomDomain() ? 'Sim' : 'Não'}</span></div>
+              <div>SSR: <span className="text-pink-400">{initialBrokerProfile ? 'Sim' : 'Não'}</span></div>
+            </div>
+          </div>
+        )}
+
         {propertySlug ? (
           // Página de detalhe renderizada dentro do layout para garantir Head/Theme
-          <PropertyDetailPage />
+          <PropertyDetailPage 
+            initialBrokerProfile={brokerProfile}
+            propertySlug={propertySlug as string}
+          />
         ) : (
           <>
             <TrackingScripts trackingScripts={brokerProfile?.tracking_scripts} />

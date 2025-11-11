@@ -6,20 +6,14 @@ type BrokerRow = any;
 /**
  * Retorna apenas os campos públicos necessários para renderizar o site público.
  * Uso: SSR (getServerSideProps) e rota pública.
+ * ATUALIZADO: usa get_public_broker_branding RPC para garantir consistência
  */
 export async function getPublicBrokerByHost({ hostname, brokerSlug, customDomain }: { hostname?: string; brokerSlug?: string; customDomain?: string }) {
   try {
-    let broker: BrokerRow | null = null;
+    let effectiveSlug = brokerSlug;
 
-    if (brokerSlug) {
-      const { data, error } = await supabase
-        .from('brokers')
-        .select(`id, website_slug, business_name, logo_url, site_favicon_url, site_share_image_url, primary_color, secondary_color, is_active, canonical_prefer_custom_domain, custom_domain, site_title, site_description, home_title_template, home_description_template, tracking_scripts`)
-        .eq('website_slug', brokerSlug)
-        .eq('is_active', true)
-        .maybeSingle();
-      if (!error && data) broker = data;
-    } else if (customDomain && hostname) {
+    // Se não tem slug mas tem custom domain, buscar slug primeiro
+    if (!effectiveSlug && customDomain && hostname) {
       const { data: domainData, error: domainErr } = await supabase
         .from('broker_domains')
         .select('broker_id')
@@ -30,37 +24,45 @@ export async function getPublicBrokerByHost({ hostname, brokerSlug, customDomain
       if (!domainErr && domainData?.broker_id) {
         const { data: brokerData, error: brokerErr } = await supabase
           .from('brokers')
-          .select(`id, website_slug, business_name, logo_url, site_favicon_url, site_share_image_url, primary_color, secondary_color, is_active, canonical_prefer_custom_domain, custom_domain, site_title, site_description, home_title_template, home_description_template, tracking_scripts`)
+          .select('website_slug')
           .eq('id', domainData.broker_id)
           .eq('is_active', true)
           .maybeSingle();
-        if (!brokerErr && brokerData) broker = brokerData;
+        
+        if (!brokerErr && brokerData?.website_slug) {
+          effectiveSlug = brokerData.website_slug;
+        }
       }
     }
 
-    if (!broker) return null;
+    if (!effectiveSlug) {
+      logger.warn('No broker slug resolved for:', { hostname, customDomain });
+      return null;
+    }
 
-    // Sanitize / map para apenas os campos públicos (evita leak de campos sensíveis)
+    // Usar RPC get_public_broker_branding que já existe no Supabase
+    const { data, error } = await supabase
+      .rpc('get_public_broker_branding', { 
+        broker_website_slug: effectiveSlug 
+      });
+
+    if (error) {
+      logger.error('Error calling get_public_broker_branding:', error);
+      return null;
+    }
+
+    if (!data || data.length === 0) {
+      logger.warn('No broker found via RPC for slug:', effectiveSlug);
+      return null;
+    }
+
+    const broker = data[0];
+
+    // Adicionar aliases para compatibilidade com ThemeProvider
     const publicBroker = {
-      id: broker.id,
-      website_slug: broker.website_slug,
-      business_name: broker.business_name,
-      logo_url: broker.logo_url,
-      site_favicon_url: broker.site_favicon_url,
-      site_share_image_url: broker.site_share_image_url,
-      primary_color: broker.primary_color,
-      secondary_color: broker.secondary_color,
-      // Backwards-compatible aliases used across the frontend theme system
+      ...broker,
       brand_primary: broker.primary_color,
       brand_secondary: broker.secondary_color,
-      is_active: broker.is_active,
-      canonical_prefer_custom_domain: broker.canonical_prefer_custom_domain,
-      custom_domain: broker.custom_domain,
-      site_title: broker.site_title,
-      site_description: broker.site_description,
-      home_title_template: broker.home_title_template,
-      home_description_template: broker.home_description_template,
-      tracking_scripts: broker.tracking_scripts,
     };
 
     return publicBroker;

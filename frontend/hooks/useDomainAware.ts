@@ -57,7 +57,7 @@ export function useDomainAware() {
 
   /**
    * Lista propriedades para o broker atual (baseado no host ou slug)
-   * ATUALIZADO: usa PublicQueryHelper conforme recomendações do Supabase Assistant IA
+   * ATUALIZADO: usa get_public_properties_by_broker RPC
    */
   const getPropertiesByDomainOrSlug = async (
     slug?: string,
@@ -65,49 +65,33 @@ export function useDomainAware() {
     offset: number = 0
   ) => {
     try {
-      if (slug) {
-        // Para slug explícito, resolver broker_id primeiro
-        const { data: brokerData, error: brokerError } = await supabase
-          .from('brokers')
-          .select('id')
-          .eq('website_slug', slug)
-          .eq('is_active', true)
-          .maybeSingle();
+      let effectiveSlug = slug;
 
-        if (brokerError || !brokerData) {
-          logger.error('Error fetching broker by slug:', brokerError);
-          return [];
-        }
+      // Se não tem slug, tentar resolver via domínio atual
+      if (!effectiveSlug && isCustomDomainHost()) {
+        const broker = await getBrokerByDomainOrSlug();
+        effectiveSlug = (broker as any)?.website_slug;
+      }
 
-        // Query direta com broker_id conhecido
-        const { data, error } = await supabase
-          .from('properties')
-          .select('*')
-          .eq('broker_id', brokerData.id)
-          .eq('is_active', true)
-          .order('created_at', { ascending: false })
-          .range(offset, offset + limit - 1);
+      if (!effectiveSlug) {
+        logger.warn('No slug available to fetch properties');
+        return [];
+      }
 
-        if (error) {
-          logger.error('Error fetching properties by slug:', error);
-          return [];
-        }
-        return data || [];
-      } else {
-        // Para host atual, usar PublicQueryHelper (implementa Edge Function + fallback)
-        const result = await (await import('@/lib/publicQueries')).PublicQueryHelper.getPublicProperties({
-          limit,
-          offset,
-          orderBy: 'created_at',
-          ascending: false
+      // Usar RPC para buscar propriedades públicas
+      const { data, error } = await supabase
+        .rpc('get_public_properties_by_broker', {
+          broker_website_slug: effectiveSlug,
+          limit_count: limit,
+          offset_count: offset
         });
 
-        if (result.error) {
-          logger.error('Error fetching properties by host:', result.error);
-          return [];
-        }
-        return result.data || [];
+      if (error) {
+        logger.error('Error fetching properties via RPC:', error);
+        return [];
       }
+
+      return data || [];
     } catch (error) {
       logger.error('Error in getPropertiesByDomainOrSlug:', error);
       return [];

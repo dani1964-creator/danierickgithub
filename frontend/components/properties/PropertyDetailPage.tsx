@@ -238,9 +238,6 @@ const PropertyDetailPage = () => {
         // Fallback: tentar consulta direta se RPC falhar
   logger.info('Attempting fallback query for property...');
         
-        // Verificar se é UUID ou slug
-        const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(effectivePropertySlug);
-        
         const fallbackProperty = await supabase
           .from('properties')
           .select(`
@@ -251,7 +248,7 @@ const PropertyDetailPage = () => {
               website_slug
             )
           `)
-          .eq(isUUID ? 'id' : 'slug', effectivePropertySlug)
+          .eq('slug', effectivePropertySlug)
           .eq('brokers.website_slug', effectiveSlug)
           .eq('is_active', true)
           .single();

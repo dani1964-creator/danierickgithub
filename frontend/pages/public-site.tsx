@@ -69,28 +69,6 @@ const PublicSite = () => {
   const { toast } = useToast();
   const { getBrokerByDomainOrSlug, getPropertiesByDomainOrSlug, isCustomDomain } = useDomainAware();
 
-  // Detectar se o usuário foi redirecionado de uma URL UUID antiga
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const referrer = document.referrer;
-      const currentUrl = window.location.href;
-      
-      // Detectar UUID no referrer ou se veio de redirect
-      const uuidPattern = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i;
-      const cameFromUuidUrl = referrer && uuidPattern.test(referrer);
-      const hasRedirectHistory = window.history.length > 1;
-      
-      if (cameFromUuidUrl && hasRedirectHistory) {
-        toast({
-          title: "URL Antiga Detectada",
-          description: "Links com códigos UUID não funcionam mais. Use a busca abaixo para encontrar imóveis.",
-          variant: "destructive",
-          duration: 8000,
-        });
-      }
-    }
-  }, [toast]);
-
   const fetchContactInfo = useCallback(async () => {
     try {
       logger.debug('Fetching contact info for:', brokerProfile?.website_slug);

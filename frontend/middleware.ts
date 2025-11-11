@@ -120,20 +120,6 @@ export async function middleware(request: NextRequest) {
       customDomain = hostname;
     }
     
-    // Detectar UUID na URL e redirecionar para home (slugs devem ser usados)
-    const uuidPattern = /^\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$/i;
-    const uuidMatch = pathname.match(uuidPattern);
-    
-    if (uuidMatch) {
-      logger.debug(`Detected UUID in URL: ${uuidMatch[1]}, redirecting to home...`);
-      
-      // Redirecionar para home sem query params (mais limpo)
-      const url = request.nextUrl.clone();
-      url.pathname = '/';
-      url.search = ''; // Remove todos os query params
-      return NextResponse.redirect(url, 301);
-    }
-    
     // Se o usuário acessou a raiz do host público, reescrever para a rota interna '/vitrine'
     // assim o servidor irá entregar a página de vitrine (SSR/SSG) em vez da homepage de marketing.
     const url = request.nextUrl.clone();

@@ -59,7 +59,7 @@ const PropertyCard = ({
         const broker = await getBrokerByDomainOrSlug(undefined);
         effectiveSlug = (broker as unknown as { website_slug?: string })?.website_slug || effectiveSlug;
       }
-      const propertySlug = property.slug || property.id;
+      const propertySlug = property.slug;
       if (!effectiveSlug || !propertySlug) return;
       // Busca RPCs em paralelo
       const [propertyResult, brokerResult] = await Promise.all([

@@ -556,14 +556,13 @@ const PropertyDetailPage = () => {
       
   logger.debug('WhatsApp URL:', whatsappUrl);
       
-      // Tentar abrir WhatsApp
+      // Abrir WhatsApp
       try {
-        // Abrir diretamente a URL pública do imóvel (padrão do sistema)
-        window.open(shareUrl, '_blank');
+        window.open(whatsappUrl, '_blank');
       } catch (error) {
-        logger.error('Erro ao abrir URL pública:', error);
-        // Fallback para abrir a página pública diretamente
-        window.open(shareUrl, '_blank');
+        logger.error('Erro ao abrir WhatsApp:', error);
+        // Fallback para link direto
+        window.location.href = whatsappUrl;
       }
       
       // Registrar interesse também

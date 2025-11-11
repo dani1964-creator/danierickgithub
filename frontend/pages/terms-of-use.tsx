@@ -7,6 +7,7 @@ import Head from 'next/head';
 import { supabase } from '@/integrations/supabase/client';
 import DOMPurify from 'dompurify';
 import { ContentPageSkeleton } from '@/components/ui/loading-skeleton';
+import { useDomainAware } from '@/hooks/useDomainAware';
 
 
 interface BrokerProfile {
@@ -22,32 +23,25 @@ interface BrokerProfile {
 
 const TermsOfUse = () => {
   const router = useRouter();
-  const { slug } = router.query;
+  const { slug: querySlug } = router.query;
+  const { getBrokerByDomainOrSlug } = useDomainAware();
   const [brokerProfile, setBrokerProfile] = useState<BrokerProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
 
   useEffect(() => {
     const fetchBrokerProfile = async () => {
-      if (!slug) {
-        setNotFound(true);
-        setLoading(false);
-        return;
-      }
-
       try {
-        const { data, error } = await supabase.rpc('get_public_broker_branding_secure', {
-          broker_website_slug: Array.isArray(slug) ? slug[0] : slug
-        });
-
-        if (error) {
-          logger.error('Error fetching broker:', error);
+        const slugParam = Array.isArray(querySlug) ? querySlug[0] : querySlug;
+        let broker = await getBrokerByDomainOrSlug(slugParam);
+        
+        if (!broker) {
           setNotFound(true);
-        } else if (!data || data.length === 0) {
-          setNotFound(true);
-        } else {
-          setBrokerProfile(data[0]);
+          setLoading(false);
+          return;
         }
+
+        setBrokerProfile(broker as unknown as BrokerProfile);
       } catch (error) {
         logger.error('Error:', error);
         setNotFound(true);
@@ -57,7 +51,7 @@ const TermsOfUse = () => {
     };
 
     fetchBrokerProfile();
-  }, [slug]);
+  }, [querySlug, getBrokerByDomainOrSlug]);
 
   // Redirect effect for not found
   useEffect(() => {
@@ -145,8 +139,7 @@ const TermsOfUse = () => {
           <div className="mt-8 text-center">
             <button
               onClick={() => {
-                // Navigate back and let the PublicSite component handle context restoration
-                router.replace(`/${slug}`);
+                router.replace('/');
               }}
               className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white transition-colors hover:opacity-90"
               style={{ 

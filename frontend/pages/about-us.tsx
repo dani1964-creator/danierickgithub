@@ -7,6 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import dynamic from 'next/dynamic';
 import DOMPurify from 'dompurify';
 import { ContentPageSkeleton } from '@/components/ui/loading-skeleton';
+import { useDomainAware } from '@/hooks/useDomainAware';
 
 
 interface BrokerProfile {
@@ -22,32 +23,26 @@ interface BrokerProfile {
 
 const AboutUs = () => {
   const router = useRouter();
-  const { slug } = router.query as { slug?: string };
+  const { slug: querySlug } = router.query as { slug?: string };
+  const { getBrokerByDomainOrSlug, isCustomDomain } = useDomainAware();
   const [brokerProfile, setBrokerProfile] = useState<BrokerProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
 
   useEffect(() => {
     const fetchBrokerProfile = async () => {
-      if (!slug) {
-        setNotFound(true);
-        setLoading(false);
-        return;
-      }
-
       try {
-        const { data, error } = await supabase.rpc('get_public_broker_branding_secure', {
-          broker_website_slug: slug
-        });
-
-        if (error) {
-          logger.error('Error fetching broker:', error);
+        // Tentar obter broker do domínio/subdomínio primeiro
+        let broker = await getBrokerByDomainOrSlug(querySlug);
+        
+        if (!broker) {
           setNotFound(true);
-        } else if (!data || data.length === 0) {
-          setNotFound(true);
-        } else {
-          setBrokerProfile(data[0]);
+          setLoading(false);
+          return;
         }
+
+        // Converter para o formato esperado
+        setBrokerProfile(broker as unknown as BrokerProfile);
       } catch (error) {
         logger.error('Error:', error);
         setNotFound(true);
@@ -57,7 +52,7 @@ const AboutUs = () => {
     };
 
     fetchBrokerProfile();
-  }, [slug]);
+  }, [querySlug, getBrokerByDomainOrSlug]);
 
   // Redirect effect for not found
   useEffect(() => {
@@ -143,8 +138,8 @@ const AboutUs = () => {
           <div className="mt-8 text-center">
             <button
               onClick={() => {
-                // Navigate back and let the PublicSite component handle context restoration
-                router.replace(`/${slug}`);
+                // Navigate back to root - middleware will handle routing
+                router.replace('/');
               }}
               className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white transition-colors hover:opacity-90"
               style={{ 

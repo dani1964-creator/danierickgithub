@@ -1865,9 +1865,11 @@ const PropertyDetailPage = () => {
                     <div className={`pt-4 border-t ${isDarkMode ? 'border-gray-700' : 'border-gray-100'} transition-colors duration-300`}>
                       <div className="flex items-center space-x-3">
                         {property?.realtor_avatar_url ? (
-                          <img 
+                          <Image 
                             src={property.realtor_avatar_url} 
                             alt={property.realtor_name}
+                            width={48}
+                            height={48}
                             className="w-12 h-12 rounded-full object-cover border-2 border-gray-200 dark:border-gray-600"
                           />
                         ) : (

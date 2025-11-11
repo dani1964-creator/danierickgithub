@@ -31,10 +31,25 @@ const nextConfig = {
     ],
   },
   
-  // Headers de segurança
+  // Headers de segurança e CORS
   async headers() {
     return [
       {
+        // Headers CORS para rotas de API
+        source: '/api/:path*',
+        headers: [
+          {
+            key: 'Access-Control-Allow-Methods',
+            value: 'GET,DELETE,PATCH,POST,PUT,OPTIONS'
+          },
+          {
+            key: 'Access-Control-Allow-Headers',
+            value: 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization'
+          },
+        ]
+      },
+      {
+        // Headers de segurança para todas as rotas
         source: '/(.*)',
         headers: [
           {

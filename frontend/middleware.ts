@@ -57,9 +57,40 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
   
-  // APIs passam direto (mas adicionam headers de contexto)
+  // APIs passam direto (mas adicionam headers de contexto + CORS)
   if (isApiPath) {
+    const origin = request.headers.get('origin');
     const response = NextResponse.next();
+    
+    // Configurar CORS para permitir subdomínios e domínios personalizados
+    const allowedOrigins = [
+      `https://${baseDomain}`,
+      `https://www.${baseDomain}`,
+      `http://localhost:3000`,
+      `http://localhost:3001`,
+    ];
+    
+    // Permitir todos os subdomínios de adminimobiliaria.site
+    const isSubdomain = origin?.match(new RegExp(`^https://[\\w-]+\\.${baseDomain.replace(/\./g, '\\.')}$`));
+    
+    if (origin && (allowedOrigins.includes(origin) || isSubdomain)) {
+      response.headers.set('Access-Control-Allow-Origin', origin);
+      response.headers.set('Access-Control-Allow-Credentials', 'true');
+      response.headers.set('Access-Control-Allow-Methods', 'GET,DELETE,PATCH,POST,PUT,OPTIONS');
+      response.headers.set(
+        'Access-Control-Allow-Headers',
+        'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization'
+      );
+    }
+    
+    // Tratar preflight OPTIONS
+    if (request.method === 'OPTIONS') {
+      return new NextResponse(null, {
+        status: 204,
+        headers: response.headers,
+      });
+    }
+    
     response.headers.set('x-hostname', hostname);
     response.headers.set('x-base-domain', baseDomain);
     return response;

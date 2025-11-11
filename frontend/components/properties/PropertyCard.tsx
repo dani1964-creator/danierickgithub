@@ -101,11 +101,12 @@ const PropertyCard = ({
   const handleFavoriteClick = async (e: React.MouseEvent) => {
     e.stopPropagation(); // Evita navegação ao clicar no coração
     
-    // Determina slug do broker
-    let brokerSlug = slug as string;
-    if (isCustomDomain() || !brokerSlug) {
-      const broker = await getBrokerByDomainOrSlug(undefined);
-      brokerSlug = (broker as unknown as { website_slug?: string })?.website_slug || '';
+    // Usa brokerProfile.website_slug (mais confiável) ou fallback para slug da URL
+    const brokerSlug = brokerProfile?.website_slug || slug;
+    
+    if (!brokerSlug) {
+      notifications.showError('Erro ao favoritar', 'Não foi possível identificar a imobiliária.');
+      return;
     }
 
     const isNowFavorited = toggleFavorite({
@@ -120,7 +121,7 @@ const PropertyCard = ({
       area_m2: property.area_m2,
       city: property.city || '',
       uf: property.uf,
-      broker_slug: brokerSlug,
+      broker_slug: String(brokerSlug),
     });
 
     if (isNowFavorited) {

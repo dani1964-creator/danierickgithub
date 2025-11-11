@@ -611,7 +611,8 @@ const PropertyDetailPage = () => {
   const handleFavorite = () => {
     if (!property) return;
 
-    const brokerSlug = slug;
+    // Obtém broker slug do brokerProfile ou da URL
+    const brokerSlug = brokerProfile?.website_slug || slug;
     if (!brokerSlug) {
       showError('Erro ao favoritar', 'Não foi possível identificar a imobiliária.');
       return;

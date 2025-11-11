@@ -10,21 +10,33 @@ import { logger } from '@/lib/logger';
  */
 export async function middleware(request: NextRequest) {
   const hostHeader = request.headers.get('host') || '';
-  // Alguns proxies (ex: DO App Platform / internal LB) podem sobrescrever o `host`.
-  // Preferir `x-forwarded-host` quando disponível para obter o hostname original
-  // que o cliente utilizou na requisição. `x-forwarded-host` pode conter uma lista
-  // (se houver múltiplos proxies) — preferimos o primeiro valor.
-  const rawXForwardedHost = request.headers.get('x-forwarded-host') || request.headers.get('x-forwarded-server') || '';
+  // DigitalOcean App Platform usa headers específicos para passar o host real
+  // Prioridade: x-forwarded-host > host header
+  const rawXForwardedHost = request.headers.get('x-forwarded-host') || '';
   const xForwardedHost = rawXForwardedHost.split(',')[0].trim();
+  
+  // Se x-forwarded-host estiver vazio ou for um IP interno (10.x.x.x), tentar outros headers
   let hostname = xForwardedHost || hostHeader || '';
-  // Normalizar: remover porta se presente (ex: 10.244.44.29:3000) e lowercase
+  
+  // Se ainda for um IP interno, tentar obter do request URL
+  if (!hostname || hostname.match(/^10\.\d+\.\d+\.\d+/)) {
+    // Em desenvolvimento ou quando o proxy não passa o header correto,
+    // usar o hostname da URL original se disponível
+    const urlHost = request.nextUrl.hostname;
+    if (urlHost && !urlHost.match(/^10\.\d+\.\d+\.\d+/) && urlHost !== 'localhost') {
+      hostname = urlHost;
+    }
+  }
+  
+  // Normalizar: remover porta se presente (ex: example.com:3000) e lowercase
   hostname = hostname.split(':')[0].toLowerCase();
+  
   const xfFor = request.headers.get('x-forwarded-for') || '';
   const xRealIp = request.headers.get('x-real-ip') || '';
   const xProto = request.headers.get('x-forwarded-proto') || '';
   const pathname = request.nextUrl.pathname;
 
-  logger.info(`🔍 Middleware: hostHeader=${hostHeader} x-forwarded-host=${xForwardedHost} x-forwarded-for=${xfFor} x-real-ip=${xRealIp} x-forwarded-proto=${xProto} resolved-host=${hostname} path=${pathname}`);
+  logger.info(`🔍 Middleware: hostHeader=${hostHeader} x-forwarded-host=${rawXForwardedHost} resolved-host=${hostname} path=${pathname}`);
   
   const baseDomain = process.env.NEXT_PUBLIC_BASE_PUBLIC_DOMAIN || 'adminimobiliaria.site';
   

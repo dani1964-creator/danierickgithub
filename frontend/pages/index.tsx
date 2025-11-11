@@ -7,17 +7,19 @@ import Link from 'next/link';
 /**
  * Página inicial do domínio principal (adminimobiliaria.site)
  * Página institucional/marketing do sistema
+ * 
+ * NOTA: Para sites públicos de corretores ({slug}.adminimobiliaria.site),
+ * o middleware já faz rewrite automático para /public-site
  */
 const Index = () => {
   const router = useRouter();
 
-  // Detectar se está no subdomínio do painel
+  // Detectar se está no subdomínio do painel e redirecionar para /auth
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const hostname = window.location.hostname;
       const baseDomain = process.env.NEXT_PUBLIC_BASE_PUBLIC_DOMAIN || 'adminimobiliaria.site';
       const isPainelSubdomain = hostname === `painel.${baseDomain}` || hostname.startsWith('painel.');
-      const isVitrineSubdomain = hostname.endsWith(`.${baseDomain}`) && !isPainelSubdomain && hostname !== baseDomain && hostname !== `www.${baseDomain}`;
 
       // Painel: redireciona para /auth
       if (isPainelSubdomain) {
@@ -25,11 +27,8 @@ const Index = () => {
         return;
       }
 
-      // Vitrine (subdomínio): redireciona para /vitrine onde a vitrine carrega os dados
-      if (isVitrineSubdomain) {
-        router.replace('/vitrine');
-        return;
-      }
+      // Sites públicos de corretores ({slug}.adminimobiliaria.site) são tratados
+      // pelo middleware que faz rewrite para /public-site automaticamente
     }
   }, [router]);
 

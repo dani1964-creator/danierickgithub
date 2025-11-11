@@ -58,18 +58,3 @@ export function getPublicUrl(brokerSlug: string, propertySlug: string, pathPrefi
     return `/${brokerSlug}/${propertySlug}`;
   }
 }
-
-/**
- * Retorna uma origem segura para uso em SSR/CSR.
- * - Se `NEXT_PUBLIC_APP_URL` estiver definida, retorna essa URL (preferencialmente usada em produção/CI).
- * - Caso contrário, retorna `window.location.origin` no cliente.
- * - Em SSR sem variável, retorna string vazia.
- */
-export function getSafeOrigin(): string {
-  const env = (typeof process !== 'undefined' && process.env.NEXT_PUBLIC_APP_URL) ? String(process.env.NEXT_PUBLIC_APP_URL) : '';
-  if (env) return env.replace(/\/$/, '');
-  if (typeof window !== 'undefined' && window.location && window.location.origin) {
-    return window.location.origin.replace(/\/$/, '');
-  }
-  return '';
-}

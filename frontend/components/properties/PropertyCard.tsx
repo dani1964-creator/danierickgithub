@@ -8,11 +8,9 @@ import { Badge } from '@/components/ui/badge';
 import { SwipeableCarousel } from '@/components/ui/swipeable-carousel';
 import { setPrefetchedDetail } from '@/lib/detail-prefetch';
 import { supabase } from '@/integrations/supabase/client';
-import clientLog from '@/lib/client-logger';
 import { useDomainAware } from '@/hooks/useDomainAware';
 import { Property } from '@/shared/types/tenant';
 import { BrokerProfile } from '@/shared/types/broker';
-import getPropertyUrl from '@/lib/getPropertyUrl';
 
 interface PropertyCardProps {
   id?: string;
@@ -53,7 +51,7 @@ const PropertyCard = ({
       ? [property.main_image_url] 
       : [];
 
-  const prefetchDetail = async (): Promise<string | null> => {
+  const prefetchDetail = async () => {
     try {
       // Determina o slug efetivo do corretor
       let effectiveSlug = slug as string | undefined;
@@ -74,80 +72,24 @@ const PropertyCard = ({
       const { data: propertyArr } = propertyResult;
       const { data: brokerArr } = brokerResult;
       if (propertyArr && propertyArr[0] && brokerArr && brokerArr[0]) {
-        const realSlug = propertyArr[0].slug || null;
-        // Store under the requested key (may be id) so existing lookups work
         setPrefetchedDetail(effectiveSlug, propertySlug, {
           property: propertyArr[0],
           brokerProfile: brokerArr[0] as any,
         });
-        // If RPC returned a proper slug (different from the temporary key), cache under the real slug too
-        if (realSlug && realSlug !== propertySlug) {
-          setPrefetchedDetail(effectiveSlug, realSlug, {
-            property: propertyArr[0],
-            brokerProfile: brokerArr[0] as any,
-          });
-        }
-        // enviar log ao servidor para debugar comportamento do cliente
-        clientLog('info', 'prefetch_detail', {
-          effectiveSlug,
-          requestedPropertySlug: propertySlug,
-          realSlug,
-          propertyId: property.id,
-        });
-        return realSlug;
       }
-      return null;
     } catch (e) {
       // ignora erros de prefetch
-      return null;
     }
   };
 
   const handleViewDetails = async () => {
-    // Dispara prefetch e aguarda brevemente pelo slug real (se disponível)
-    const prefetchPromise = prefetchDetail();
-    // Aguarda up to 800ms pelo prefetch para evitar bloquear a navegação
-    let realSlug: string | null = null;
-    try {
-      realSlug = await Promise.race([
-        prefetchPromise,
-        new Promise<string | null>((res) => setTimeout(() => res(null), 800)),
-      ]) as string | null;
-    } catch (e) {
-      realSlug = null;
-    }
-
-    const propertySlug = realSlug || property.slug || property.id;
-
-    try {
-      // Determina um slug efetivo para evitar 'undefined' na URL.
-      // Prioriza o `brokerProfile.website_slug` quando disponível, depois o `slug` da rota.
-      const effectiveBrokerSlug = (brokerProfile as unknown as { website_slug?: string })?.website_slug || (slug as string | undefined) || undefined;
-      const url = getPropertyUrl({
-        isCustomDomain: isCustomDomain(),
-        brokerSlug: effectiveBrokerSlug,
-        propertySlug: propertySlug,
-        propertyId: property.id,
-      });
-      // log de navegação do cliente antes de redirecionar
-      clientLog('info', 'navigate_property', {
-        effectiveBrokerSlug,
-        propertySlug,
-        url,
-        propertyId: property.id,
-      });
-      router.push(url);
-    } catch (e) {
-      // fallback seguro
-      const effectiveBrokerSlug = (brokerProfile as unknown as { website_slug?: string })?.website_slug || (slug as string | undefined) || undefined;
-      const fallbackUrl = getPropertyUrl({
-        isCustomDomain: isCustomDomain(),
-        brokerSlug: effectiveBrokerSlug,
-        propertySlug: property.slug || property.id,
-        propertyId: property.id,
-      });
-      clientLog('warn', 'navigate_property_fallback', { effectiveBrokerSlug, fallbackUrl, propertyId: property.id });
-      router.push(fallbackUrl);
+    // Dispara prefetch e navega em seguida
+    prefetchDetail();
+    const propertySlug = property.slug || property.id;
+    if (isCustomDomain()) {
+      router.push(`/${propertySlug}`);
+    } else {
+      router.push(`/${slug}/${propertySlug}`);
     }
   };
 

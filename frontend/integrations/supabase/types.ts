@@ -1105,42 +1105,6 @@ export type Database = {
         Args: { p_broker_slug: string; p_user_id: string }
         Returns: boolean
       }
-      get_public_properties_by_broker: {
-        Args: {
-          broker_website_slug: string
-          limit_count?: number
-          offset_count?: number
-        }
-        Returns: {
-          id: string
-          title: string
-          slug: string
-          description: string
-          price: number
-          property_type: string
-          transaction_type: string
-          area_size: number
-          bedrooms: number
-          bathrooms: number
-          parking_spaces: number
-          address: string
-          city: string
-          state: string
-          zip_code: string
-          neighborhood: string
-          latitude: number
-          longitude: number
-          main_image_url: string
-          images: Json
-          amenities: Json
-          video_url: string
-          virtual_tour_url: string
-          is_active: boolean
-          is_featured: boolean
-          created_at: string
-          updated_at: string
-        }[]
-      }
       validate_domain_ownership: {
         Args: { p_domain: string; p_user_id: string }
         Returns: boolean

@@ -13,11 +13,9 @@ const applyVar = (name: string, value?: string | number | null) => {
 };
 
 export function ThemeProvider({ broker, children }: Props) {
-  // Accept both new `brand_*` fields and legacy `primary_color`/`secondary_color`
-  // so SSR-provided broker objects (which may contain primary_color) work seamlessly.
   const brand = useMemo(() => ({
-    primary: broker?.brand_primary ?? (broker as any)?.primary_color ?? null,
-    secondary: broker?.brand_secondary ?? (broker as any)?.secondary_color ?? null,
+    primary: broker?.brand_primary ?? null,
+    secondary: broker?.brand_secondary ?? null,
     accent: broker?.brand_accent ?? null,
     surface: broker?.brand_surface ?? null,
     surfaceFg: broker?.brand_surface_fg ?? null,
@@ -25,9 +23,7 @@ export function ThemeProvider({ broker, children }: Props) {
     cardElevation: broker?.brand_card_elevation ?? null,
   }), [
     broker?.brand_primary,
-    (broker as any)?.primary_color,
     broker?.brand_secondary,
-    (broker as any)?.secondary_color,
     broker?.brand_accent,
     broker?.brand_surface,
     broker?.brand_surface_fg,

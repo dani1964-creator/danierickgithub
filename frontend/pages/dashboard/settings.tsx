@@ -1,7 +1,6 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import dynamic from 'next/dynamic';
-import { getSafeOrigin } from '@/lib/seo';
 import { Save, User, Globe2, Plus, Trash2, Copy, CloudCog } from 'lucide-react';
 import { useAuth } from '@/shared/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -48,7 +47,7 @@ const Settings = () => {
   const [domainsLoading, setDomainsLoading] = useState(false);
   const [domainInput, setDomainInput] = useState('');
   const [savingDomain, setSavingDomain] = useState(false);
-  const appUrl = (process.env.NEXT_PUBLIC_APP_URL as string) || getSafeOrigin();
+  const appUrl = (process.env.NEXT_PUBLIC_APP_URL as string) || (typeof window !== 'undefined' ? window.location.origin : '');
   const appHost = (() => {
     try { return new URL(appUrl).host; } catch { return (appUrl || '').replace(/^https?:\/\//, '').replace(/\/$/, ''); }
   })();

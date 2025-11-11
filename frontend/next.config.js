@@ -13,34 +13,13 @@ const nextConfig = {
         protocol: 'https',
         hostname: '*.supabase.com',
       }
-      ,
-      {
-        protocol: 'https',
-        hostname: 'storage.googleapis.com'
-      },
-      {
-        protocol: 'https',
-        hostname: 'cdn.supabase.co'
-      }
-      ,
-      {
-        protocol: 'https',
-        hostname: 'i.ibb.co'
-      },
-      {
-        protocol: 'https',
-        hostname: 'encrypted-tbn0.gstatic.com'
-      }
-      ,
-      {
-        protocol: 'https',
-        hostname: 'img.freepik.com'
-      }
     ],
-    // Durante diagnóstico era necessário desabilitar otimização; aqui reativamos
-    // a otimização e incluímos padrões remotos comuns (Supabase / GCS) para
-    // permitir que `next/image` otimize imagens desses hosts.
-    unoptimized: false,
+    // Durante o diagnóstico/compatibilidade com hosts externos, desabilitamos
+    // a otimização de imagens do Next.js para evitar bloqueio por whitelist.
+    // Isso faz o next/image renderizar as URLs externas sem passar pelo loader
+    // do Next (tradeoff: sem otimização). Remover/ajustar quando definirmos
+    // uma lista exata de domínios remotos.
+    unoptimized: true,
   },
   
   // Headers de segurança

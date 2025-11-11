@@ -20,10 +20,9 @@ import ContactCTA from '@/components/home/ContactCTA';
 import Footer from '@/components/home/Footer';
 import LeadModal from '@/components/leads/LeadModal';
 import { getErrorMessage } from '@/lib/utils';
-import { getPublicUrl, getSafeOrigin } from '@/lib/seo';
+import { getPublicUrl } from '@/lib/seo';
 import { logger } from '@/lib/logger';
 import { getPrefetchedDetail, setPrefetchedDetail } from '@/lib/detail-prefetch';
-import getPropertyUrl from '@/lib/getPropertyUrl';
 
 interface Property {
   id: string;
@@ -126,14 +125,6 @@ const PropertyDetailPage = () => {
     }
   }, [isDarkMode]);
   const { getBrokerByDomainOrSlug, isCustomDomain } = useDomainAware();
-
-  // Utility para navegação segura: determina um slug efetivo do broker para montar URLs
-  const effectiveBrokerForNav = (brokerProfile as unknown as { website_slug?: string })?.website_slug || (slug as string | undefined) || undefined;
-  const navigateToBrokerRoot = () => {
-    if (isCustomDomain()) router.push('/');
-    else if (effectiveBrokerForNav) router.push(`/${effectiveBrokerForNav}`);
-    else router.push('/');
-  };
 
   // Para domínios customizados, a rota é /:propertySlug (sem broker slug). Tratar isso aqui.
   const effectivePropertySlug = propertySlugParam || (isCustomDomain() ? slug : undefined);
@@ -517,8 +508,8 @@ const PropertyDetailPage = () => {
 
     if (contactInfo?.whatsapp_number && property) {
     // Generate clean URL based on domain type
-  const currentOrigin = getSafeOrigin();
-  // const currentPath intentionally unused — kept for future use if needed
+      const currentOrigin = window.location.origin;
+      const currentPath = router.pathname;
       
       // Sempre usar URL limpa baseada em slug do corretor e slug do imóvel
       const brokerSlug = brokerProfile?.website_slug || slug;
@@ -857,7 +848,7 @@ const PropertyDetailPage = () => {
             </Button>
             <Button 
               variant="outline"
-              onClick={() => navigateToBrokerRoot()}
+              onClick={() => router.push(`/${slug || ''}`)}
               className={`w-full px-6 py-3 rounded-xl font-semibold transition-all duration-300 ${
                 isDarkMode 
                   ? 'border-gray-600 hover:border-gray-500 hover:bg-gray-700 text-gray-300 hover:text-white'
@@ -891,7 +882,7 @@ const PropertyDetailPage = () => {
         <div className={`text-center ${isDarkMode ? 'bg-[#1A2331] border border-[#1A2331]' : 'bg-white'} rounded-2xl shadow-xl p-12 animate-scale-in transition-colors duration-300`}>
           <h2 className={`text-3xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'} mb-6 transition-colors duration-300`}>Imóvel não encontrado</h2>
           <Button 
-            onClick={() => navigateToBrokerRoot()}
+            onClick={() => router.push(`/${slug || ''}`)}
             className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-3 rounded-xl font-semibold shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-105"
           >
             Voltar ao início
@@ -901,8 +892,8 @@ const PropertyDetailPage = () => {
     );
   }
 
-  const origin = getSafeOrigin();
-  const href = `${origin}${(typeof window !== 'undefined' ? window.location.pathname + window.location.search + window.location.hash : router.asPath || '')}`;
+  const origin = typeof window !== 'undefined' ? window.location.origin : '';
+  const href = typeof window !== 'undefined' ? window.location.href : '';
 
   return (
     <>
@@ -1000,30 +991,15 @@ const PropertyDetailPage = () => {
         <meta property="og:image:type" content="image/jpeg" />
         <meta property="og:type" content="website" />
   <meta property="og:site_name" content={brokerProfile?.business_name || 'Imobiliária'} />
-        {/* Canonical / OG URL: prefer custom domain when configured, else use public subdomain URL */}
-        <meta property="og:url" content={(() => {
-          try {
-            const preferCustom = brokerProfile?.canonical_prefer_custom_domain ?? true;
-            if (preferCustom && brokerProfile?.custom_domain) {
-              return `https://${brokerProfile.custom_domain}/${property?.slug}`;
-            }
-            // fallback to public URL helper
-            return getPublicUrl(brokerProfile?.website_slug || '', property?.slug || property?.id || '');
-          } catch (e) {
-            return href || '';
-          }
-        })()} />
+  <meta property="og:url" content={href} />
         <meta name="robots" content={`${(brokerProfile?.robots_index ?? true) ? 'index' : 'noindex'}, ${(brokerProfile?.robots_follow ?? true) ? 'follow' : 'nofollow'}`} />
         <link rel="canonical" href={(() => {
-          try {
-            const preferCustom = brokerProfile?.canonical_prefer_custom_domain ?? true;
-            if (preferCustom && brokerProfile?.custom_domain) {
-              return `https://${brokerProfile.custom_domain}/${property?.slug}`;
-            }
-            return getPublicUrl(brokerProfile?.website_slug || '', property?.slug || property?.id || '');
-          } catch (e) {
-            return href || '';
+          const preferCustom = brokerProfile?.canonical_prefer_custom_domain ?? true;
+          const useCustom = preferCustom && brokerProfile?.custom_domain;
+          if (useCustom) {
+            return `https://${brokerProfile!.custom_domain!}/${property?.slug}`;
           }
+          return `${origin}/${brokerProfile?.website_slug}/${property?.slug}`;
         })()} />
         
         {/* Twitter Card */}
@@ -1108,7 +1084,7 @@ const PropertyDetailPage = () => {
                 </Button>
                 
                 <button
-                  onClick={() => navigateToBrokerRoot()}
+                  onClick={() => router.push(`/${brokerProfile?.website_slug || slug}`)}
                   className="flex items-center hover:opacity-80 transition-all duration-200 min-w-0 flex-1 group"
                 >
                   {brokerProfile.logo_url ? (
@@ -1184,7 +1160,7 @@ const PropertyDetailPage = () => {
         <div className="pt-20 sm:pt-24 pb-4">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <nav className="flex items-center text-xs text-gray-500">
-              <button onClick={() => navigateToBrokerRoot()} className="hover:text-gray-700 cursor-pointer transition-colors duration-200">
+              <button onClick={() => router.push(`/${slug}`)} className="hover:text-gray-700 cursor-pointer transition-colors duration-200">
                 Início
               </button>
               <span className="mx-2 text-gray-300">→</span>
@@ -1662,16 +1638,7 @@ const PropertyDetailPage = () => {
                       {similarProperties.slice(0, 4).map((similar) => (
                         <div
                           key={similar.id}
-                          onClick={() => {
-                            const propertySlug = similar.slug || similar.id;
-                            const url = getPropertyUrl({
-                              isCustomDomain: isCustomDomain(),
-                              brokerSlug: effectiveBrokerForNav,
-                              propertySlug,
-                              propertyId: similar.id,
-                            });
-                            router.push(url);
-                          }}
+                          onClick={() => router.push(`/${slug}/${similar.slug}`)}
                           className="bg-gray-50 rounded-lg p-3 sm:p-4 cursor-pointer hover:shadow-md transition-shadow border border-gray-200"
                         >
                           <div className="relative aspect-video bg-gray-200 rounded-lg mb-2 sm:mb-3 overflow-hidden">

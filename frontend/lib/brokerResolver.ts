@@ -15,44 +15,32 @@ export class BrokerResolver {
    * Tenta usar Edge Function primeiro, fallback para resolução local
    */
   static async resolveBrokerByHost(host?: string): Promise<string | null> {
-  const targetHost = host || (typeof window !== 'undefined' && window.location && window.location.host ? window.location.host.toLowerCase() : '');
+    const targetHost = host || window.location.host.toLowerCase();
     
     // Verificar cache primeiro
     const cached = this.cache.get(targetHost);
     if (cached && Date.now() - cached.timestamp < this.CACHE_TTL) {
-      logger.info('BrokerResolver cache hit', { host: targetHost, brokerId: cached.brokerId });
       return cached.brokerId;
     }
 
     try {
-      // Em desenvolvimento, pular chamada para Edge Function e usar resolução local
-      // Isso evita erros em dev quando a Edge Function não está implantada ou acessível.
-      if (process.env.NODE_ENV !== 'production') {
-        const brokerId = await this.resolveViaLocalQuery(targetHost);
-        this.cache.set(targetHost, { brokerId, timestamp: Date.now() });
-        logger.info('BrokerResolver resolved (local)', { host: targetHost, brokerId });
-        return brokerId;
-      }
-
-      // Tentar Edge Function primeiro (recomendado em produção)
-  const brokerId = await this.resolveViaEdgeFunction(targetHost);
-
-  // Cache o resultado
-  this.cache.set(targetHost, { brokerId, timestamp: Date.now() });
-  logger.info('BrokerResolver resolved (edge)', { host: targetHost, brokerId });
-
-  return brokerId;
+      // Tentar Edge Function primeiro (recomendado)
+      const brokerId = await this.resolveViaEdgeFunction(targetHost);
+      
+      // Cache o resultado
+      this.cache.set(targetHost, { brokerId, timestamp: Date.now() });
+      
+      return brokerId;
     } catch (error) {
-  logger.warn('Edge Function falhou, usando fallback local:', error);
-
+      logger.warn('Edge Function falhou, usando fallback local:', error);
+      
       // Fallback para resolução local
-  const brokerId = await this.resolveViaLocalQuery(targetHost);
-
-  // Cache o resultado
-  this.cache.set(targetHost, { brokerId, timestamp: Date.now() });
-  logger.info('BrokerResolver resolved (fallback-local)', { host: targetHost, brokerId });
-
-  return brokerId;
+      const brokerId = await this.resolveViaLocalQuery(targetHost);
+      
+      // Cache o resultado
+      this.cache.set(targetHost, { brokerId, timestamp: Date.now() });
+      
+      return brokerId;
     }
   }
 
@@ -125,13 +113,6 @@ export class BrokerResolver {
       logger.error('Erro na resolução local do broker:', error);
       return null;
     }
-  }
-  
-  /**
-   * Método público para forçar resolução local (útil para diagnóstico e ambientes dev)
-   */
-  static async resolveBrokerLocally(host: string): Promise<string | null> {
-    return this.resolveViaLocalQuery(host);
   }
 
   /**

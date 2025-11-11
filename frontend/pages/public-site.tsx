@@ -24,28 +24,21 @@ import { Separator } from '@/components/ui/separator';
 import { ThemeProvider } from '@/theme/ThemeProvider';
 import { useDomainAware } from '@/hooks/useDomainAware';
 import { SEODebugPanel } from '@/components/debug/SEODebugPanel';
-import { getCanonicalBase, applyTemplate, getSafeOrigin } from '@/lib/seo';
-import clientLog from '@/lib/client-logger';
-import getPropertyUrl from '@/lib/getPropertyUrl';
+import { getCanonicalBase, applyTemplate } from '@/lib/seo';
 import { usePropertyTypes } from '@/hooks/usePropertyTypes';
 import { getErrorMessage } from '@/lib/utils';
 import { logger } from '@/lib/logger';
 
 // BrokerContact importado do tipo compartilhado
 
-interface PublicSiteProps {
-  initialBrokerProfile?: BrokerProfile | null;
-  initialProperties?: Property[];
-}
-
-const PublicSite = ({ initialBrokerProfile, initialProperties }: PublicSiteProps) => {
+const PublicSite = () => {
   // Função para buscar contato do corretor
   const [properties, setProperties] = useState<Property[]>([]);
-  const [brokerProfile, setBrokerProfile] = useState<BrokerProfile | null>(initialBrokerProfile || null);
+  const [brokerProfile, setBrokerProfile] = useState<BrokerProfile | null>(null);
   const [brokerContact, setBrokerContact] = useState<BrokerContact | null>(null);
   interface SocialLink { id: string; platform: string; url: string; icon_url?: string | null; display_order?: number | null; is_active?: boolean; }
   const [socialLinks, setSocialLinks] = useState<SocialLink[]>([]);
-  const [loading, setLoading] = useState<boolean>(initialBrokerProfile ? false : true);
+  const [loading, setLoading] = useState(true);
   const [favorites, setFavorites] = useState<string[]>([]);
   const [lightboxImages, setLightboxImages] = useState<string[]>([]);
   const [lightboxIndex, setLightboxIndex] = useState(0);
@@ -101,13 +94,9 @@ const PublicSite = ({ initialBrokerProfile, initialProperties }: PublicSiteProps
     //   o comportamento antigo e colocar `/{brokerSlug}/{propertySlug}`.
     const brokerSlug = brokerProfile.website_slug;
     const isCustom = isCustomDomain();
-    const propertySlug = property.slug || property.id;
-    const shareUrl = getPropertyUrl({
-      isCustomDomain: isCustom,
-      brokerSlug: brokerSlug,
-      propertySlug,
-      propertyId: property.id,
-    });
+    const shareUrl = isCustom
+      ? `${window.location.origin}/${brokerSlug}/${property.slug || property.id}`
+      : `${window.location.origin}/${property.slug || property.id}`;
     if (navigator.share) {
       navigator.share({
         title: `${property.title} - ${brokerProfile?.business_name}`,
@@ -167,8 +156,8 @@ const PublicSite = ({ initialBrokerProfile, initialProperties }: PublicSiteProps
   }, [slug, toast]);
 
   // Safe origin/href values to avoid SSR failures when rendering Helmet
-  const origin = getSafeOrigin();
-  const href = `${origin}${(typeof window !== 'undefined' ? window.location.pathname + window.location.search + window.location.hash : router.asPath || '')}`;
+  const origin = typeof window !== 'undefined' ? window.location.origin : '';
+  const href = typeof window !== 'undefined' ? window.location.href : '';
 
   const {
     searchTerm,
@@ -206,19 +195,6 @@ const PublicSite = ({ initialBrokerProfile, initialProperties }: PublicSiteProps
       logger.debug('Fetching broker data - Custom domain:', isCustomDomain(), 'Slug:', effectiveSlug);
       const brokerData = await getBrokerByDomainOrSlug(effectiveSlug);
       logger.debug('Broker data from domain-aware hook:', brokerData);
-      // Diagnostic: log missing/empty broker fields to help debug what's rendered
-      const missingBrokerFields: string[] = [];
-      const expectedFields = ['id','website_slug','business_name','logo_url','site_favicon_url','site_share_image_url','primary_color','secondary_color','site_title','site_description','tracking_scripts'];
-      expectedFields.forEach((f) => {
-        if (!(brokerData as any)[f]) missingBrokerFields.push(f);
-      });
-      if (missingBrokerFields.length > 0) {
-        logger.warn('Broker is missing public fields:', { missing: missingBrokerFields });
-        try { clientLog('warn', 'broker_missing_fields', { brokerSlug: (brokerData as any)?.website_slug || null, missing: missingBrokerFields }); } catch (e) {}
-      } else {
-        logger.info('Broker public fields present for', (brokerData as any)?.website_slug || brokerData?.id);
-        try { clientLog('info', 'broker_fields_ok', { brokerSlug: (brokerData as any)?.website_slug || null }); } catch (e) {}
-      }
       if (!brokerData) {
         logger.warn('No broker found for slug/domain:', effectiveSlug);
         setBrokerProfile(null);
@@ -227,25 +203,7 @@ const PublicSite = ({ initialBrokerProfile, initialProperties }: PublicSiteProps
       // Converte brokerData para BrokerProfile (Row) com cast via unknown para evitar conflito de tipos gerados
       setBrokerProfile(brokerData as unknown as BrokerProfile);
       const propertiesData = await getPropertiesByDomainOrSlug(effectiveSlug, 50, 0);
-      const propsArr = (propertiesData || []) as unknown as Property[];
-      setProperties(propsArr);
-      // Diagnostic: report if properties are empty or items missing expected fields
-      if (!propsArr || propsArr.length === 0) {
-        logger.warn('No properties returned for broker:', (brokerData as any)?.website_slug || effectiveSlug);
-        try { clientLog('warn', 'properties_empty', { brokerSlug: (brokerData as any)?.website_slug || effectiveSlug, count: 0 }); } catch (e) {}
-      } else {
-        // check for common missing property fields
-        const sample = propsArr[0] as any;
-        const missingPropertyFields: string[] = [];
-        ['id','slug','title','price','main_image_url'].forEach(f => { if (!sample[f]) missingPropertyFields.push(f); });
-        if (missingPropertyFields.length > 0) {
-          logger.warn('Sample property is missing fields:', missingPropertyFields, 'broker:', (brokerData as any)?.website_slug || effectiveSlug);
-          try { clientLog('warn', 'property_missing_fields', { brokerSlug: (brokerData as any)?.website_slug || effectiveSlug, missing: missingPropertyFields, sampleId: sample.id || null }); } catch (e) {}
-        } else {
-          logger.info('Properties loaded, count:', propsArr.length);
-          try { clientLog('info', 'properties_loaded', { brokerSlug: (brokerData as any)?.website_slug || effectiveSlug, count: propsArr.length }); } catch (e) {}
-        }
-      }
+      setProperties((propertiesData || []) as unknown as Property[]);
       const { data: socialLinksData, error: socialError } = await supabase
         .from('social_links')
         .select('*')
@@ -254,17 +212,6 @@ const PublicSite = ({ initialBrokerProfile, initialProperties }: PublicSiteProps
         .order('display_order');
       if (!socialError) {
         setSocialLinks((socialLinksData || []) as SocialLink[]);
-        const s = (socialLinksData || []) as SocialLink[];
-        if (!s || s.length === 0) {
-          logger.info('No social links for broker:', (brokerData as any)?.website_slug || effectiveSlug);
-          try { clientLog('info', 'social_links_empty', { brokerSlug: (brokerData as any)?.website_slug || effectiveSlug }); } catch (e) {}
-        } else {
-          logger.info('Social links loaded, count:', s.length);
-          try { clientLog('info', 'social_links_loaded', { brokerSlug: (brokerData as any)?.website_slug || effectiveSlug, count: s.length }); } catch (e) {}
-        }
-      } else {
-        logger.warn('Error loading social links for broker:', (brokerData as any)?.website_slug || effectiveSlug, socialError);
-        try { clientLog('warn', 'social_links_error', { brokerSlug: (brokerData as any)?.website_slug || effectiveSlug, error: socialError?.message || String(socialError) }); } catch (e) {}
       }
     } catch (error: unknown) {
       logger.error('Error fetching data:', error);
@@ -279,22 +226,6 @@ const PublicSite = ({ initialBrokerProfile, initialProperties }: PublicSiteProps
   }, [getBrokerByDomainOrSlug, getPropertiesByDomainOrSlug, isCustomDomain, slug, toast]);
 
   useEffect(() => {
-    // Se o servidor já injetou o broker profile via SSR, use-o imediatamente e pule fetch
-    if (initialBrokerProfile) {
-      // Diagnostic for SSR-injected broker
-      logger.debug('Using initialBrokerProfile from SSR:', initialBrokerProfile);
-      const missingFromSSR: string[] = [];
-      const expectedFieldsSSR = ['id','website_slug','business_name','logo_url','site_favicon_url','site_share_image_url','primary_color','secondary_color'];
-      expectedFieldsSSR.forEach(f => { if (!(initialBrokerProfile as any)[f]) missingFromSSR.push(f); });
-      if (missingFromSSR.length > 0) {
-        logger.warn('SSR initialBrokerProfile missing fields:', missingFromSSR);
-        try { clientLog('warn', 'ssr_broker_missing_fields', { missing: missingFromSSR, brokerSlug: (initialBrokerProfile as any)?.website_slug || null }); } catch (e) {}
-      }
-      setBrokerProfile(initialBrokerProfile);
-      if (initialProperties) setProperties(initialProperties as Property[]);
-      setLoading(false);
-      return;
-    }
     fetchBrokerData();
     // Load favorites from localStorage
     const savedFavorites = localStorage.getItem('favorites');
@@ -302,7 +233,7 @@ const PublicSite = ({ initialBrokerProfile, initialProperties }: PublicSiteProps
       setFavorites(JSON.parse(savedFavorites));
     }
   // Check if it's first visit and user hasn't submitted a lead yet
-  const visitIdentifier = isCustomDomain() ? (typeof window !== 'undefined' ? window.location.hostname : '') : (Array.isArray(slug) ? slug[0] : slug);
+  const visitIdentifier = isCustomDomain() ? (typeof window !== 'undefined' ? window.location.hostname : '') : slug;
     if (visitIdentifier) {
       const visitKey = `first-visit-${visitIdentifier}`;
       const leadSubmittedKey = `lead-submitted-${visitIdentifier}`;
@@ -315,19 +246,7 @@ const PublicSite = ({ initialBrokerProfile, initialProperties }: PublicSiteProps
         }, 2000);
       }
     }
-  }, [slug, fetchBrokerData, isCustomDomain, initialBrokerProfile, initialProperties]);
-
-  // Enviar log ao servidor quando o brokerProfile estiver disponível (após hidratação)
-  useEffect(() => {
-    if (brokerProfile?.id) {
-      clientLog('info', 'broker_profile_loaded', {
-        id: brokerProfile.id,
-        website_slug: brokerProfile.website_slug,
-        favicon: brokerProfile.site_favicon_url,
-        share_image: brokerProfile.site_share_image_url,
-      });
-    }
-  }, [brokerProfile?.id, brokerProfile?.website_slug, brokerProfile?.site_favicon_url, brokerProfile?.site_share_image_url]);
+  }, [slug, fetchBrokerData, isCustomDomain]);
 
   // Fetch contact info when broker profile is loaded
   useEffect(() => {
@@ -347,8 +266,6 @@ const PublicSite = ({ initialBrokerProfile, initialProperties }: PublicSiteProps
   }
 
   if (!brokerProfile) {
-    logger.warn('public-site: brokerProfile is null for slug/domain', { slug, initialBrokerProfile });
-    try { clientLog('warn', 'broker_profile_null', { slug: Array.isArray(slug) ? slug[0] : slug || null }); } catch (e) {}
     return (
       <div className="min-h-screen flex items-center justify-center w-full">
         <div className="text-center">
@@ -366,10 +283,10 @@ const PublicSite = ({ initialBrokerProfile, initialProperties }: PublicSiteProps
     );
   }
 
-
-  // Nota: não retornamos a página de detalhes aqui diretamente —
-  // precisamos renderizá-la dentro do `ThemeProvider`/Head para que o
-  // `brokerProfile` (favicon, cores e meta) sejam aplicados corretamente.
+  // Se há um propertySlug na URL, mostrar página de detalhes
+  if (propertySlug) {
+    return <PropertyDetailPage />;
+  }
 
   return (
     <ThemeProvider broker={brokerProfile}>
@@ -481,17 +398,6 @@ const PublicSite = ({ initialBrokerProfile, initialProperties }: PublicSiteProps
   <meta name="robots" content={`${((brokerProfile as unknown as { robots_index?: boolean })?.robots_index ?? true) ? 'index' : 'noindex'}, ${((brokerProfile as unknown as { robots_follow?: boolean })?.robots_follow ?? true) ? 'follow' : 'nofollow'}`} />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-        {/* Inline theme CSS for SSR to avoid initial flash of unstyled brand colors.
-            We set both --color-* and shorter aliases (--primary/--secondary) used in global CSS. */}
-        {(brokerProfile?.primary_color || (brokerProfile as any)?.brand_primary || brokerProfile?.secondary_color || (brokerProfile as any)?.brand_secondary) && (
-          <style id="tenant-theme">{`
-            :root {
-              ${brokerProfile?.primary_color || (brokerProfile as any)?.brand_primary ? `--color-primary: ${brokerProfile?.primary_color || (brokerProfile as any)?.brand_primary}; --primary: ${brokerProfile?.primary_color || (brokerProfile as any)?.brand_primary};` : ''}
-              ${brokerProfile?.secondary_color || (brokerProfile as any)?.brand_secondary ? `--color-secondary: ${brokerProfile?.secondary_color || (brokerProfile as any)?.brand_secondary}; --secondary: ${brokerProfile?.secondary_color || (brokerProfile as any)?.brand_secondary};` : ''}
-            }
-          `}</style>
-        )}
-
         {/* JSON-LD Structured Data: Organization/RealEstateAgent */}
         <script type="application/ld+json">
           {JSON.stringify({
@@ -509,86 +415,61 @@ const PublicSite = ({ initialBrokerProfile, initialProperties }: PublicSiteProps
       </Head>
       
       <div className="public-site-layout min-h-screen bg-background">
-        {/* 🔍 PAINEL DE DEBUG - apenas em desenvolvimento */}
-        {process.env.NODE_ENV === 'development' && (
-          <div className="fixed bottom-4 right-4 z-50 bg-black/90 text-white p-4 rounded-lg shadow-xl max-w-sm text-xs font-mono">
-            <h3 className="font-bold mb-2 text-sm">🐛 Debug Info</h3>
-            <div className="space-y-1">
-              <div>Broker: <span className="text-green-400">{brokerProfile?.business_name || 'N/A'}</span></div>
-              <div>Slug: <span className="text-blue-400">{brokerProfile?.website_slug || 'N/A'}</span></div>
-              <div>Propriedades: <span className="text-yellow-400">{properties.length}</span></div>
-              <div>PropertySlug param: <span className="text-purple-400">{propertySlug || 'N/A'}</span></div>
-              <div>Custom Domain: <span className="text-cyan-400">{isCustomDomain() ? 'Sim' : 'Não'}</span></div>
-              <div>SSR: <span className="text-pink-400">{initialBrokerProfile ? 'Sim' : 'Não'}</span></div>
-            </div>
-          </div>
-        )}
-
-        {propertySlug ? (
-          // Página de detalhe renderizada dentro do layout para garantir Head/Theme
-          <PropertyDetailPage 
-            initialBrokerProfile={brokerProfile}
-            propertySlug={propertySlug as string}
+      <TrackingScripts trackingScripts={brokerProfile?.tracking_scripts} />
+      <FixedHeader brokerProfile={brokerProfile} />
+      <HeroBanner brokerProfile={brokerProfile} />
+      
+      <div id="search" className="w-full py-8">
+        <div className="content-container">
+          <SearchFilters
+            searchTerm={searchTerm}
+            setSearchTerm={setSearchTerm}
+            filters={filters}
+            setFilters={setFilters}
+            hasActiveFilters={hasActiveFilters}
+            primaryColor={brokerProfile?.primary_color || '#2563eb'}
+            secondaryColor={brokerProfile?.secondary_color || '#64748b'}
+            propertyTypeOptions={propertyTypeOptions}
+            propertyTypeGroups={sortedTypeGroups.map(g => ({ label: g.label, options: g.options.map(o => ({ value: o.value, label: o.label })) }))}
           />
-        ) : (
-          <>
-            <TrackingScripts trackingScripts={brokerProfile?.tracking_scripts} />
-            <FixedHeader brokerProfile={brokerProfile} />
-            <HeroBanner brokerProfile={brokerProfile} />
-          
-            <div id="search" className="w-full py-8">
-              <div className="content-container">
-                <SearchFilters
-                  searchTerm={searchTerm}
-                  setSearchTerm={setSearchTerm}
-                  filters={filters}
-                  setFilters={setFilters}
-                  hasActiveFilters={hasActiveFilters}
-                  primaryColor={brokerProfile?.primary_color || '#2563eb'}
-                  secondaryColor={brokerProfile?.secondary_color || '#64748b'}
-                  propertyTypeOptions={propertyTypeOptions}
-                  propertyTypeGroups={sortedTypeGroups.map(g => ({ label: g.label, options: g.options.map(o => ({ value: o.value, label: o.label })) }))}
-                />
-              </div>
-            </div>
-
-            {featuredProperties.length > 0 && (
-              <FeaturedProperties
-                properties={featuredProperties}
-                brokerProfile={brokerProfile}
-                onContactLead={handleContactLead}
-                onShare={handleShare}
-                onFavorite={handleFavorite}
-                isFavorited={isFavorited}
-                onImageClick={handleImageClick}
-              />
-            )}
-
-            {featuredProperties.length > 0 && regularProperties.length > 0 && (
-              <div className="content-container py-8">
-                <Separator className="bg-black/20" />
-              </div>
-            )}
-
-          {regularProperties.length > 0 && (
-            <PropertiesGrid
-              properties={regularProperties}
-              brokerProfile={brokerProfile}
-              onContactLead={handleContactLead}
-              onShare={handleShare}
-              onFavorite={handleFavorite}
-              isFavorited={isFavorited}
-              onImageClick={handleImageClick}
-            />
-          )}
-
-            <WhatsAppFloat 
-              brokerProfile={brokerProfile} 
-              onContactRequest={fetchContactInfo}
-            />
-          </>
-        )}
+        </div>
       </div>
+
+      {featuredProperties.length > 0 && (
+        <FeaturedProperties
+          properties={featuredProperties}
+          brokerProfile={brokerProfile}
+          onContactLead={handleContactLead}
+          onShare={handleShare}
+          onFavorite={handleFavorite}
+          isFavorited={isFavorited}
+          onImageClick={handleImageClick}
+        />
+      )}
+
+      {featuredProperties.length > 0 && regularProperties.length > 0 && (
+        <div className="content-container py-8">
+          <Separator className="bg-black/20" />
+        </div>
+      )}
+
+      {regularProperties.length > 0 && (
+        <PropertiesGrid
+          properties={regularProperties}
+          brokerProfile={brokerProfile}
+          onContactLead={handleContactLead}
+          onShare={handleShare}
+          onFavorite={handleFavorite}
+          isFavorited={isFavorited}
+          onImageClick={handleImageClick}
+        />
+      )}
+
+      <WhatsAppFloat 
+        brokerProfile={brokerProfile} 
+        onContactRequest={fetchContactInfo}
+      />
+    </div>
 
     {/* Contact CTA Section - Fora do container principal para ocupar toda a largura */}
     {properties.length > 0 && (
@@ -614,41 +495,5 @@ const PublicSite = ({ initialBrokerProfile, initialProperties }: PublicSiteProps
   );
 };
 
-export default PublicSite;
-
-import { getPublicBrokerByHost } from '@/lib/server/brokerService';
-
-export async function getServerSideProps(context: any) {
-  try {
-    const headers = context.req?.headers || {};
-    const hostname = (headers['x-hostname'] || headers['host'] || '') as string;
-    const brokerSlug = (headers['x-broker-slug'] || '') as string;
-    const customDomain = (headers['x-custom-domain'] || '') as string;
-
-    // Simple in-memory cache to avoid repeating broker lookups on each SSR request
-    const cacheKey = brokerSlug || customDomain || hostname || 'unknown';
-    const globalAny: any = globalThis as any;
-    if (!globalAny.__publicSiteBrokerCache) globalAny.__publicSiteBrokerCache = new Map();
-    const brokerCache: Map<string, { value: any; expiresAt: number }> = globalAny.__publicSiteBrokerCache;
-    const TTL = 1000 * 60 * 2; // 2 minutes
-
-    const cached = brokerCache.get(cacheKey);
-    if (cached && cached.expiresAt > Date.now()) {
-      return { props: { initialBrokerProfile: cached.value || null } };
-    }
-
-    // Delegate to server-side service that returns only public fields
-    const broker = await getPublicBrokerByHost({ hostname: String(hostname || ''), brokerSlug: String(brokerSlug || ''), customDomain: String(customDomain || '') });
-
-    // populate cache
-    brokerCache.set(cacheKey, { value: broker || null, expiresAt: Date.now() + TTL });
-
-    return {
-      props: {
-        initialBrokerProfile: broker || null,
-      },
-    };
-  } catch (e) {
-    return { props: { initialBrokerProfile: null } };
-  }
-}
+const DynamicPublicSite = dynamic(() => Promise.resolve(PublicSite), { ssr: false });
+export default DynamicPublicSite;

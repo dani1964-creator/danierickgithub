@@ -53,9 +53,10 @@ export function TenantProvider({ children, initialTenant }: TenantProviderProps)
         throw new Error('Erro ao carregar dados da imobiliária');
       }
       
-      // Converter para TenantData (se necessário)
+      // Converter para TenantData (mapeando campos do broker)
       const tenantData: TenantData = {
         ...brokerData,
+        name: brokerData.business_name, // TenantData exige 'name'
         theme_settings: brokerData.theme_settings || {}
       };
       

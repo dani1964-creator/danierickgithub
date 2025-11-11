@@ -12,7 +12,7 @@ export class BrokerResolver {
 
   /**
    * Resolve broker_id para o host atual
-   * Tenta usar Edge Function primeiro, fallback para resolução local
+   * Usa resolução local direta (Edge Function desabilitada temporariamente)
    */
   static async resolveBrokerByHost(host?: string): Promise<string | null> {
     const targetHost = host || window.location.host.toLowerCase();
@@ -24,44 +24,21 @@ export class BrokerResolver {
     }
 
     try {
-      // Tentar Edge Function primeiro (recomendado)
-      const brokerId = await this.resolveViaEdgeFunction(targetHost);
-      
-      // Cache o resultado
-      this.cache.set(targetHost, { brokerId, timestamp: Date.now() });
-      
-      return brokerId;
-    } catch (error) {
-      logger.warn('Edge Function falhou, usando fallback local:', error);
-      
-      // Fallback para resolução local
+      // Usar resolução local direta (mais rápido e sem CORS)
       const brokerId = await this.resolveViaLocalQuery(targetHost);
       
       // Cache o resultado
       this.cache.set(targetHost, { brokerId, timestamp: Date.now() });
       
       return brokerId;
+    } catch (error) {
+      logger.error('Erro ao resolver broker por host:', error);
+      return null;
     }
   }
 
   /**
-   * Resolve via Edge Function host-to-broker (recomendado)
-   */
-  private static async resolveViaEdgeFunction(host: string): Promise<string | null> {
-    const { data, error } = await supabase.functions.invoke('host-to-broker', {
-      headers: {
-        'Host': host,
-        'X-Forwarded-Host': host
-      }
-    });
-
-    if (error) throw error;
-    
-    return data?.broker_id || null;
-  }
-
-  /**
-   * Fallback: resolve localmente (compatibilidade)
+   * Resolve localmente usando queries diretas ao Supabase
    */
   private static async resolveViaLocalQuery(host: string): Promise<string | null> {
   const baseDomain = (process.env.NEXT_PUBLIC_BASE_PUBLIC_DOMAIN || process.env.NEXT_PUBLIC_BASE_DOMAIN || '')?.toLowerCase() || 'adminimobiliaria.site';

@@ -3,6 +3,8 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { logger } from '@/lib/logger';
 import { TenantData } from '@/shared/types/tenant';
+import { BrokerResolver } from '@/lib/brokerResolver';
+import { supabase } from '@/integrations/supabase/client';
 
 interface TenantContextType {
   tenant: TenantData | null;
@@ -33,40 +35,32 @@ export function TenantProvider({ children, initialTenant }: TenantProviderProps)
       setLoading(true);
       setError(null);
       
-      // Primeiro, tentar obter do header (setado pelo middleware)
-      const tenantHeader = document.querySelector('meta[name="x-tenant-data"]')?.getAttribute('content');
+      // Resolver broker_id usando o BrokerResolver
+      const brokerId = await BrokerResolver.resolveBrokerByHost();
       
-      if (tenantHeader) {
-        try {
-            const tenantFromHeader = JSON.parse(tenantHeader);
-            setTenant(tenantFromHeader);
-            applyTenantTheme(tenantFromHeader);
-            setLoading(false);
-            return;
-          } catch (e) {
-            logger.warn('Failed to parse tenant from header');
-          }
+      if (!brokerId) {
+        throw new Error('Imobiliária não encontrada para este domínio');
       }
       
-      // Fallback: fazer requisição para API
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
-      const tenantDomain = typeof window !== 'undefined' ? window.location.hostname : '';
-      const response = await fetch(`${apiUrl}/api/tenant/info`, {
-        headers: {
-          'x-tenant-domain': tenantDomain
-        }
-      });
+      // Buscar dados do broker no Supabase
+      const { data: brokerData, error: brokerError } = await supabase
+        .from('brokers')
+        .select('*')
+        .eq('id', brokerId)
+        .single();
       
-      if (!response.ok) {
-        if (response.status === 404) {
-          throw new Error('Imobiliária não encontrada para este domínio');
-        }
+      if (brokerError || !brokerData) {
         throw new Error('Erro ao carregar dados da imobiliária');
       }
       
-      const data = await response.json();
-      setTenant(data.tenant);
-      applyTenantTheme(data.tenant);
+      // Converter para TenantData (se necessário)
+      const tenantData: TenantData = {
+        ...brokerData,
+        theme_settings: brokerData.theme_settings || {}
+      };
+      
+      setTenant(tenantData);
+      applyTenantTheme(tenantData);
       
     } catch (err: any) {
       logger.error('Error loading tenant:', err);

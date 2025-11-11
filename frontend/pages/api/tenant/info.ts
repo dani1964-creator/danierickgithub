@@ -12,6 +12,27 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
+  // Headers CORS para todas as requisições
+  const origin = req.headers.origin || '';
+  const isAllowedOrigin = 
+    origin === 'https://adminimobiliaria.site' ||
+    origin === 'http://localhost:3000' ||
+    origin === 'http://localhost:3001' ||
+    origin.match(/^https:\/\/[\w-]+\.adminimobiliaria\.site$/);
+
+  if (isAllowedOrigin) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+    res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-tenant-domain');
+  }
+
+  // Tratar preflight OPTIONS - IMPORTANTE para CORS!
+  if (req.method === 'OPTIONS') {
+    // Retornar 204 (No Content) para preflight
+    return res.status(204).end();
+  }
+
   // Permitir apenas GET
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });

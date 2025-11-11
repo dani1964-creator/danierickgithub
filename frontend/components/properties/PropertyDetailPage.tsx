@@ -107,6 +107,7 @@ const PropertyDetailPage = () => {
   const [carouselApi, setCarouselApi] = useState<CarouselApi>();
   const [thumbnailCarouselApi, setThumbnailCarouselApi] = useState<CarouselApi>();
   const [activeTab, setActiveTab] = useState<'Detalhes' | 'Características'>('Detalhes');
+  const [imageErrors, setImageErrors] = useState<Set<number>>(new Set());
   const [isDarkMode, setIsDarkMode] = useState(() => {
     try {
       const saved = localStorage.getItem('property-detail-dark-mode');
@@ -658,6 +659,12 @@ const PropertyDetailPage = () => {
     }
   }, [isDarkMode]);
 
+  // Handler para erro de imagem
+  const handleImageError = useCallback((index: number) => {
+    setImageErrors(prev => new Set(prev).add(index));
+    logger.warn(`Failed to load image at index ${index}`);
+  }, []);
+
   // Função de debug para testar RPC
   const testRPCFunctions = useCallback(async () => {
     logger.debug('Testing RPC functions...');
@@ -1205,7 +1212,7 @@ const PropertyDetailPage = () => {
                 </Button>
                 
                 <button
-                  onClick={() => router.push('/')}
+                  onClick={() => router.push(`/${slug || ''}`)}
                   className="flex items-center hover:opacity-80 transition-all duration-200 min-w-0 flex-1 group"
                 >
                   {brokerProfile.logo_url ? (
@@ -1321,6 +1328,7 @@ const PropertyDetailPage = () => {
                                onClick={() => {setCurrentImageIndex(index); setIsImageModalOpen(true);}}
                                loading={index === 0 ? "eager" : "lazy"}
                                sizes="(max-width: 640px) 100vw, 640px"
+                               onError={() => handleImageError(index)}
                              />
                              {/* Overlay gradiente para melhor legibilidade */}
                              <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent" />
@@ -1382,6 +1390,7 @@ const PropertyDetailPage = () => {
                       loading="eager"
                       sizes="(max-width: 1024px) 100vw, 1024px"
                       priority
+                      onError={() => handleImageError(currentImageIndex)}
                     />
                     
                     {/* Overlay gradiente para melhor legibilidade */}

@@ -1862,7 +1862,35 @@ const PropertyDetailPage = () => {
                   </div>
                   
                   {/* Broker/Realtor Info */}
-
+                  {property?.realtor_name && (
+                    <div className={`pt-4 border-t ${isDarkMode ? 'border-gray-700' : 'border-gray-100'} transition-colors duration-300`}>
+                      <div className="flex items-center space-x-3">
+                        {property?.realtor_avatar_url ? (
+                          <img 
+                            src={property.realtor_avatar_url} 
+                            alt={property.realtor_name}
+                            className="w-12 h-12 rounded-full object-cover border-2 border-gray-200 dark:border-gray-600"
+                          />
+                        ) : (
+                          <div className={`w-12 h-12 rounded-full flex items-center justify-center text-lg font-semibold ${
+                            isDarkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-200 text-gray-600'
+                          }`}>
+                            {property.realtor_name.charAt(0).toUpperCase()}
+                          </div>
+                        )}
+                        <div className="flex-1">
+                          <p className={`font-semibold text-sm ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                            {property.realtor_name}
+                          </p>
+                          {property?.realtor_creci && (
+                            <p className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                              CRECI: {property.realtor_creci}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
 
                   {/* Property Stats - Design Minimalista Elegante */}
                   <div className={`pt-4 border-t ${isDarkMode ? 'border-gray-700' : 'border-gray-100'} transition-colors duration-300`}>

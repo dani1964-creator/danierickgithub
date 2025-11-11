@@ -1374,6 +1374,7 @@ const PropertyDetailPage = () => {
                 {propertyImages.length > 0 ? (
                   <div className="relative h-[600px] rounded-2xl overflow-hidden shadow-soft-3 bg-gradient-to-br from-gray-100 to-gray-200">
                     <Image
+                      key={`desktop-image-${currentImageIndex}`}
                       src={propertyImages[currentImageIndex]}
                       alt={`${property.title} - Imagem ${currentImageIndex + 1}`}
                       fill

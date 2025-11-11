@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
+import { FavoritesButton } from '@/components/FavoritesButton';
 import type { BrokerProfile } from '@/shared/types/broker';
 
 interface FixedHeaderProps {
@@ -43,7 +44,7 @@ const FixedHeader = ({ brokerProfile }: FixedHeaderProps) => {
       }}
       >
         <div className="content-container px-4">
-          <div className="flex items-center justify-start h-14 sm:h-16 md:h-20">
+          <div className="flex items-center justify-between h-14 sm:h-16 md:h-20">
           <button 
             onClick={handleGoToHome}
             className="flex items-center space-x-2 sm:space-x-3 hover:opacity-80 transition-opacity cursor-pointer bg-transparent border-none p-0"
@@ -77,6 +78,18 @@ const FixedHeader = ({ brokerProfile }: FixedHeaderProps) => {
               </h1>
             </div>
           </button>
+
+          {/* Favorites Button */}
+          <div className="flex items-center gap-2">
+            {/* Desktop version */}
+            <div className="hidden sm:block">
+              <FavoritesButton variant="minimal" />
+            </div>
+            {/* Mobile version */}
+            <div className="sm:hidden">
+              <FavoritesButton variant="icon-only" />
+            </div>
+          </div>
         </div>
       </div>
     </header>

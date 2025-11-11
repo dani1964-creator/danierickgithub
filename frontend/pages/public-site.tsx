@@ -19,6 +19,7 @@ import { ThemeProvider } from '@/theme/ThemeProvider';
 import { useDomainAware } from '@/hooks/useDomainAware';
 import { SEODebugPanel } from '@/components/debug/SEODebugPanel';
 import { getCanonicalBase, applyTemplate } from '@/lib/seo';
+import { FloatingFavoritesButton } from '@/components/FavoritesButton';
 import { usePropertyTypes } from '@/hooks/usePropertyTypes';
 import { getErrorMessage } from '@/lib/utils';
 import { logger } from '@/lib/logger';
@@ -554,6 +555,9 @@ const PublicSite = () => {
       socialLinks={socialLinks} 
       onContactRequest={fetchContactInfo}
     />
+
+    {/* Floating Favorites Button */}
+    <FloatingFavoritesButton />
 
     {/* Welcome Modal for first-time visitors */}
     <LeadModal

@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import Image from 'next/image';
 import { useRouter } from 'next/router';
 import { MapPin, Bed, Bath, Car, Eye, Heart, Share2, Square } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -9,8 +8,12 @@ import { SwipeableCarousel } from '@/components/ui/swipeable-carousel';
 import { setPrefetchedDetail } from '@/lib/detail-prefetch';
 import { supabase } from '@/integrations/supabase/client';
 import { useDomainAware } from '@/hooks/useDomainAware';
+import { useFavorites } from '@/hooks/useFavorites';
+import { useNotifications } from '@/hooks/useNotifications';
+import { SafeImage } from '@/components/ui/SafeImage';
 import { Property } from '@/shared/types/tenant';
 import { BrokerProfile } from '@/shared/types/broker';
+import { cn } from '@/lib/utils';
 
 interface PropertyCardProps {
   id?: string;
@@ -18,8 +21,8 @@ interface PropertyCardProps {
   brokerProfile: BrokerProfile | null;
   onContactLead: (propertyId: string) => void;
   onShare: (property: Property) => void;
-  onFavorite: (propertyId: string) => void;
-  isFavorited: (propertyId: string) => boolean;
+  onFavorite?: (propertyId: string) => void; // Mantido para compatibilidade
+  isFavorited?: (propertyId: string) => boolean; // Mantido para compatibilidade
   onImageClick: (images: string[], index: number, title: string) => void;
 }
 
@@ -29,13 +32,13 @@ const PropertyCard = ({
   brokerProfile, 
   onContactLead, 
   onShare, 
-  onFavorite, 
-  isFavorited, 
   onImageClick 
 }: PropertyCardProps) => {
   const router = useRouter();
   const { slug } = router.query as { slug?: string };
   const { isCustomDomain, getBrokerByDomainOrSlug } = useDomainAware();
+  const { toggleFavorite, isFavorited } = useFavorites();
+  const notifications = useNotifications();
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('pt-BR', {
@@ -95,6 +98,38 @@ const PropertyCard = ({
     }
   };
 
+  const handleFavoriteClick = async (e: React.MouseEvent) => {
+    e.stopPropagation(); // Evita navegação ao clicar no coração
+    
+    // Determina slug do broker
+    let brokerSlug = slug as string;
+    if (isCustomDomain() || !brokerSlug) {
+      const broker = await getBrokerByDomainOrSlug(undefined);
+      brokerSlug = (broker as unknown as { website_slug?: string })?.website_slug || '';
+    }
+
+    const isNowFavorited = toggleFavorite({
+      id: property.id,
+      slug: property.slug || '',
+      title: property.title,
+      price: property.price,
+      main_image_url: property.main_image_url || propertyImages[0] || '',
+      property_type: property.property_type,
+      bedrooms: property.bedrooms,
+      bathrooms: property.bathrooms,
+      area_m2: property.area_m2,
+      city: property.city || '',
+      uf: property.uf,
+      broker_slug: brokerSlug,
+    });
+
+    if (isNowFavorited) {
+      notifications.showFavoriteAdded();
+    } else {
+      notifications.showFavoriteRemoved();
+    }
+  };
+
   return (
     <Card 
       id={id}
@@ -107,13 +142,14 @@ const PropertyCard = ({
         {/* Container da imagem - proporção 4:3 */}
         <div className="relative w-full aspect-[4/3] flex-shrink-0 overflow-hidden">
           {propertyImages.length > 0 ? (
-            <Image
+            <SafeImage
               src={propertyImages[0]}
               alt={property.title}
               fill
               className="object-cover"
               sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
               loading="lazy"
+              fallbackColor={brokerProfile?.primary_color}
             />
           ) : (
             <div className="w-full h-full bg-gray-200 flex items-center justify-center">
@@ -146,13 +182,21 @@ const PropertyCard = ({
               <Button
                 variant="outline"
                 size="sm"
-                className="h-7 w-7 p-0 bg-background/90 border-0 text-muted-foreground hover:bg-background hover:text-red-500 backdrop-blur-sm rounded-lg transition-all duration-200"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onFavorite(property.id);
-                }}
+                className={cn(
+                  "h-7 w-7 p-0 border-0 backdrop-blur-sm rounded-lg transition-all duration-200",
+                  isFavorited(property.id)
+                    ? "bg-pink-50/90 text-pink-500 hover:bg-pink-100 hover:scale-110"
+                    : "bg-background/90 text-muted-foreground hover:bg-background hover:text-pink-500 hover:scale-110"
+                )}
+                onClick={handleFavoriteClick}
+                title={isFavorited(property.id) ? "Remover dos favoritos" : "Adicionar aos favoritos"}
               >
-                <Heart className={`h-3.5 w-3.5 ${isFavorited(property.id) ? 'fill-red-500 text-red-500' : ''}`} />
+                <Heart 
+                  className={cn(
+                    "h-3.5 w-3.5 transition-all",
+                    isFavorited(property.id) && "fill-pink-500"
+                  )} 
+                />
               </Button>
               <Button
                 variant="outline"

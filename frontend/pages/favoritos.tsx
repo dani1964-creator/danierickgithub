@@ -271,7 +271,7 @@ export default function FavoritesPage() {
                     {/* Transaction Type Badge */}
                     <div className="absolute top-3 left-3">
                       <Badge className="bg-blue-600 text-white">
-                        {property.transaction_type}
+                        {property.property_type}
                       </Badge>
                     </div>
                   </div>
@@ -293,7 +293,7 @@ export default function FavoritesPage() {
 
                     {/* Location */}
                     <p className="text-sm text-gray-600 mb-3">
-                      {property.neighborhood}, {property.city}
+                      {property.city}{property.uf ? `, ${property.uf}` : ''}
                     </p>
 
                     {/* Features */}

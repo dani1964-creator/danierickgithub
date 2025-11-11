@@ -16,6 +16,9 @@ import { EnhancedSecurity } from '@/lib/enhanced-security';
 import { useTracking } from '@/hooks/useTracking';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useDomainAware } from '@/hooks/useDomainAware';
+import { useFavorites } from '@/hooks/useFavorites';
+import { useNotifications } from '@/hooks/useNotifications';
+import { FloatingFavoritesButton } from '@/components/FavoritesButton';
 import ContactCTA from '@/components/home/ContactCTA';
 import Footer from '@/components/home/Footer';
 import LeadModal from '@/components/leads/LeadModal';
@@ -33,6 +36,7 @@ interface Property {
   transaction_type: string;
   address: string;
   neighborhood: string;
+  city?: string;
   uf: string;
   bedrooms: number;
   bathrooms: number;
@@ -83,6 +87,8 @@ const PropertyDetailPage = () => {
   const router = useRouter();
   const { slug, propertySlug: propertySlugParam } = router.query as { slug?: string; propertySlug?: string };
   const { toast } = useToast();
+  const { showSuccess, showError } = useNotifications();
+  const { favorites, toggleFavorite, isFavorited } = useFavorites();
   
   // Refs para evitar dependências desnecessárias no useCallback
   const toastRef = useRef(toast);
@@ -605,30 +611,32 @@ const PropertyDetailPage = () => {
   const handleFavorite = () => {
     if (!property) return;
 
-    const favorites = JSON.parse(localStorage.getItem('favoriteProperties') || '[]');
-    const isFavorited = favorites.includes(property.id);
-    
-    if (isFavorited) {
-      const newFavorites = favorites.filter((id: string) => id !== property.id);
-      localStorage.setItem('favoriteProperties', JSON.stringify(newFavorites));
-      toast({
-        title: "Removido dos favoritos",
-        description: "O imóvel foi removido da sua lista de favoritos."
-      });
-    } else {
-      favorites.push(property.id);
-      localStorage.setItem('favoriteProperties', JSON.stringify(favorites));
-      toast({
-        title: "Adicionado aos favoritos",
-        description: "O imóvel foi adicionado à sua lista de favoritos."
-      });
+    const brokerSlug = slug;
+    if (!brokerSlug) {
+      showError('Erro ao favoritar', 'Não foi possível identificar a imobiliária.');
+      return;
     }
-  };
 
-  const isFavorited = () => {
-    if (!property) return false;
-    const favorites = JSON.parse(localStorage.getItem('favoriteProperties') || '[]');
-    return favorites.includes(property.id);
+    toggleFavorite({
+      id: property.id,
+      title: property.title,
+      slug: property.slug || '',
+      price: property.price,
+      main_image_url: property.main_image_url || property.images?.[0] || '',
+      broker_slug: String(brokerSlug),
+      property_type: property.property_type || '',
+      bedrooms: property.bedrooms,
+      bathrooms: property.bathrooms,
+      area_m2: property.area_m2,
+      city: property.city || '',
+      uf: property.uf || '',
+    });
+
+    if (isFavorited(property.id)) {
+      showSuccess('Removido dos favoritos', 'O imóvel foi removido da sua lista.');
+    } else {
+      showSuccess('Adicionado aos favoritos', 'O imóvel foi salvo na sua lista.');
+    }
   };
 
   const propertyImages = property?.images && property.images.length > 0 
@@ -1272,12 +1280,12 @@ const PropertyDetailPage = () => {
                   size="sm"
                   onClick={handleFavorite}
                   className={`p-3 rounded-xl transition-all duration-200 ${
-                    isFavorited() 
+                    property && isFavorited(property.id)
                       ? 'text-red-600 bg-red-50 hover:bg-red-100 shadow-sm' 
                       : 'text-gray-500 hover:bg-gray-100'
                   }`}
                 >
-                  <Heart className={`h-5 w-5 ${isFavorited() ? 'fill-current' : ''}`} />
+                  <Heart className={`h-5 w-5 ${property && isFavorited(property.id) ? 'fill-current' : ''}`} />
                 </Button>
               </div>
             </div>
@@ -2014,6 +2022,9 @@ const PropertyDetailPage = () => {
         property={property}
         brokerProfile={brokerProfile}
       />
+
+      {/* Floating Favorites Button */}
+      <FloatingFavoritesButton />
     </>
   );
 };

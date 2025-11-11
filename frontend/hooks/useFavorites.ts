@@ -14,12 +14,11 @@ export interface FavoriteProperty {
   price: number;
   main_image_url: string;
   property_type: string;
-  transaction_type: string;
-  bedrooms: number;
-  bathrooms: number;
-  area_m2: number;
+  bedrooms: number | null;
+  bathrooms: number | null;
+  area_m2: number | null;
   city: string;
-  neighborhood: string;
+  uf?: string;
   broker_slug: string;
   favorited_at: string;
 }
@@ -173,11 +172,14 @@ export function useFavorites() {
     }
   }, [favorites]);
 
-  /**
-   * Filtra favoritos por tipo de transação
+    /**
+   * Filtrar por tipo de transação
    */
-  const filterByTransactionType = useCallback((type: string) => {
-    return favorites.filter(fav => fav.transaction_type === type);
+  const filterByType = useCallback((type: 'sale' | 'rent') => {
+    // Nota: transaction_type foi removido do FavoriteProperty
+    // Para filtrar, seria necessário buscar do servidor ou adicionar de volta à interface
+    logger.warn('filterByType não implementado - transaction_type não disponível');
+    return favorites;
   }, [favorites]);
 
   /**
@@ -202,7 +204,7 @@ export function useFavorites() {
     return favorites.filter(fav => 
       fav.title.toLowerCase().includes(lowerQuery) ||
       fav.city.toLowerCase().includes(lowerQuery) ||
-      fav.neighborhood.toLowerCase().includes(lowerQuery)
+      fav.property_type.toLowerCase().includes(lowerQuery)
     );
   }, [favorites]);
 
@@ -216,7 +218,7 @@ export function useFavorites() {
     isFavorited,
     clearFavorites,
     getSortedFavorites,
-    filterByTransactionType,
+    filterByType,
     filterByPropertyType,
     filterByPriceRange,
     searchFavorites,

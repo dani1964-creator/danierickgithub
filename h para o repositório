@@ -1,0 +1,42 @@
+[33mcommit 791ce0bf15905151807c491687fcdb224af15952[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m
+Author: dani1964-creator <danierick.erick@hotmail.com>
+Date:   Tue Nov 11 02:17:53 2025 +0000
+
+    feat: SEO improvements, multi-tenant routing fixes, and comprehensive documentation
+    
+    - Fix public site routing (logo link, property details, footer links)
+    - Implement SEO-friendly URLs with auto-generated slugs
+    - Add structured data (JSON-LD) for real estate listings
+    - Create multi-tenant architecture documentation
+    - Document Supabase migrations and Edge Functions
+    - Fix React hooks dependencies warnings
+    - Add image optimization configuration
+    - Create debug endpoints for tenant resolution
+    
+    Technical changes:
+    - Updated middleware to serve public-site at root for subdomains
+    - Fixed PropertyCard navigation to use correct paths
+    - Added useDomainAware hook to Footer component
+    - Enhanced PropertyDetailPage with RealEstateListing schema
+    - Created comprehensive docs (architecture, migrations, Edge Functions)
+    - Added property slug generation migration and scripts
+    
+    SEO improvements:
+    - URLs changed from /uuid to /descriptive-title-uuid
+    - Complete meta tags (OG, Twitter, canonical)
+    - JSON-LD with RealEstateListing type
+    - Auto-slug generation with PostgreSQL trigger
+    
+    Fixes:
+    - Logo click now goes to / instead of /{slug}
+    - Footer navigation respects domain type (subdomain vs custom)
+    - Property details no longer show /undefined/ in URL
+    - Static pages (sobre-nos, etc) work without slug prefix on subdomains
+
+ docs/SEO_IMPROVEMENTS.md                                          | 169 [32m+++++++++++++++++++++++++++++[m
+ frontend/components/home/Footer.tsx                               |  15 [32m++[m[31m-[m
+ frontend/components/properties/PropertyCard.tsx                   |   6 [32m+[m[31m-[m
+ frontend/components/properties/PropertyDetailPage.tsx             | 148 [32m++++++++++++++++++++[m[31m-----[m
+ scripts/generate-property-slugs.mjs                               | 133 [32m+++++++++++++++++++++++[m
+ .../migrations/20251111000000_generate_missing_property_slugs.sql |  10 [32m++[m
+ 6 files changed, 450 insertions(+), 31 deletions(-)

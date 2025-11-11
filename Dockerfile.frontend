@@ -4,16 +4,13 @@ FROM node:18-alpine AS builder
 # Definir diretório de trabalho
 WORKDIR /app
 
-# Instalar pnpm
-RUN npm install -g pnpm
-
 # Copiar arquivos de dependências
-COPY package.json pnpm-lock.yaml* ./
+COPY package.json package-lock.json* ./
 
 # Instalar dependências
-RUN pnpm install
+RUN npm ci
 
-# Copiar apenas o código fonte necessário
+# Copiar código fonte do frontend
 COPY src/ ./src/
 COPY public/ ./public/
 COPY index.html ./
@@ -25,7 +22,7 @@ COPY postcss.config.js ./
 COPY components.json ./
 
 # Build da aplicação
-RUN pnpm build
+RUN npm run build
 
 # Estágio de produção com Nginx
 FROM nginx:alpine

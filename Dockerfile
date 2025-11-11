@@ -7,21 +7,18 @@ FROM node:18-alpine AS frontend-builder
 
 WORKDIR /app
 
-# Instalar pnpm
-RUN npm install -g pnpm
-
 # Copiar arquivos de dependência do frontend
-COPY package*.json pnpm-lock.yaml ./
+COPY package*.json package-lock.json ./
 COPY frontend/package*.json ./frontend/
 
 # Instalar dependências
-RUN pnpm install
+RUN npm ci
 
 # Copiar código fonte
 COPY . .
 
 # Build da aplicação frontend
-RUN pnpm build
+RUN npm run build
 
 # ============================================
 # STAGE 2: Build do Backend (Node.js + TypeScript)

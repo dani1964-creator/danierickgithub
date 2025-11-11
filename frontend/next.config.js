@@ -4,6 +4,9 @@ const path = require('path');
 const nextConfig = {
   // Configuração de imagens para domínios externos (Supabase, etc)
   images: {
+    // IMPORTANTE: Desabilitar otimização de imagens para Digital Ocean App Platform
+    // O App Platform não suporta o Image Optimization do Next.js
+    unoptimized: true,
     remotePatterns: [
       {
         protocol: 'https',
@@ -26,11 +29,6 @@ const nextConfig = {
         hostname: 'encrypted-tbn0.gstatic.com',
       }
     ],
-    // Otimização de imagens habilitada para melhor performance
-    // Formatos modernos (WebP, AVIF) são servidos automaticamente
-    formats: ['image/avif', 'image/webp'],
-    // Cache de imagens otimizadas por 60 dias
-    minimumCacheTTL: 5184000,
   },
   
   // Headers de segurança

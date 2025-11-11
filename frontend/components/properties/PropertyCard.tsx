@@ -85,7 +85,7 @@ const PropertyCard = ({
   const handleViewDetails = async () => {
     // Dispara prefetch e navega em seguida
     prefetchDetail();
-    const propertySlug = property.slug || property.id;
+    const propertySlug = property.slug;
     // Em subdomínios (*.adminimobiliaria.site), o slug está no host, não na URL
     // Apenas em domínios customizados precisamos incluir o broker slug na URL
     if (isCustomDomain()) {

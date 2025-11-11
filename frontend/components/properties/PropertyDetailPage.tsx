@@ -128,6 +128,38 @@ const PropertyDetailPage = () => {
 
   // Para domínios customizados, a rota é /:propertySlug (sem broker slug). Tratar isso aqui.
   const effectivePropertySlug = propertySlugParam || (isCustomDomain() ? slug : undefined);
+  
+  // Tentar obter o broker slug de várias fontes
+  const getBrokerSlug = useCallback(async (): Promise<string | undefined> => {
+    // 1. Se já temos na query, usar
+    if (slug) return slug as string;
+    
+    // 2. Tentar extrair do hostname (subdomínio)
+    if (typeof window !== 'undefined') {
+      const hostname = window.location.hostname;
+      const baseDomain = process.env.NEXT_PUBLIC_BASE_PUBLIC_DOMAIN || 'adminimobiliaria.site';
+      
+      // Se for subdomínio, extrair slug
+      if (hostname.endsWith(`.${baseDomain}`) && hostname !== baseDomain) {
+        const extractedSlug = hostname.split(`.${baseDomain}`)[0];
+        logger.debug('Extracted broker slug from hostname:', extractedSlug);
+        return extractedSlug;
+      }
+    }
+    
+    // 3. Se for domínio customizado, buscar via API
+    if (isCustomDomain()) {
+      logger.debug('Custom domain detected, fetching broker data...');
+      const broker = await getBrokerByDomainOrSlug(undefined);
+      if (broker) {
+        const brokerSlug = (broker as unknown as { website_slug?: string })?.website_slug;
+        logger.debug('Broker slug found via API:', brokerSlug);
+        return brokerSlug;
+      }
+    }
+    
+    return undefined;
+  }, [slug, isCustomDomain, getBrokerByDomainOrSlug]);
 
   const fetchPropertyData = useCallback(async (retryCount = 0) => {
     setLoading(true);
@@ -159,20 +191,11 @@ const PropertyDetailPage = () => {
         }
         throw new Error('Sem conexão com o servidor. Verifique sua internet e tente novamente.');
       }
-      // Descobrir o slug do broker quando estamos em domínio customizado
-      let effectiveSlug = slug as string | undefined;
-      if (!effectiveSlug && isCustomDomain()) {
-  logger.debug('Custom domain detected, fetching broker data...');
-        const broker = await getBrokerByDomainOrSlug(undefined);
-        if (!broker) {
-          logger.error('Corretor não encontrado para este domínio');
-          throw new Error('Corretor não encontrado para este domínio.');
-        }
-        effectiveSlug = (broker as unknown as { website_slug?: string })?.website_slug || undefined;
-  logger.debug('Broker slug found:', effectiveSlug);
-      }
+      // Descobrir o slug do broker
+      const effectiveSlug = await getBrokerSlug();
+      
       if (!effectivePropertySlug || !effectiveSlug) {
-  logger.error('Missing parameters:', { effectivePropertySlug, effectiveSlug });
+        logger.error('Missing parameters:', { effectivePropertySlug, effectiveSlug });
         throw new Error('Parâmetros insuficientes para carregar o imóvel.');
       }
       

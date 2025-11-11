@@ -46,7 +46,7 @@ export class PublicQueryHelper {
     let query = supabase
       .from('properties')
       .select(`
-        id, title, description, price, property_type, transaction_type,
+        id, slug, title, description, price, property_type, transaction_type,
         address, city, neighborhood, bedrooms, bathrooms, area_m2,
         parking_spaces, main_image_url, images, features, property_code,
         is_featured, views_count, created_at

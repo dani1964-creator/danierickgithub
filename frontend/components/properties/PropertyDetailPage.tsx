@@ -1363,7 +1363,7 @@ const PropertyDetailPage = () => {
         <div className="pt-20 sm:pt-24 pb-4">
           <div className="property-detail-premium__container">
             <nav className="property-detail-breadcrumbs">
-              <button onClick={() => router.push(`/${slug}`)} className="property-detail-breadcrumbs__link">
+              <button onClick={() => router.push('/')} className="property-detail-breadcrumbs__link">
                 Início
               </button>
               <span className="property-detail-breadcrumbs__separator">→</span>

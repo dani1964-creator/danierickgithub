@@ -40,7 +40,7 @@ export default async function handler(
 
   try {
     // Obter o hostname do header ou query
-    const tenantDomain = 
+    let tenantDomain = 
       req.headers['x-tenant-domain'] as string || 
       req.query.domain as string ||
       req.headers['x-forwarded-host'] as string ||
@@ -52,6 +52,12 @@ export default async function handler(
         message: 'Não foi possível identificar o domínio do tenant'
       });
     }
+
+    // Normalizar domínio: remover www. e porta
+    tenantDomain = tenantDomain
+      .toLowerCase()
+      .replace(/^www\./, '') // Remove www.
+      .split(':')[0]; // Remove porta se presente
 
     logger.info(`[API] Fetching tenant info for domain: ${tenantDomain}`);
 

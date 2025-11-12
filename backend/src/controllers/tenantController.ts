@@ -50,7 +50,13 @@ export class TenantController {
         return;
       }
       
-  logger.info(`🔍 Identifying tenant by domain: ${domain}`);
+      // Normalizar domínio: remover www. e porta
+      const normalizedDomain = domain
+        .toLowerCase()
+        .replace(/^www\./, '')
+        .split(':')[0];
+      
+      logger.info(`🔍 Identifying tenant by domain: ${normalizedDomain} (original: ${domain})`);
       
       let tenantData = null;
       
@@ -70,15 +76,15 @@ export class TenantController {
           site_favicon_url,
           is_active
         `)
-        .eq('custom_domain', domain)
+        .eq('custom_domain', normalizedDomain)
         .eq('is_active', true)
         .single();
       
       if (customDomainTenant) {
         tenantData = customDomainTenant;
-      } else if (domain.includes('.')) {
+      } else if (normalizedDomain.includes('.')) {
         // Tentar por subdomínio
-        const subdomain = domain.split('.')[0];
+        const subdomain = normalizedDomain.split('.')[0];
         
         const { data: subdomainTenant } = await supabase
           .from('brokers')
@@ -107,7 +113,7 @@ export class TenantController {
       if (!tenantData) {
         res.status(404).json({
           error: 'Tenant not found',
-          domain
+          domain: normalizedDomain
         });
         return;
       }

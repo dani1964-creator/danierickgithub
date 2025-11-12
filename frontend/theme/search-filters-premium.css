@@ -1,0 +1,360 @@
+/**
+ * Search Filters Premium - Design Único
+ * 
+ * Filtros de busca sofisticados com estados de foco expressivos
+ * Microinterações que transmitem profissionalismo
+ */
+
+/* ========================================
+   CONTAINER PRINCIPAL
+   ======================================== */
+
+.search-filters-premium {
+  background: white;
+  border-radius: var(--radius-2xl);
+  box-shadow: var(--shadow-lg);
+  border: var(--border-width-thin) solid var(--border-color-light);
+  padding: var(--space-8);
+  transition: all var(--duration-base) var(--ease-smooth);
+}
+
+@media (max-width: 768px) {
+  .search-filters-premium {
+    padding: var(--space-6);
+  }
+}
+
+/* ========================================
+   SEARCH BAR PRINCIPAL - DESTAQUE
+   ======================================== */
+
+.search-bar-premium {
+  position: relative;
+  flex: 1;
+}
+
+.search-input-premium {
+  width: 100%;
+  height: 56px;
+  padding-left: var(--space-12);
+  padding-right: var(--space-4);
+  font-size: var(--text-base);
+  font-weight: var(--weight-medium);
+  color: var(--neutral-900);
+  background: var(--neutral-50);
+  border: var(--border-width-base) solid var(--border-color-light);
+  border-radius: var(--radius-xl);
+  transition: all var(--duration-base) var(--ease-smooth);
+  outline: none;
+}
+
+.search-input-premium::placeholder {
+  color: var(--neutral-400);
+  font-weight: var(--weight-normal);
+}
+
+.search-input-premium:hover {
+  background: white;
+  border-color: var(--primary-300);
+}
+
+.search-input-premium:focus {
+  background: white;
+  border-color: var(--primary-500);
+  box-shadow: 0 0 0 4px rgba(72, 101, 129, 0.12),
+              var(--shadow-lg);
+  transform: translateY(-2px);
+}
+
+.search-icon {
+  position: absolute;
+  left: var(--space-4);
+  top: 50%;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 20px;
+  color: var(--neutral-500);
+  transition: color var(--duration-fast) var(--ease-smooth);
+  pointer-events: none;
+}
+
+.search-input-premium:focus + .search-icon {
+  color: var(--primary-600);
+}
+
+/* ========================================
+   SEARCH BUTTON - CTA PRINCIPAL
+   ======================================== */
+
+.search-btn-premium {
+  height: 56px;
+  padding: 0 var(--space-8);
+  font-size: var(--text-base);
+  font-weight: var(--weight-semibold);
+  color: white;
+  background: var(--gradient-primary);
+  border: none;
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-primary);
+  cursor: pointer;
+  transition: all var(--duration-base) var(--ease-smooth);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  white-space: nowrap;
+  position: relative;
+  overflow: hidden;
+}
+
+.search-btn-premium::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  transform: translate(-50%, -50%);
+  transition: width var(--duration-slow) var(--ease-bounce),
+              height var(--duration-slow) var(--ease-bounce);
+}
+
+.search-btn-premium:hover::before {
+  width: 300px;
+  height: 300px;
+}
+
+.search-btn-premium:hover {
+  transform: translateY(-3px) scale(1.03);
+  box-shadow: var(--shadow-xl);
+}
+
+.search-btn-premium:active {
+  transform: translateY(-1px) scale(1.01);
+}
+
+.search-btn-premium svg {
+  width: 20px;
+  height: 20px;
+  position: relative;
+  z-index: 1;
+}
+
+.search-btn-premium span {
+  position: relative;
+  z-index: 1;
+}
+
+/* ========================================
+   FILTROS RÁPIDOS - BADGES
+   ======================================== */
+
+.quick-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  align-items: center;
+}
+
+.filter-label {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  color: var(--neutral-700);
+}
+
+.filter-label svg {
+  width: 18px;
+  height: 18px;
+  color: var(--primary-600);
+}
+
+/* ========================================
+   SELECT INPUTS - DESIGN PREMIUM
+   ======================================== */
+
+.filter-select {
+  min-width: 140px;
+  height: 44px;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  border: var(--border-width-base) solid var(--border-color-light);
+  border-radius: var(--radius-lg);
+  background: var(--neutral-50);
+  transition: all var(--duration-fast) var(--ease-smooth);
+  cursor: pointer;
+}
+
+.filter-select:hover {
+  background: white;
+  border-color: var(--primary-300);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+
+.filter-select:focus {
+  background: white;
+  border-color: var(--primary-500);
+  box-shadow: 0 0 0 3px rgba(72, 101, 129, 0.1);
+  outline: none;
+}
+
+/* ========================================
+   ADVANCED FILTERS TOGGLE
+   ======================================== */
+
+.advanced-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  height: 44px;
+  padding: 0 var(--space-4);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  color: var(--neutral-700);
+  background: var(--neutral-50);
+  border: var(--border-width-base) solid var(--border-color-light);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease-smooth);
+}
+
+.advanced-toggle:hover {
+  background: white;
+  border-color: var(--primary-300);
+  color: var(--primary-700);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+
+.advanced-toggle svg {
+  width: 16px;
+  height: 16px;
+  transition: transform var(--duration-base) var(--ease-smooth);
+}
+
+.advanced-toggle.is-open svg {
+  transform: rotate(180deg);
+}
+
+/* ========================================
+   ADVANCED FILTERS PANEL
+   ======================================== */
+
+.advanced-filters {
+  margin-top: var(--space-6);
+  padding: var(--space-6);
+  background: linear-gradient(135deg, var(--neutral-50) 0%, var(--neutral-100) 100%);
+  border-radius: var(--radius-xl);
+  border: var(--border-width-thin) solid var(--border-color-light);
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  gap: var(--space-4);
+}
+
+@media (min-width: 640px) {
+  .advanced-filters {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .advanced-filters {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (min-width: 1280px) {
+  .advanced-filters {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.filter-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.filter-field label {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  color: var(--neutral-800);
+}
+
+.filter-field input {
+  height: 44px;
+  padding: 0 var(--space-3);
+  font-size: var(--text-sm);
+  color: var(--neutral-900);
+  background: white;
+  border: var(--border-width-base) solid var(--border-color-light);
+  border-radius: var(--radius-md);
+  transition: all var(--duration-fast) var(--ease-smooth);
+  outline: none;
+}
+
+.filter-field input:hover {
+  border-color: var(--primary-300);
+}
+
+.filter-field input:focus {
+  border-color: var(--primary-500);
+  box-shadow: 0 0 0 3px rgba(72, 101, 129, 0.1);
+  transform: translateY(-1px);
+}
+
+/* ========================================
+   RESET BUTTON
+   ======================================== */
+
+.reset-filters-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  height: 44px;
+  padding: 0 var(--space-4);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  color: var(--danger);
+  background: var(--danger-light);
+  border: var(--border-width-base) solid #fecaca;
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease-smooth);
+}
+
+.reset-filters-btn:hover {
+  background: white;
+  border-color: var(--danger);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+
+.reset-filters-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* ========================================
+   ANIMAÇÕES
+   ======================================== */
+
+@keyframes filter-slide-down {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.advanced-filters {
+  animation: filter-slide-down var(--duration-base) var(--ease-smooth);
+}

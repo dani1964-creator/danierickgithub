@@ -7,6 +7,7 @@ import { ErrorBoundary } from '@/components/ErrorBoundary';
 import '@/index.css';
 import '@/theme/design-system.css';
 import '@/theme/property-card-premium.css';
+import '@/theme/search-filters-premium.css';
 import { TenantProvider } from '@/contexts/TenantContext';
 import { analytics } from '@/lib/analytics';
 

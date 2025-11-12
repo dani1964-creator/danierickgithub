@@ -100,8 +100,9 @@ const HeroBanner = ({ brokerProfile, onContactClick }: HeroBannerProps) => {
 
   if (backgroundImage) {
     return (
-      <section id="hero" className="relative h-[60vh] sm:h-[70vh] md:h-[80vh] lg:h-[85vh] overflow-hidden">
-        <div className="absolute inset-0">
+      <section id="hero" className="relative h-[60vh] sm:h-[70vh] md:h-[80vh] lg:h-[90vh] overflow-hidden">
+        {/* Background Image com Parallax Effect */}
+        <div className="absolute inset-0 transform scale-105">
           <Image
             src={backgroundImage}
             alt="Banner"
@@ -110,41 +111,75 @@ const HeroBanner = ({ brokerProfile, onContactClick }: HeroBannerProps) => {
             sizes="100vw"
             priority
           />
+          {/* Overlay Gradiente Premium */}
           <div 
-            className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/40 to-black/60"
+            className="absolute inset-0 bg-gradient-to-b from-black/10 via-black/40 to-black/70"
             style={{ 
               backgroundColor: overlayColor,
               opacity: `${overlayOpacity}%`
             }}
           />
+          {/* Efeito de vinheta */}
+          <div className="absolute inset-0 bg-gradient-radial from-transparent via-black/10 to-black/40" />
         </div>
         
+        {/* Content Container Premium */}
         <div className="relative z-10 h-full flex items-center justify-center text-center text-white px-6">
-          <div className="content-container max-w-4xl space-y-6">
-            <div className="space-y-3">
-              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-semibold leading-tight tracking-tight">
-                {brokerProfile?.hero_title || 'Encontre o lar dos seus sonhos'}
-              </h1>
-              <p className="text-lg sm:text-xl opacity-90 max-w-2xl mx-auto leading-relaxed">
-                {brokerProfile?.hero_subtitle || 'Oferecemos os melhores imóveis da região'}
-              </p>
-            </div>
-            
-            <div className="flex flex-col sm:flex-row gap-3 justify-center items-center pt-2">
-              <button
-                onClick={scrollToSearch}
-                className="bg-background text-foreground hover:bg-accent px-6 py-3 text-base font-medium rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
-              >
-                Explorar Imóveis
-              </button>
-              <button
-                onClick={handleContactClick}
-                className="border border-white text-white hover:bg-background hover:text-foreground px-6 py-3 text-base font-medium rounded-lg transition-all duration-200"
-              >
-                Entrar em Contato
-              </button>
+          <div className="ds-container max-w-5xl">
+            {/* Animação de entrada */}
+            <div className="ds-animate-fade-in space-y-8">
+              {/* Títulos com Hierarquia Premium */}
+              <div className="space-y-4">
+                <h1 
+                  className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold leading-tight tracking-tight drop-shadow-2xl"
+                  style={{
+                    textShadow: '0 4px 20px rgba(0,0,0,0.5), 0 2px 8px rgba(0,0,0,0.3)',
+                    letterSpacing: 'var(--tracking-tight)'
+                  }}
+                >
+                  {brokerProfile?.hero_title || 'Encontre o lar dos seus sonhos'}
+                </h1>
+                <p className="text-lg sm:text-xl md:text-2xl font-medium opacity-95 max-w-3xl mx-auto leading-relaxed drop-shadow-lg">
+                  {brokerProfile?.hero_subtitle || 'Oferecemos os melhores imóveis da região'}
+                </p>
+              </div>
+              
+              {/* CTAs com Microinterações Premium */}
+              <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-4">
+                <button
+                  onClick={scrollToSearch}
+                  className="group relative overflow-hidden bg-white text-gray-900 hover:bg-white/95 px-8 py-4 text-base font-semibold rounded-lg shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 min-w-[200px]"
+                  style={{
+                    boxShadow: '0 10px 40px rgba(255,255,255,0.3)'
+                  }}
+                >
+                  <span className="relative z-10">Explorar Imóveis</span>
+                  <span className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/30 to-white/0 translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-700"></span>
+                </button>
+                <button
+                  onClick={handleContactClick}
+                  className="group relative overflow-hidden border-2 border-white/80 backdrop-blur-sm bg-white/10 text-white hover:bg-white hover:text-gray-900 px-8 py-4 text-base font-semibold rounded-lg transition-all duration-300 hover:scale-105 hover:border-white min-w-[200px] shadow-lg"
+                >
+                  <span className="relative z-10">Entrar em Contato</span>
+                  <span className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-700"></span>
+                </button>
+              </div>
             </div>
           </div>
+        </div>
+
+        {/* Indicador de Scroll */}
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 animate-bounce">
+          <button
+            onClick={scrollToSearch}
+            className="flex flex-col items-center gap-2 text-white/80 hover:text-white transition-colors duration-300"
+            aria-label="Rolar para baixo"
+          >
+            <span className="text-sm font-medium">Explorar</span>
+            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+            </svg>
+          </button>
         </div>
       </section>
     );
@@ -153,35 +188,73 @@ const HeroBanner = ({ brokerProfile, onContactClick }: HeroBannerProps) => {
   return (
     <section 
       id="hero"
-      className="relative h-[60vh] sm:h-[70vh] md:h-[80vh] lg:h-[85vh] bg-gradient-to-br from-primary via-primary/90 to-primary/80 flex items-center justify-center px-6"
-      style={{ background: `linear-gradient(135deg, ${primaryColor}, ${secondaryColor}90, ${primaryColor}CC)` }}
+      className="relative h-[60vh] sm:h-[70vh] md:h-[80vh] lg:h-[90vh] overflow-hidden flex items-center justify-center px-6"
+      style={{ 
+        background: `linear-gradient(135deg, ${primaryColor} 0%, ${secondaryColor}E6 50%, ${primaryColor}CC 100%)` 
+      }}
     >
-      <div className="text-center text-white">
-        <div className="content-container max-w-4xl space-y-6">
-          <div className="space-y-3">
-            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-semibold leading-tight tracking-tight">
-              {brokerProfile?.hero_title || 'Encontre o lar dos seus sonhos'}
-            </h1>
-            <p className="text-lg sm:text-xl opacity-90 max-w-2xl mx-auto leading-relaxed">
-              {brokerProfile?.hero_subtitle || 'Oferecemos os melhores imóveis da região'}
-            </p>
+      {/* Pattern Overlay Sutil */}
+      <div 
+        className="absolute inset-0 opacity-10"
+        style={{
+          backgroundImage: 'radial-gradient(circle at 1px 1px, white 1px, transparent 0)',
+          backgroundSize: '40px 40px'
+        }}
+      />
+
+      {/* Content */}
+      <div className="relative z-10 text-center text-white">
+        <div className="ds-container max-w-5xl">
+          <div className="ds-animate-fade-in space-y-8">
+            {/* Títulos Premium */}
+            <div className="space-y-4">
+              <h1 
+                className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold leading-tight drop-shadow-2xl"
+                style={{
+                  textShadow: '0 4px 20px rgba(0,0,0,0.3)',
+                  letterSpacing: 'var(--tracking-tight)'
+                }}
+              >
+                {brokerProfile?.hero_title || 'Encontre o lar dos seus sonhos'}
+              </h1>
+              <p className="text-lg sm:text-xl md:text-2xl font-medium opacity-95 max-w-3xl mx-auto leading-relaxed drop-shadow-lg">
+                {brokerProfile?.hero_subtitle || 'Oferecemos os melhores imóveis da região'}
+              </p>
+            </div>
+            
+            {/* CTAs Premium */}
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-4">
+              <button
+                onClick={scrollToSearch}
+                className="group relative overflow-hidden bg-white text-gray-900 hover:bg-white/95 px-8 py-4 text-base font-semibold rounded-lg shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 min-w-[200px]"
+              >
+                <span className="relative z-10">Explorar Imóveis</span>
+                <span className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/30 to-white/0 translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-700"></span>
+              </button>
+              <button
+                onClick={handleContactClick}
+                className="group relative overflow-hidden border-2 border-white/80 backdrop-blur-sm bg-white/10 text-white hover:bg-white hover:text-gray-900 px-8 py-4 text-base font-semibold rounded-lg transition-all duration-300 hover:scale-105 hover:border-white min-w-[200px] shadow-lg"
+              >
+                <span className="relative z-10">Entrar em Contato</span>
+                <span className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-700"></span>
+              </button>
+            </div>
           </div>
-          
-           <div className="flex flex-col sm:flex-row gap-3 justify-center items-center pt-2">
-             <button
-               onClick={scrollToSearch}
-               className="bg-background text-foreground hover:bg-accent px-6 py-3 text-base font-medium rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
-             >
-               Explorar Imóveis
-             </button>
-             <button
-               onClick={handleContactClick}
-               className="border border-white text-white hover:bg-background hover:text-foreground px-6 py-3 text-base font-medium rounded-lg transition-all duration-200"
-             >
-               Entrar em Contato
-             </button>
-           </div>
         </div>
+      </div>
+
+      {/* Scroll Indicator */}
+      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 animate-bounce">
+        <button
+          onClick={scrollToSearch}
+          className="flex flex-col items-center gap-2 text-white/80 hover:text-white transition-colors duration-300"
+          aria-label="Rolar para baixo"
+        >
+          <span className="text-sm font-medium">Explorar</span>
+          <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+          </svg>
+        </button>
       </div>
     </section>
   );

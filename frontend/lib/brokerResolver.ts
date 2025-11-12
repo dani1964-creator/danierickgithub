@@ -48,13 +48,14 @@ export class BrokerResolver {
       if (host.endsWith(`.${baseDomain}`)) {
         const subdomain = host.slice(0, -(baseDomain.length + 1));
         
-        // 'admin' é reservado
-        if (subdomain === 'admin') return null;
+        // 'admin' e 'painel' são reservados
+        if (subdomain === 'admin' || subdomain === 'painel') return null;
         
+        // Buscar por subdomain OU website_slug
         const { data, error } = await supabase
           .from('brokers')
           .select('id')
-          .eq('website_slug', subdomain)
+          .or(`subdomain.eq.${subdomain},website_slug.eq.${subdomain}`)
           .eq('is_active', true)
           .maybeSingle();
         

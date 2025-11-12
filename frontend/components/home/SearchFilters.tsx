@@ -105,12 +105,16 @@ const SearchFilters = ({
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="relative flex-1">
           <Input
+            id="property-search"
+            name="search"
             ref={searchInputRef}
             placeholder="Buscar por localização, tipo de imóvel, código..."
             value={searchTerm}
             onChange={(e) => handleSearchChange(e.target.value)}
             className="h-12 sm:h-14 text-base pl-12 pr-4 rounded-xl border-2 border-gray-200 focus:border-primary/50 shadow-sm"
             maxLength={200}
+            autoComplete="off"
+            aria-label="Buscar imóveis"
           />
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
         </div>

@@ -524,19 +524,19 @@ const EditPropertyDialog = ({ property, open, onOpenChange, onPropertyUpdated }:
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="address">Endereço *</Label>
+            <Label htmlFor="address">Endereço Completo (Rua, Número) *</Label>
             <Input
               id="address"
               value={formData.address}
               onChange={(e) => handleInputChange('address', e.target.value)}
-              placeholder="Rua das Flores, 123"
+              placeholder="Ex: Rua das Flores, 123, Apto 45"
               required
             />
           </div>
 
           <div className="grid gap-4 md:grid-cols-3">
             <div className="space-y-2">
-              <Label htmlFor="neighborhood">Bairro</Label>
+              <Label htmlFor="neighborhood">Bairro *</Label>
               <Input
                 id="neighborhood"
                 value={formData.neighborhood}
@@ -545,22 +545,24 @@ const EditPropertyDialog = ({ property, open, onOpenChange, onPropertyUpdated }:
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="city">Cidade</Label>
+              <Label htmlFor="city">Cidade *</Label>
               <Input
                 id="city"
                 value={formData.city}
                 onChange={(e) => handleInputChange('city', e.target.value)}
-                placeholder="São Paulo"
+                placeholder="Ex: São Paulo"
+                required
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="uf">UF</Label>
+              <Label htmlFor="uf">Estado (UF) *</Label>
               <Input
                 id="uf"
                 value={formData.uf}
                 onChange={(e) => handleInputChange('uf', e.target.value)}
-                placeholder="SP"
+                placeholder="Ex: SP, RJ, MG"
                 maxLength={2}
+                required
               />
             </div>
           </div>

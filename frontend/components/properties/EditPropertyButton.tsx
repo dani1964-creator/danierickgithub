@@ -12,6 +12,7 @@ interface Property {
   transaction_type: string;
   address: string;
   neighborhood: string | null;
+  city: string | null;
   uf: string | null;
   bedrooms: number | null;
   bathrooms: number | null;

@@ -1559,7 +1559,7 @@ const PropertyDetailPage = () => {
                                 src={image}
                                 alt={`Miniatura ${index + 1}`}
                                 fill
-                                className="object-cover bg-gray-100"
+                                className="object-cover"
                                 loading="lazy"
                                 sizes="64px"
                                 fallbackColor={brokerProfile?.primary_color}
@@ -1877,7 +1877,7 @@ const PropertyDetailPage = () => {
                       </span>
                     </div>
                     
-                    {/* Mapa OpenStreetMap Integrado - GRATUITO */}
+                    {/* Mapa Google Maps Integrado */}
                     <div className="relative w-full h-64 sm:h-80 rounded-lg overflow-hidden border border-neutral-200 shadow-md">
                       <iframe
                         title="Mapa da localização"
@@ -1885,13 +1885,9 @@ const PropertyDetailPage = () => {
                         height="100%"
                         style={{ border: 0 }}
                         loading="lazy"
-                        src={`https://www.openstreetmap.org/export/embed.html?bbox=${encodeURIComponent(
-                          // Coordenadas aproximadas baseadas no endereço
-                          // Format: longitude_min,latitude_min,longitude_max,latitude_max
-                          `-46.70,-23.60,-46.60,-23.50`
-                        )}&layer=mapnik&marker=${encodeURIComponent(
-                          `-23.55,-46.65`
-                        )}`}
+                        src={`https://maps.google.com/maps?q=${encodeURIComponent(
+                          `${property.address}${property.neighborhood ? ', ' + property.neighborhood : ''}${property.city ? ', ' + property.city : ''}${property.uf ? ' - ' + property.uf : ''}, Brasil`
+                        )}&output=embed&z=16`}
                         allowFullScreen
                       />
                       <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-3">

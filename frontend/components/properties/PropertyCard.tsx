@@ -1,10 +1,6 @@
 import { useState } from 'react';
 import { useRouter } from 'next/router';
 import { MapPin, Bed, Bath, Car, Eye, Heart, Share2, Square } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { SwipeableCarousel } from '@/components/ui/swipeable-carousel';
 import { setPrefetchedDetail } from '@/lib/detail-prefetch';
 import { supabase } from '@/integrations/supabase/client';
 import { useDomainAware } from '@/hooks/useDomainAware';
@@ -137,175 +133,133 @@ const PropertyCard = ({
   };
 
   return (
-    <Card 
+    <div 
       id={id}
-      className="overflow-hidden transition-all duration-300 group hover:shadow-soft-3 hover:scale-[1.02] cursor-pointer bg-background dark:bg-card"
+      className="property-card-premium"
       onClick={handleViewDetails}
       onMouseEnter={prefetchDetail}
     >
-      {/* Layout sempre vertical para melhor experiência */}
-      <div className="flex flex-col h-full">
-        {/* Container da imagem - proporção 4:3 */}
-        <div className="relative w-full aspect-[4/3] flex-shrink-0 overflow-hidden">
-          {propertyImages.length > 0 ? (
-            <SafeImage
-              src={propertyImages[0]}
-              alt={property.title}
-              fill
-              className="object-cover"
-              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-              loading="lazy"
-              fallbackColor={brokerProfile?.primary_color}
-            />
-          ) : (
-            <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-              <span className="text-gray-500 text-sm">Sem imagem</span>
+      {/* Image Container com Aspect Ratio 4:3 */}
+      <div className="property-card-image">
+        {propertyImages.length > 0 ? (
+          <SafeImage
+            src={propertyImages[0]}
+            alt={property.title}
+            fill
+            className="object-cover"
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+            loading="lazy"
+            fallbackColor={brokerProfile?.primary_color}
+          />
+        ) : (
+          <div className="property-card-no-image">
+            <span>Sem imagem</span>
+          </div>
+        )}
+        
+        {/* Badges Premium */}
+        <div className="property-card-badges">
+          {property.is_featured && (
+            <div className="property-card-badge property-card-badge--featured">
+              Destaque
             </div>
           )}
-          
-          {/* Badges e botões sobrepostos */}
-          <div className="absolute top-3 left-3 right-3 flex justify-between items-start">
-            <div className="flex flex-wrap gap-1.5">
-              {/* Badge Destaque (apenas para propriedades em destaque) */}
-              {property.is_featured && (
-                <Badge 
-                  className="text-white border-0 text-xs font-medium px-2 py-0.5 rounded-md"
-                  style={{ backgroundColor: brokerProfile?.primary_color || '#2563eb' }}
-                >
-                  Destaque
-                </Badge>
-              )}
-              
-              {/* Badge Tipo de Transação */}
-              <Badge 
-                className="text-white border-0 text-xs font-medium px-2 py-0.5 rounded-md"
-                style={{ backgroundColor: property.transaction_type === 'sale' ? '#10b981' : '#8b5cf6' }}
-              >
-                {property.transaction_type === 'sale' ? 'Venda' : 'Aluguel'}
-              </Badge>
-            </div>
-            <div className="flex gap-1.5">
-              <Button
-                variant="outline"
-                size="sm"
-                className={cn(
-                  "h-7 w-7 p-0 border-0 backdrop-blur-sm rounded-lg transition-all duration-200",
-                  isFavorited(property.id)
-                    ? "bg-pink-50/90 text-pink-500 hover:bg-pink-100 hover:scale-110"
-                    : "bg-background/90 text-muted-foreground hover:bg-background hover:text-pink-500 hover:scale-110"
-                )}
-                onClick={handleFavoriteClick}
-                title={isFavorited(property.id) ? "Remover dos favoritos" : "Adicionar aos favoritos"}
-              >
-                <Heart 
-                  className={cn(
-                    "h-3.5 w-3.5 transition-all",
-                    isFavorited(property.id) && "fill-pink-500"
-                  )} 
-                />
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-7 w-7 p-0 bg-background/90 border-0 text-muted-foreground hover:bg-background hover:text-primary backdrop-blur-sm rounded-lg transition-all duration-200"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onShare(property);
-                }}
-              >
-                <Share2 className="h-3.5 w-3.5" />
-              </Button>
-            </div>
-          </div>
-          
-          {/* Contador de visualizações e fotos */}
-          <div className="absolute bottom-3 left-3 right-3 flex justify-between items-center">
-            <div className="flex items-center text-muted-foreground text-xs bg-background/90 px-2 py-1 rounded-md backdrop-blur-sm">
-              <Eye className="h-3 w-3 mr-1" />
-              <span>{property.views_count || 0}</span>
-            </div>
-            {propertyImages.length > 1 && (
-              <div className="bg-background/90 text-muted-foreground text-xs px-2 py-1 rounded-md backdrop-blur-sm">
-                +{propertyImages.length - 1} fotos
-              </div>
-            )}
+          <div className={`property-card-badge ${property.transaction_type === 'sale' ? 'property-card-badge--sale' : 'property-card-badge--rent'}`}>
+            {property.transaction_type === 'sale' ? 'Venda' : 'Aluguel'}
           </div>
         </div>
 
-        {/* Container das informações - bem organizado */}
-        <CardContent className="p-4 space-y-3 flex-1 flex flex-col">
-          {/* Título e localização */}
-          <div className="space-y-1.5">
-            <h3 className="font-semibold text-base line-clamp-2 leading-tight text-foreground">
-              {property.title}
-            </h3>
-            
-            <p className="text-xs text-muted-foreground flex items-center">
-              <MapPin className="h-3 w-3 mr-1 flex-shrink-0" />
-              <span className="truncate">{property.neighborhood}, {property.uf}</span>
-            </p>
-          </div>
-          
-          {/* Preço destacado */}
-          <div className="py-1">
-            <p className="text-lg font-bold text-foreground">
-              {formatPrice(property.price)}
-            </p>
-            {property.property_code && (
-              <p className="text-xs text-muted-foreground mt-0.5">
-                Código: {property.property_code}
-              </p>
+        {/* Action Buttons Premium */}
+        <div className="property-card-actions">
+          <button
+            className={cn(
+              "property-card-action property-card-action--favorite",
+              isFavorited(property.id) && "is-favorited"
             )}
-          </div>
-          
-          {/* Características do imóvel */}
-          <div className="flex items-center space-x-4 text-xs text-muted-foreground">
-            {property.bedrooms > 0 && (
-              <div className="flex items-center space-x-1">
-                <Bed className="h-3 w-3 text-muted-foreground" />
-                <span className="font-medium text-foreground">{property.bedrooms}</span>
-              </div>
-            )}
-            {property.bathrooms > 0 && (
-              <div className="flex items-center space-x-1">
-                <Bath className="h-3 w-3 text-muted-foreground" />
-                <span className="font-medium text-foreground">{property.bathrooms}</span>
-              </div>
-            )}
-            {property.parking_spaces > 0 && (
-              <div className="flex items-center space-x-1">
-                <Car className="h-3 w-3 text-muted-foreground" />
-                <span className="font-medium text-foreground">{property.parking_spaces}</span>
-              </div>
-            )}
-            {property.area_m2 && (
-              <div className="flex items-center space-x-1">
-                <Square className="h-3 w-3 text-muted-foreground" />
-                <span className="font-medium text-foreground">{property.area_m2}m²</span>
-              </div>
-            )}
-          </div>
-
-          {/* Botão Ver Detalhes */}
-          <Button
-            className="w-full text-sm font-medium h-10 rounded-lg transition-all duration-200 mt-4"
+            onClick={handleFavoriteClick}
+            title={isFavorited(property.id) ? "Remover dos favoritos" : "Adicionar aos favoritos"}
+          >
+            <Heart className={cn("h-4 w-4", isFavorited(property.id) && "fill-current")} />
+          </button>
+          <button
+            className="property-card-action property-card-action--share"
             onClick={(e) => {
               e.stopPropagation();
-              handleViewDetails();
+              onShare(property);
             }}
-            onMouseEnter={prefetchDetail}
-            onFocus={prefetchDetail}
-            style={{ 
-              backgroundColor: brokerProfile?.detail_button_color || brokerProfile?.primary_color || '#2563eb',
-              borderColor: brokerProfile?.detail_button_color || brokerProfile?.primary_color || '#2563eb',
-              color: 'white'
-            }}
+            title="Compartilhar"
           >
-            Ver Detalhes Completos
-          </Button>
-        </CardContent>
+            <Share2 className="h-4 w-4" />
+          </button>
+        </div>
+        
+        {/* Info Badges no Bottom */}
+        <div className="property-card-info">
+          <Eye className="h-3 w-3" />
+          <span>{property.views_count || 0}</span>
+        </div>
+        
+        {propertyImages.length > 1 && (
+          <div className="property-card-photo-count">
+            +{propertyImages.length - 1} fotos
+          </div>
+        )}
       </div>
-    </Card>
+
+      {/* Content Premium */}
+      <div className="property-card-content">
+        {/* Título e Localização */}
+        <div>
+          <h3 className="property-card-title">
+            {property.title}
+          </h3>
+          
+          <div className="property-card-location">
+            <MapPin className="h-3.5 w-3.5" />
+            <span className="truncate">{property.neighborhood}, {property.uf}</span>
+          </div>
+        </div>
+        
+        {/* Preço Premium */}
+        <div className="property-card-price">
+          {formatPrice(property.price)}
+        </div>
+        
+        {property.property_code && (
+          <p className="text-xs text-neutral-500 -mt-2">
+            Código: {property.property_code}
+          </p>
+        )}
+        
+        {/* Features Premium */}
+        <div className="property-card-features">
+          {property.bedrooms > 0 && (
+            <div className="property-card-feature">
+              <Bed className="h-4 w-4" />
+              <span>{property.bedrooms}</span>
+            </div>
+          )}
+          {property.bathrooms > 0 && (
+            <div className="property-card-feature">
+              <Bath className="h-4 w-4" />
+              <span>{property.bathrooms}</span>
+            </div>
+          )}
+          {property.parking_spaces > 0 && (
+            <div className="property-card-feature">
+              <Car className="h-4 w-4" />
+              <span>{property.parking_spaces}</span>
+            </div>
+          )}
+          {property.area_m2 && (
+            <div className="property-card-feature">
+              <Square className="h-4 w-4" />
+              <span>{property.area_m2}m²</span>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
   );
 };
 

@@ -1215,7 +1215,6 @@ const PropertyDetailPage = () => {
         )}
       </Head>
 
-      {/* Container principal do conteúdo da propriedade */}
       <div className="property-detail-premium">
         {/* Header Premium - Melhorado com design moderno */}
         <header className={`fixed top-0 left-0 right-0 ${isDarkMode ? 'bg-gray-900/95 border-gray-700' : 'bg-white/95 border-gray-100'} backdrop-blur-xl shadow-soft-1 border-b z-50 transition-colors duration-300`}>
@@ -2065,13 +2064,9 @@ const PropertyDetailPage = () => {
         </Dialog>
         
         {/* Contact CTA Section with Full Width Background */}
+        <ContactCTA brokerProfile={brokerProfile} />
         </div>
       </div>
-
-      {/* Contact CTA */}
-      <ContactCTA 
-        brokerProfile={brokerProfile}
-      />
 
       {/* Footer */}
       <Footer 

@@ -77,6 +77,7 @@ const AddPropertyDialog = ({ onPropertyAdded }: AddPropertyDialogProps) => {
     transaction_type: 'sale',
     address: '',
     neighborhood: '',
+    city: '',
     uf: '',
     bedrooms: '',
     bathrooms: '',
@@ -212,8 +213,9 @@ const AddPropertyDialog = ({ onPropertyAdded }: AddPropertyDialogProps) => {
         property_type: formData.property_type,
         transaction_type: formData.transaction_type,
         address: formData.address,
-        neighborhood: formData.neighborhood,
-        uf: formData.uf,
+        neighborhood: formData.neighborhood || null,
+        city: formData.city || null,
+        uf: formData.uf || null,
         bedrooms: formData.bedrooms ? parseInt(formData.bedrooms) : null,
         bathrooms: formData.bathrooms ? parseInt(formData.bathrooms) : null,
         area_m2: formData.area_m2 ? parseFloat(formData.area_m2) : null,
@@ -225,7 +227,6 @@ const AddPropertyDialog = ({ onPropertyAdded }: AddPropertyDialogProps) => {
         property_code: formData.property_code,
         realtor_id: formData.realtor_id || null,
     // mínimos obrigatórios adicionais
-        city: null,
         is_active: true,
   slug: toSlug(formData.title),
     // Informações gerais removidas do formulário
@@ -411,7 +412,7 @@ const AddPropertyDialog = ({ onPropertyAdded }: AddPropertyDialogProps) => {
             />
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid gap-4 md:grid-cols-3">
             <div className="space-y-2">
               <Label htmlFor="neighborhood">Bairro</Label>
               <Input
@@ -419,6 +420,15 @@ const AddPropertyDialog = ({ onPropertyAdded }: AddPropertyDialogProps) => {
                 value={formData.neighborhood}
                 onChange={(e) => handleInputChange('neighborhood', e.target.value)}
                 placeholder="Centro"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="city">Cidade</Label>
+              <Input
+                id="city"
+                value={formData.city}
+                onChange={(e) => handleInputChange('city', e.target.value)}
+                placeholder="São Paulo"
               />
             </div>
             <div className="space-y-2">

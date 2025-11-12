@@ -34,6 +34,7 @@ interface Property {
   transaction_type: string;
   address: string;
   neighborhood: string | null;
+  city: string | null;
   uf: string | null;
   bedrooms: number | null;
   bathrooms: number | null;
@@ -95,6 +96,7 @@ const EditPropertyDialog = ({ property, open, onOpenChange, onPropertyUpdated }:
     transaction_type: property.transaction_type,
     address: property.address,
     neighborhood: property.neighborhood || '',
+    city: property.city || '',
     uf: property.uf || '',
     bedrooms: property.bedrooms?.toString() || '',
     bathrooms: property.bathrooms?.toString() || '',
@@ -172,6 +174,7 @@ const EditPropertyDialog = ({ property, open, onOpenChange, onPropertyUpdated }:
         transaction_type: property.transaction_type,
         address: property.address,
         neighborhood: property.neighborhood || '',
+        city: property.city || '',
         uf: property.uf || '',
         bedrooms: property.bedrooms?.toString() || '',
         bathrooms: property.bathrooms?.toString() || '',
@@ -319,8 +322,9 @@ const EditPropertyDialog = ({ property, open, onOpenChange, onPropertyUpdated }:
         property_type: formData.property_type,
         transaction_type: formData.transaction_type,
         address: formData.address,
-        neighborhood: formData.neighborhood,
-        uf: formData.uf,
+        neighborhood: formData.neighborhood || null,
+        city: formData.city || null,
+        uf: formData.uf || null,
         bedrooms: formData.bedrooms ? parseInt(formData.bedrooms) : null,
         bathrooms: formData.bathrooms ? parseInt(formData.bathrooms) : null,
         area_m2: formData.area_m2 ? parseFloat(formData.area_m2) : null,
@@ -530,7 +534,7 @@ const EditPropertyDialog = ({ property, open, onOpenChange, onPropertyUpdated }:
             />
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid gap-4 md:grid-cols-3">
             <div className="space-y-2">
               <Label htmlFor="neighborhood">Bairro</Label>
               <Input
@@ -538,6 +542,15 @@ const EditPropertyDialog = ({ property, open, onOpenChange, onPropertyUpdated }:
                 value={formData.neighborhood}
                 onChange={(e) => handleInputChange('neighborhood', e.target.value)}
                 placeholder="Centro"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="city">Cidade</Label>
+              <Input
+                id="city"
+                value={formData.city}
+                onChange={(e) => handleInputChange('city', e.target.value)}
+                placeholder="São Paulo"
               />
             </div>
             <div className="space-y-2">

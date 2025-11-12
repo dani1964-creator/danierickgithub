@@ -1409,23 +1409,23 @@ const PropertyDetailPage = () => {
                                {/* Overlay gradiente */}
                                <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
                                
-                               {/* Contador de fotos premium - TOP RIGHT */}
-                               <div className="absolute top-4 right-4 bg-black/70 text-white px-3 py-1.5 rounded-full text-xs font-semibold z-30 backdrop-blur-md">
+                               {/* Contador de fotos premium - FIXO NO TOPO */}
+                               <div className="fixed top-20 right-4 bg-black/70 text-white px-3 py-1.5 rounded-full text-xs font-semibold z-50 backdrop-blur-md">
                                  {currentImageIndex + 1} / {propertyImages.length}
                                </div>
                                
                                {/* Visualizações - TOP LEFT */}
                                <div className="absolute top-4 left-4 z-30">
-                                 <Badge className="bg-white/90 text-gray-900 hover:bg-white px-3 py-1.5 text-xs font-medium rounded-full backdrop-blur-sm shadow-lg">
+                                 <Badge className="bg-black/70 text-white hover:bg-black/80 px-3 py-1.5 text-xs font-medium rounded-full backdrop-blur-sm shadow-lg">
                                    <Eye className="h-3.5 w-3.5 mr-1.5" />
                                    {viewsCount}
                                  </Badge>
                                </div>
                                
-                               {/* Botão expandir - DENTRO DA FOTO, CANTO SUPERIOR DIREITO */}
+                               {/* Botão expandir - FIXO NO TOPO */}
                                <button
                                  onClick={() => setIsImageModalOpen(true)}
-                                 className="absolute top-16 right-4 bg-white/90 text-gray-800 p-2.5 rounded-full hover:bg-white transition-all duration-300 z-30 backdrop-blur-sm shadow-lg hover:scale-110"
+                                 className="fixed top-32 right-4 bg-black/30 text-white p-2.5 rounded-full hover:bg-black/50 transition-all duration-300 z-50 backdrop-blur-sm shadow-lg"
                                  title="Ampliar imagem"
                                >
                                  <Maximize2 className="h-4 w-4" />
@@ -1446,7 +1446,7 @@ const PropertyDetailPage = () => {
                     
                     {/* Thumbnails Mobile - ABAIXO DA FOTO PRINCIPAL */}
                     {propertyImages.length > 1 && (
-                      <div className="bg-neutral-100 p-3 rounded-b-2xl">
+                      <div className="bg-transparent p-3 rounded-b-2xl">
                         <div className="flex gap-2 overflow-x-auto scrollbar-hide">
                           {propertyImages.map((image, index) => (
                             <button
@@ -2112,20 +2112,20 @@ const PropertyDetailPage = () => {
                 <>
                   <button
                     onClick={() => setCurrentImageIndex(currentImageIndex > 0 ? currentImageIndex - 1 : propertyImages.length - 1)}
-                    className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/20 text-white p-3 rounded-lg hover:bg-white/30"
+                    className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/30 text-white p-3 rounded-lg hover:bg-black/50 backdrop-blur-sm"
                   >
                     <ChevronLeft className="h-6 w-6" />
                   </button>
                   <button
                     onClick={() => setCurrentImageIndex(currentImageIndex < propertyImages.length - 1 ? currentImageIndex + 1 : 0)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/20 text-white p-3 rounded-lg hover:bg-white/30"
+                    className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/30 text-white p-3 rounded-lg hover:bg-black/50 backdrop-blur-sm"
                   >
                     <ChevronLeft className="h-6 w-6 rotate-180" />
                   </button>
                 </>
               )}
               
-              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-white/20 text-white px-4 py-2 rounded-lg">
+              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/70 text-white px-4 py-2 rounded-lg backdrop-blur-md">
                 {currentImageIndex + 1} de {propertyImages.length}
               </div>
             </div>

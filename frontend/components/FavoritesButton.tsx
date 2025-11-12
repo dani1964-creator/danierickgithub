@@ -131,7 +131,7 @@ export function FloatingFavoritesButton() {
   return (
     <button
       onClick={() => router.push('/favoritos')}
-      className="fixed bottom-20 right-4 z-40 bg-pink-500 hover:bg-pink-600 text-white rounded-full p-4 shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-110 group"
+      className="fixed bottom-24 right-6 z-40 bg-pink-500 hover:bg-pink-600 text-white rounded-full p-4 shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-110 group"
       title={`${count} favorito${count !== 1 ? 's' : ''}`}
     >
       <Heart className="h-6 w-6 fill-white" />

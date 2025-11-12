@@ -250,8 +250,8 @@ const HeroBanner = ({ brokerProfile, onContactClick }: HeroBannerProps) => {
           className="flex flex-col items-center gap-2 text-white/80 hover:text-white transition-colors duration-300"
           aria-label="Rolar para baixo"
         >
-          <span className="text-sm font-medium">Explorar</span>
-          <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <span className="text-sm font-medium text-center">Explorar</span>
+          <svg className="w-6 h-6 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
           </svg>
         </button>

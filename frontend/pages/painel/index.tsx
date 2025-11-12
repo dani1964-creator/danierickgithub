@@ -9,7 +9,7 @@ export default function PainelIndex() {
   const router = useRouter();
 
   useEffect(() => {
-    router.replace('/painel/dashboard');
+    router.replace('/dashboard');
   }, [router]);
 
   return (

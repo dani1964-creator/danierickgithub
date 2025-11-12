@@ -92,6 +92,7 @@ export type Database = {
           footer_text: string | null
           hero_subtitle: string | null
           hero_title: string | null
+          header_brand_image_url: string | null
           id: string
           is_active: boolean | null
           is_super_admin: boolean | null
@@ -154,6 +155,7 @@ export type Database = {
           footer_text?: string | null
           hero_subtitle?: string | null
           hero_title?: string | null
+          header_brand_image_url?: string | null
           id?: string
           is_active?: boolean | null
           is_super_admin?: boolean | null
@@ -216,6 +218,7 @@ export type Database = {
           footer_text?: string | null
           hero_subtitle?: string | null
           hero_title?: string | null
+          header_brand_image_url?: string | null
           id?: string
           is_active?: boolean | null
           is_super_admin?: boolean | null

@@ -1,7 +1,10 @@
-import type { Database } from '@/integrations/supabase/types';
+import type { Database } from '../../frontend/integrations/supabase/types';
 
 // Fonte única de verdade para o perfil da imobiliária/corretor
-export type BrokerProfile = Database['public']['Tables']['brokers']['Row'];
+export type BrokerProfile = Database['public']['Tables']['brokers']['Row'] & {
+  // Campos adicionados recentemente que podem não estar nos types gerados ainda
+  header_brand_image_url?: string | null;
+};
 
 // Tipo compartilhado para contatos públicos do corretor (RPC get_public_broker_contact)
 export interface BrokerContact {
@@ -31,6 +34,8 @@ export interface BrokerData {
   primary_color?: string | null;
   secondary_color?: string | null;
   logo_url?: string | null;
+  logo_size?: number | null;
+  header_brand_image_url?: string | null; // Logo + nome combinado em uma imagem
   whatsapp_button_text?: string | null;
   whatsapp_button_color?: string | null;
   sections_background_style?: string | null;

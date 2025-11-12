@@ -1231,7 +1231,9 @@ const PropertyDetailPage = () => {
                 <div className="flex items-center min-w-0 flex-1">
                   <h1 
                     className="text-lg sm:text-xl md:text-2xl font-bold tracking-tight"
-                    style={{ color: brokerProfile.detail_header_text_color || brokerProfile.primary_color || '#2563eb' }}
+                    style={{ 
+                      color: brokerProfile.detail_header_text_color || brokerProfile.primary_color || '#2563eb',
+                    }}
                   >
                     Detalhes do Imóvel
                   </h1>
@@ -2073,7 +2075,8 @@ const PropertyDetailPage = () => {
 
       {/* Footer */}
       <Footer 
-        brokerProfile={brokerProfile} 
+        brokerProfile={brokerProfile}
+        socialLinks={socialLinks}
         onContactRequest={fetchContactInfo}
       />
 

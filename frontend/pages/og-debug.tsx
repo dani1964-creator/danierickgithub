@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
+import Image from 'next/image';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -147,10 +148,11 @@ export default function OGDebugPage() {
                       <p>Sem imagem configurada</p>
                     </div>
                   ) : (
-                    <img 
+                    <Image 
                       src={imageUrl} 
                       alt="Preview" 
-                      className="w-full h-full object-cover"
+                      fill
+                      className="object-cover"
                       onError={(e) => {
                         e.currentTarget.src = '/placeholder.svg';
                       }}

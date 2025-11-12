@@ -3,7 +3,7 @@ import { getErrorMessage } from '@/lib/utils';
 import type { Json } from '@/integrations/supabase/types';
 import { useState, useEffect, useCallback } from 'react';
 import dynamic from 'next/dynamic';
-import { Save, Globe, Palette, Code, Share2, FileText, Search } from 'lucide-react';
+import { Save, Globe, Palette, Code, Share2, FileText, Search, AlertCircle } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -12,6 +12,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import LogoUpload from '@/components/settings/LogoUpload';
@@ -508,20 +509,49 @@ const WebsiteSettings = () => {
                   
                   <div className="space-y-4">
                     <div className="space-y-2">
-                      <Label htmlFor="website_slug_config">URL do Site</Label>
+                      <Label htmlFor="website_slug_config">Subdomínio SaaS</Label>
                       <div className="flex items-center space-x-2">
-                        <span className="text-sm text-muted-foreground">meusite.com/</span>
                         <Input
                           id="website_slug_config"
                           value={profile.website_slug || ''}
                           onChange={(e) => updateProfile('website_slug', e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '-'))}
-                          placeholder="deps"
+                          placeholder="minhaimobiliaria"
                           className="flex-1"
                         />
+                        <span className="text-sm text-muted-foreground">.adminimobiliaria.site</span>
                       </div>
                       <p className="text-sm text-muted-foreground">
-                        URL amigável para o seu site público. Ex: meusite.com/deps
+                        Seu subdomínio gratuito. Ex: minhaimobiliaria.adminimobiliaria.site
                       </p>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="custom_domain">Domínio Personalizado (Opcional)</Label>
+                      <Input
+                        id="custom_domain"
+                        name="custom_domain"
+                        type="url"
+                        value={profile.custom_domain || ''}
+                        onChange={(e) => updateProfile('custom_domain', e.target.value.toLowerCase())}
+                        placeholder="www.minhaimobiliaria.com.br"
+                        className="flex-1"
+                        autoComplete="url"
+                      />
+                      <p className="text-sm text-muted-foreground">
+                        Seu próprio domínio (requer configuração DNS). Ex: www.minhaimobiliaria.com.br
+                      </p>
+                      {profile.custom_domain && (
+                        <Alert>
+                          <AlertCircle className="h-4 w-4" />
+                          <AlertDescription>
+                            <strong>Configuração DNS necessária:</strong>
+                            <br />
+                            Adicione um registro CNAME apontando para: <code className="text-xs bg-muted px-1 py-0.5 rounded">adminimobiliaria.site</code>
+                            <br />
+                            <small>Após salvar, aguarde até 48h para propagação do DNS.</small>
+                          </AlertDescription>
+                        </Alert>
+                      )}
                     </div>
 
                     <div className="space-y-2">

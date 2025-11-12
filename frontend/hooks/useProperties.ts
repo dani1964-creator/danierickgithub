@@ -92,7 +92,7 @@ export function useProperties(options: UsePropertiesOptions = {}): UseProperties
       const response = await fetch(`${apiUrl}/api/public/properties?${params}`, {
         headers: {
           'Content-Type': 'application/json',
-          'x-tenant-domain': window.location.hostname
+          'x-broker-domain': window.location.hostname
         }
       });
       
@@ -152,7 +152,7 @@ export function useProperty(propertyId: string) {
       const response = await fetch(`${apiUrl}/api/public/properties/${propertyId}`, {
         headers: {
           'Content-Type': 'application/json',
-          'x-tenant-domain': window.location.hostname
+          'x-broker-domain': window.location.hostname
         }
       });
       

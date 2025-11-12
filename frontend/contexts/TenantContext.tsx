@@ -67,7 +67,7 @@ export function TenantProvider({ children, initialTenant }: TenantProviderProps)
       applyTenantTheme(tenantData);
       
     } catch (err: any) {
-      logger.error('Error loading tenant:', err);
+      logger.error('Error loading broker:', err);
       setError(err.message || 'Erro ao carregar dados da imobiliária');
     } finally {
       setLoading(false);

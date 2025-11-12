@@ -27,7 +27,7 @@ export function useLeads(): UseLeadsReturn {
   
   const submitLead = async (leadData: LeadData): Promise<boolean> => {
     if (!tenant) {
-      setError('Tenant não identificado');
+      setError('Imobiliária não identificada');
       return false;
     }
     
@@ -42,7 +42,7 @@ export function useLeads(): UseLeadsReturn {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-tenant-domain': window.location.hostname
+          'x-broker-domain': window.location.hostname
         },
         body: JSON.stringify({
           ...leadData,

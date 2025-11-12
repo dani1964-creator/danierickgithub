@@ -63,7 +63,7 @@ export default async function handler(
 
     // URL do backend
     const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
-    const apiEndpoint = `${backendUrl}/api/tenant/identify?domain=${encodeURIComponent(brokerDomain)}`;
+    const apiEndpoint = `${backendUrl}/api/broker/identify?domain=${encodeURIComponent(brokerDomain)}`;
 
     // Fazer requisição para o backend
     const response = await fetch(apiEndpoint, {
@@ -92,7 +92,7 @@ export default async function handler(
 
     // Retornar dados do broker
     return res.status(200).json({
-      broker: data.data || data.tenant || data,
+      broker: data.data || data.broker || data,
       domain: brokerDomain
     });
 

@@ -104,7 +104,7 @@ export default function PublicHomepage({ initialTenant }: { initialTenant?: any 
         <title>{brokerData?.business_name || 'Vitrine'}</title>
         <meta name="description" content={brokerData?.description || ''} />
         {initialTenant && (
-          <meta name="x-tenant-data" content={JSON.stringify(initialTenant)} />
+          <meta name="x-broker-data" content={JSON.stringify(initialTenant)} />
         )}
       </Head>
 

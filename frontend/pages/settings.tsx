@@ -1,41 +1,25 @@
 /**
  * ============================================================================
- * CONFIGURAÇÕES GERAIS - Perfil e Domínios Avançados
+ * CONFIGURAÇÕES GERAIS - Perfil do Broker
  * ============================================================================
  * 
  * Esta página gerencia:
  * ✅ Informações do Perfil do Broker
  *    - Dados de contato, endereço, CRECI, etc.
+ *    - WhatsApp, telefone, email de contato
+ *    - Textos sobre a empresa e rodapé
  * 
- * ✅ Domínios Personalizados Avançados (Múltiplos)
- *    - Tabela: broker_domains
- *    - Permite adicionar vários domínios adicionais
- *    - Ex: vitrine.cliente.com, app.cliente.com.br, etc.
- * 
- * ⚠️ DIFERENÇA entre painel/site.tsx e settings.tsx:
- *    
- *    painel/site.tsx (Simples):
- *    - 1 subdomínio SaaS (*.adminimobiliaria.site)
- *    - 1 custom_domain principal (campo brokers.custom_domain)
- *    - Ideal para 99% dos casos
- *    
- *    settings.tsx (Avançado):
- *    - Múltiplos domínios adicionais (tabela broker_domains)
- *    - Gerenciamento individual (ativar/desativar)
- *    - Provisionamento manual no servidor
- *    - Para casos especiais (multi-marca, testes, etc)
- * 
- * 💡 RECOMENDAÇÃO:
- *    Usuários normais devem usar apenas painel/site.tsx
- *    settings.tsx é para casos avançados e específicos
+ * 💡 Para configurar domínios:
+ *    Acesse: Configurações do Site (painel/site)
+ *    - Subdomínio SaaS (*.adminimobiliaria.site)
+ *    - Domínio personalizado (opcional)
  * 
  * Acesso: painel.adminimobiliaria.site/painel/configuracoes
  * ============================================================================
  */
 
 import { useState, useEffect, useCallback } from 'react';
-import dynamic from 'next/dynamic';
-import { Save, User, Globe2, Plus, Trash2, Copy, CloudCog } from 'lucide-react';
+import { Save, User } from 'lucide-react';
 import { useAuth } from '@/shared/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -45,8 +29,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
-import { Switch } from '@/components/ui/switch';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 interface BrokerProfile {
   id: string;
@@ -62,67 +44,14 @@ interface BrokerProfile {
   creci: string;
 }
 
-interface BrokerDomain {
-  id: string;
-  broker_id: string;
-  domain: string;
-  is_active: boolean;
-  created_at: string;
-}
-
 const Settings = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [profile, setProfile] = useState<BrokerProfile | null>(null);
-  // Domínios personalizados
-  const [domains, setDomains] = useState<BrokerDomain[]>([]);
-  const [domainsLoading, setDomainsLoading] = useState(false);
-  const [domainInput, setDomainInput] = useState('');
-  const [savingDomain, setSavingDomain] = useState(false);
-  const appUrl = (process.env.NEXT_PUBLIC_APP_URL as string) || (typeof window !== 'undefined' ? window.location.origin : '');
-  const appHost = (() => {
-    try { return new URL(appUrl).host; } catch { return (appUrl || '').replace(/^https?:\/\//, '').replace(/\/$/, ''); }
-  })();
-  const cnameTarget = (process.env.NEXT_PUBLIC_CNAME_TARGET as string) || appHost;
-  const getErrorMessage = (err: unknown) => (err instanceof Error ? err.message : typeof err === 'string' ? err : 'Erro desconhecido');
-  const isLikelyApex = (d: string) => {
-    const dom = normalizeDomain(d);
-    if (!dom || !dom.includes('.')) return false;
-    const parts = dom.split('.');
-    const last2 = parts.slice(-2).join('.');
-    const last3 = parts.slice(-3).join('.');
-    const brPublic = new Set(['com.br','net.br','org.br','art.br','eco.br','blog.br','tv.br']);
-    if (brPublic.has(last2)) {
-      // ex.: cliente.com.br => parts === 3 é apex
-      return parts.length === 3;
-    }
-    // gen TLD: apex quando há apenas 2 labels (ex.: cliente.com)
-    return parts.length === 2;
-  };
 
-  const fetchDomains = useCallback(async (brokerId: string) => {
-    try {
-      setDomainsLoading(true);
-      const { data, error } = await supabase
-        .from('broker_domains')
-        .select('id, broker_id, domain, is_active, created_at')
-        .eq('broker_id', brokerId)
-        .order('created_at', { ascending: false });
-      if (error) throw error;
-      setDomains(data || []);
-    } catch (err: unknown) {
-      toast({
-        title: 'Erro ao carregar domínios',
-        description: getErrorMessage(err),
-        variant: 'destructive',
-      });
-    } finally {
-      setDomainsLoading(false);
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Removido dependências desnecessárias
+  const getErrorMessage = (err: unknown) => (err instanceof Error ? err.message : typeof err === 'string' ? err : 'Erro desconhecido');
 
   const fetchProfile = useCallback(async (currentUser?: typeof user) => {
     const userToUse = currentUser || user;
@@ -137,10 +66,6 @@ const Settings = () => {
 
       if (error) throw error;
       setProfile(data);
-      // Carrega domínios após obter o broker_id
-      if (data?.id) {
-        fetchDomains(data.id);
-      }
     } catch (err: unknown) {
       toast({
         title: "Erro ao carregar perfil",
@@ -151,14 +76,14 @@ const Settings = () => {
       setLoading(false);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Removido dependências para evitar re-renders constantes
+  }, []);
 
   useEffect(() => {
     if (user) {
       fetchProfile(user);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user]); // Precisa depender do user para executar quando ele estiver disponível
+  }, [user]);
 
   const saveProfile = async () => {
     if (!profile) return;
@@ -203,114 +128,16 @@ const Settings = () => {
     }
   };
 
-  const normalizeDomain = (value: string) => {
-    let v = (value || '').trim().toLowerCase();
-    v = v.replace(/^https?:\/\//, '');
-    v = v.replace(/\/$/, '');
-    return v;
-  };
-
-  const isValidDomain = (value: string) => {
-    const re = /^[a-z0-9.-]+\.[a-z]{2,}$/i;
-    return re.test(value);
-  };
-
-  const addDomain = async () => {
-    if (!profile) return;
-    const dom = normalizeDomain(domainInput);
-    if (!isValidDomain(dom)) {
-      toast({ title: 'Domínio inválido', description: 'Informe um domínio válido. Ex: vitrine.seudominio.com.br', variant: 'destructive' });
-      return;
-    }
-    setSavingDomain(true);
-    try {
-      const { data, error } = await supabase
-        .from('broker_domains')
-        .insert({ broker_id: profile.id, domain: dom })
-        .select('id, broker_id, domain, is_active, created_at')
-        .single();
-      if (error) throw error;
-      setDomains((prev) => [data as BrokerDomain, ...prev]);
-      setDomainInput('');
-      toast({ title: 'Domínio adicionado', description: 'Crie um CNAME no seu DNS apontando para o app e aguarde a propagação.' });
-      // Tentativa opcional de provisionar automaticamente na DO (se função estiver configurada)
-      try {
-        const { error: fnError } = await supabase.functions.invoke('domain-provision', {
-          body: { domain: (data as BrokerDomain).domain, broker_id: profile.id },
-        });
-        if (!fnError) {
-          toast({ title: 'Provisionamento solicitado', description: 'Solicitação enviada ao provedor para emitir SSL e vincular o domínio.' });
-        }
-      } catch (_) {
-        // silencioso, botão manual abaixo cobre o caso
-      }
-    } catch (err: unknown) {
-      toast({ title: 'Erro ao adicionar domínio', description: getErrorMessage(err), variant: 'destructive' });
-    } finally {
-      setSavingDomain(false);
-    }
-  };
-
-  const toggleDomainActive = async (d: BrokerDomain, next: boolean) => {
-    try {
-      const { error } = await supabase
-        .from('broker_domains')
-        .update({ is_active: next })
-        .eq('id', d.id);
-      if (error) throw error;
-      setDomains((prev) => prev.map((it) => (it.id === d.id ? { ...it, is_active: next } : it)));
-    } catch (err: unknown) {
-      toast({ title: 'Erro ao atualizar domínio', description: getErrorMessage(err), variant: 'destructive' });
-    }
-  };
-
-  const removeDomain = async (d: BrokerDomain) => {
-    if (!confirm(`Remover domínio ${d.domain}?`)) return;
-    try {
-      const { error } = await supabase
-        .from('broker_domains')
-        .delete()
-        .eq('id', d.id);
-      if (error) throw error;
-      setDomains((prev) => prev.filter((it) => it.id !== d.id));
-      toast({ title: 'Domínio removido' });
-    } catch (err: unknown) {
-      toast({ title: 'Erro ao remover domínio', description: getErrorMessage(err), variant: 'destructive' });
-    }
-  };
-
-  const provisionDomain = async (d: BrokerDomain) => {
-    try {
-      const { error: fnError } = await supabase.functions.invoke('domain-provision', {
-        body: { domain: d.domain, broker_id: profile?.id },
-      });
-      if (fnError) throw fnError;
-      toast({ title: 'Provisionamento solicitado', description: 'Verifique no provedor a emissão do certificado.' });
-    } catch (err: unknown) {
-      toast({ title: 'Erro ao provisionar domínio', description: getErrorMessage(err), variant: 'destructive' });
-    }
-  };
-
   if (loading) {
     return (
       <DashboardLayout>
-        <div className="space-y-6 animate-fade-in">
-          <div className="flex justify-between items-center">
-            <div className="space-y-2">
-              <div className="h-8 w-48 bg-muted rounded-md animate-pulse" />
-              <div className="h-4 w-64 bg-muted rounded-md animate-pulse" />
-            </div>
-            <div className="h-10 w-40 bg-muted rounded-md animate-pulse" />
+        <div className="space-y-6">
+          <div className="animate-pulse">
+            <div className="h-8 w-48 bg-muted rounded mb-2" />
+            <div className="h-4 w-96 bg-muted rounded" />
           </div>
           
-          <div className="bg-card rounded-lg shadow-sm border">
-            <div className="p-6 border-b">
-              <div className="flex items-center gap-2">
-                <div className="h-5 w-5 bg-muted rounded animate-pulse" />
-                <div className="h-6 w-48 bg-muted rounded animate-pulse" />
-              </div>
-              <div className="h-4 w-64 bg-muted rounded animate-pulse mt-2" />
-            </div>
+          <div className="border rounded-lg animate-pulse">
             <div className="p-6 space-y-6">
               <div className="grid gap-4 md:grid-cols-2">
                 {Array.from({ length: 4 }).map((_, i) => (
@@ -374,6 +201,27 @@ const Settings = () => {
             <CardContent className="space-y-4">
                 <div className="grid gap-4 md:grid-cols-2">
                   <div className="space-y-2">
+                    <Label htmlFor="business_name">Nome da Empresa</Label>
+                    <Input
+                      id="business_name"
+                      value={profile.business_name || ''}
+                      onChange={(e) => updateProfile('business_name', e.target.value)}
+                      placeholder="Imobiliária João Silva"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="display_name">Nome de Exibição</Label>
+                    <Input
+                      id="display_name"
+                      value={profile.display_name || ''}
+                      onChange={(e) => updateProfile('display_name', e.target.value)}
+                      placeholder="João Silva Imóveis"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="space-y-2">
                     <Label htmlFor="email">Email (Autenticação)</Label>
                     <Input
                       id="email"
@@ -412,126 +260,58 @@ const Settings = () => {
                       placeholder="5511999999999"
                     />
                     <p className="text-sm text-muted-foreground">
-                      Número com código do país (sem símbolos). Ex: 5511999999999
+                      Formato: Código do país + DDD + número (sem espaços ou caracteres especiais)
                     </p>
                   </div>
                 </div>
 
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="creci">CRECI</Label>
+                    <Input
+                      id="creci"
+                      value={profile.creci || ''}
+                      onChange={(e) => updateProfile('creci', e.target.value)}
+                      placeholder="CRECI 12345-F"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="address">Endereço</Label>
+                    <Input
+                      id="address"
+                      value={profile.address || ''}
+                      onChange={(e) => updateProfile('address', e.target.value)}
+                      placeholder="Rua Exemplo, 123 - Cidade/UF"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="about_text">Sobre a Imobiliária</Label>
+                  <Textarea
+                    id="about_text"
+                    value={profile.about_text || ''}
+                    onChange={(e) => updateProfile('about_text', e.target.value)}
+                    placeholder="Conte sobre sua imobiliária, experiência, diferenciais..."
+                    rows={4}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="footer_text">Texto do Rodapé</Label>
+                  <Textarea
+                    id="footer_text"
+                    value={profile.footer_text || ''}
+                    onChange={(e) => updateProfile('footer_text', e.target.value)}
+                    placeholder="Texto exibido no rodapé do site público"
+                    rows={3}
+                  />
+                </div>
               </CardContent>
             </Card>
-
-          {/* Domínios personalizados */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Globe2 className="h-5 w-5" />
-                Domínios Adicionais (Avançado)
-              </CardTitle>
-              <CardDescription>
-                Gerencie múltiplos domínios personalizados para casos especiais.
-                Para configuração simples de 1 domínio, use: <strong>Configurações do Site</strong>.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="custom-domain">Adicionar domínio</Label>
-                <div className="flex flex-col sm:flex-row gap-2">
-                  <Input
-                    id="custom-domain"
-                    value={domainInput}
-                    onChange={(e) => setDomainInput(e.target.value)}
-                    placeholder="vitrine.seudominio.com.br"
-                  />
-                  <Button onClick={addDomain} disabled={savingDomain || !domainInput.trim()}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    {savingDomain ? 'Adicionando...' : 'Adicionar'}
-                  </Button>
-                </div>
-                {domainInput && isLikelyApex(domainInput) && (
-                  <p className="text-sm text-amber-600">
-                    Detectei que este pode ser um domínio raiz. Para o raiz, use A/AAAA (ou ALIAS/ANAME) conforme instruções do provedor ao adicionar o domínio na plataforma.
-                  </p>
-                )}
-                <div className="text-sm text-muted-foreground space-y-1">
-                  <p>
-                    Dica: use exatamente o host que os clientes acessarão (ex.: vitrine.seudominio.com.br ou www.seudominio.com.br).
-                  </p>
-                  <div className="flex items-center gap-2">
-                    <span>CNAME alvo:</span>
-                    <code className="px-2 py-0.5 rounded bg-muted text-foreground">{cnameTarget || '-'}</code>
-                    {cnameTarget && (
-                      <Button type="button" variant="outline" size="icon" onClick={() => navigator.clipboard?.writeText(cnameTarget)} title="Copiar CNAME alvo">
-                        <Copy className="h-4 w-4" />
-                      </Button>
-                    )}
-                  </div>
-                  <p>
-                    Se o domínio for raiz (sem www), muitos provedores não permitem CNAME no raiz. Nesse caso, use os registros A/AAAA (ou ALIAS/ANAME) conforme instruções do provedor de hospedagem quando você adicionar o domínio na plataforma (ex.: DigitalOcean).
-                  </p>
-                  <div className="rounded-md border p-3 mt-1 text-foreground bg-card/30">
-                    <p className="font-medium mb-1">Guia rápido:</p>
-                    <ul className="list-disc ml-5 space-y-1">
-                      <li><span className="font-semibold">Subdomínio</span> (ex.: vitrine.cliente.com): criar <span className="font-semibold">CNAME</span> apontando para <code className="px-1 rounded bg-muted">{cnameTarget || 'seu-app-host'}</code>.</li>
-                      <li><span className="font-semibold">Domínio raiz</span> (ex.: cliente.com): usar <span className="font-semibold">A/AAAA</span> (ou ALIAS/ANAME) conforme instruções ao adicionar o domínio na plataforma. Isso garante o certificado SSL automático.</li>
-                    </ul>
-                  </div>
-                </div>
-              </div>
-
-              <div className="border rounded-md overflow-hidden">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Domínio</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead className="hidden sm:table-cell">Criado em</TableHead>
-                      <TableHead className="text-right">Ações</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {domainsLoading ? (
-                      <TableRow>
-                        <TableCell colSpan={4} className="py-6 text-center text-muted-foreground">Carregando...</TableCell>
-                      </TableRow>
-                    ) : domains.length === 0 ? (
-                      <TableRow>
-                        <TableCell colSpan={4} className="py-6 text-center text-muted-foreground">Nenhum domínio cadastrado</TableCell>
-                      </TableRow>
-                    ) : (
-                      domains.map((d) => (
-                        <TableRow key={d.id}>
-                          <TableCell className="font-medium">{d.domain}</TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-2">
-                              <Switch checked={d.is_active} onCheckedChange={(v) => toggleDomainActive(d, v)} />
-                              <span className="text-sm text-muted-foreground">{d.is_active ? 'Ativo' : 'Inativo'}</span>
-                            </div>
-                          </TableCell>
-                          <TableCell className="hidden sm:table-cell text-sm text-muted-foreground">
-                            {new Date(d.created_at).toLocaleDateString()}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <div className="flex items-center justify-end gap-2">
-                              <Button variant="outline" size="icon" onClick={() => provisionDomain(d)} title="Provisionar no provedor">
-                                <CloudCog className="h-4 w-4" />
-                              </Button>
-                              <Button variant="destructive" size="icon" onClick={() => removeDomain(d)} title="Excluir domínio">
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
-            </CardContent>
-          </Card>
           </div>
     </DashboardLayout>
   );
 };
 
-const DynamicSettings = dynamic(() => Promise.resolve(Settings), { ssr: false });
-export default DynamicSettings;
+export default Settings;

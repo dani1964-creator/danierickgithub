@@ -2,121 +2,78 @@
 
 ## 📋 Visão Geral
 
-Existem **2 páginas** de configuração no painel admin, cada uma com propósito específico:
+O painel admin possui **2 seções** principais de configuração:
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │  1. CONFIGURAÇÕES DO SITE (painel/site.tsx)                │
-│     ✅ Recomendado para 99% dos usuários                    │
+│     📍 Domínios e Subdomínios                                │
 ├─────────────────────────────────────────────────────────────┤
 │  • Subdomínio SaaS (*.adminimobiliaria.site)               │
-│  • 1 Domínio Personalizado Principal                        │
+│  • 1 Domínio Personalizado (opcional)                       │
 │  • Configuração simples e rápida                            │
 └─────────────────────────────────────────────────────────────┘
 
 ┌─────────────────────────────────────────────────────────────┐
 │  2. CONFIGURAÇÕES GERAIS (painel/configuracoes.tsx)        │
-│     🔧 Apenas para casos avançados                          │
+│     ⚙️ Perfil do Broker                                      │
 ├─────────────────────────────────────────────────────────────┤
-│  • Perfil do Broker                                          │
-│  • Múltiplos Domínios Adicionais                            │
-│  • Gerenciamento individual de cada domínio                 │
+│  • Dados de contato (telefone, email, WhatsApp)            │
+│  • Informações da empresa (nome, endereço, CRECI)          │
+│  • Textos sobre a empresa e rodapé                          │
 └─────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 🎯 Quando Usar Cada Página
+## 🎯 Configuração de Domínios
 
-### Configurações do Site (`painel/site.tsx`)
+### Onde Configurar
 
-**Use quando:**
-- ✅ Quer configurar seu site pela primeira vez
-- ✅ Precisa de 1 subdomínio SaaS + opcionalmente 1 domínio próprio
-- ✅ Quer algo simples e que funcione imediatamente
+**Use apenas: `painel/site.tsx`**
 
-**Campos gerenciados:**
-```typescript
-brokers.website_slug    // "joao" → joao.adminimobiliaria.site
-brokers.subdomain       // "joao" (sincronizado automaticamente)
-brokers.custom_domain   // "www.imobiliariajoao.com.br" (opcional)
+Acesso: `painel.adminimobiliaria.site/painel/site`
+
+### Opções Disponíveis
+
+#### 1. **Subdomínio SaaS (Grátis e Imediato)**
+
+**Exemplo:** `joao.adminimobiliaria.site`
+
+```
+Campo: website_slug
+Valor: "joao"
+Resultado: https://joao.adminimobiliaria.site
 ```
 
-**Exemplo de uso:**
-```
-Broker: João Silva
-Subdomínio SaaS: joao → https://joao.adminimobiliaria.site
-Custom Domain: www.imobiliariajoao.com.br → https://www.imobiliariajoao.com.br
-```
+**Características:**
+- ✅ Funciona imediatamente após salvar
+- ✅ SSL automático (HTTPS)
+- ✅ Sem custo adicional
+- ✅ Fácil de compartilhar
 
 ---
 
-### Configurações Gerais (`painel/configuracoes.tsx`)
+#### 2. **Domínio Personalizado (Opcional)**
 
-**Use quando:**
-- 🔧 Precisa gerenciar múltiplos domínios (multi-marca)
-- 🔧 Quer testar diferentes domínios
-- 🔧 Tem casos especiais que exigem mais de 1 domínio
+**Exemplo:** `www.imobiliariajoao.com.br`
 
-**Tabela gerenciada:**
-```typescript
-broker_domains
-├─ broker_id: UUID
-├─ domain: "app.cliente.com"
-├─ is_active: boolean
-└─ created_at: timestamp
+```
+Campo: custom_domain
+Valor: "www.imobiliariajoao.com.br"
+Resultado: https://www.imobiliariajoao.com.br
 ```
 
-**Exemplo de uso:**
-```
-Broker: João Silva
-Domínios adicionais:
-  • vitrine.imobiliariajoao.com.br
-  • app.cliente.com
-  • teste.site.com.br
-```
+**Características:**
+- ✅ Substitui o subdomínio SaaS
+- ✅ Mais profissional
+- ⚠️ Requer domínio próprio
+- ⚠️ Requer configuração DNS
+- ⚠️ Propagação pode levar até 48h
 
 ---
 
-## 📊 Comparação Lado a Lado
-
-| Característica | Configurações do Site | Configurações Gerais |
-|----------------|----------------------|---------------------|
-| **Complexidade** | 🟢 Simples | 🟡 Avançado |
-| **Quantidade** | 1 SaaS + 1 Custom | Ilimitados |
-| **Banco de Dados** | `brokers` table | `broker_domains` table |
-| **Provisionamento** | Automático | Manual |
-| **Público-alvo** | Todos os usuários | Power users |
-| **SSL** | Automático | Requer configuração |
-
----
-
-## 🔄 Fluxo de Resolução de Domínio
-
-### BrokerResolver - Como Funciona
-
-```typescript
-// 1. Verifica se é subdomínio SaaS
-if (host.endsWith('.adminimobiliaria.site')) {
-  const slug = host.split('.')[0]; // "joao"
-  return buscarPorWebsiteSlug(slug);
-}
-
-// 2. Verifica custom_domain principal (brokers.custom_domain)
-const broker = await buscarPorCustomDomain(host);
-if (broker) return broker.id;
-
-// 3. Verifica domínios adicionais (broker_domains)
-const domain = await buscarEmBrokerDomains(host);
-if (domain) return domain.broker_id;
-
-// 4. Não encontrado
-return null;
-```
-
----
-
-## 📝 Arquitetura dos Campos
+## 📊 Arquitetura dos Campos
 
 ### Tabela: `brokers`
 
@@ -124,15 +81,67 @@ return null;
 |-------|-----------|---------|-------------|
 | `website_slug` | Identificador único | "joao" | ✅ Sim |
 | `subdomain` | Alias (sincronizado) | "joao" | ✅ Sim (auto) |
-| `custom_domain` | Domínio principal | "www.joao.com" | ❌ Opcional |
+| `custom_domain` | Domínio próprio | "www.joao.com" | ❌ Opcional |
 
-### Tabela: `broker_domains`
+**Sincronização Automática:**
+- `subdomain` é sempre igual a `website_slug`
+- Trigger SQL mantém sincronizado automaticamente
+- Não precisa se preocupar com isso
 
-| Campo | Propósito | Exemplo |
-|-------|-----------|---------|
-| `broker_id` | Referência ao broker | UUID |
-| `domain` | Domínio adicional | "app.cliente.com" |
-| `is_active` | Ativo/Inativo | true/false |
+---
+
+## 🚀 Guia Passo a Passo
+
+### Passo 1: Configurar Subdomínio SaaS
+
+1. Acesse: `painel.adminimobiliaria.site/painel/site`
+2. Na seção "Subdomínio SaaS":
+   - Digite o slug desejado (ex: `joao`)
+   - Use apenas letras minúsculas, números e hífens
+3. Clique em **Salvar**
+4. ✅ Pronto! Seu site: `joao.adminimobiliaria.site`
+
+**Dica:** Escolha um slug curto e fácil de lembrar.
+
+---
+
+### Passo 2: Adicionar Domínio Próprio (Opcional)
+
+#### 2.1. Na Plataforma
+
+1. Acesse: `painel.adminimobiliaria.site/painel/site`
+2. Na seção "Domínio Personalizado":
+   - Digite seu domínio (ex: `www.imobiliariajoao.com.br`)
+   - Clique em **Salvar**
+
+#### 2.2. No Provedor de Domínio
+
+Configure um registro CNAME no painel do seu provedor:
+
+```
+Tipo: CNAME
+Nome: www (ou @ para domínio raiz)
+Valor: adminimobiliaria.site
+TTL: 3600 (ou deixe padrão)
+```
+
+**Provedores comuns:**
+- Registro.br: https://registro.br
+- GoDaddy: painel de DNS
+- Hostinger: painel de gerenciamento
+- Cloudflare: DNS management
+
+#### 2.3. Aguardar Propagação
+
+- Tempo médio: 1-6 horas
+- Máximo: até 48 horas
+- Você pode verificar em: https://dnschecker.org
+
+#### 2.4. Verificar na Plataforma
+
+1. Volte para `painel/site`
+2. Clique em **Verificar DNS**
+3. Aguarde status "✅ Verificado"
 
 ---
 
@@ -140,79 +149,87 @@ return null;
 
 ### DO ✅
 
-1. **Use Configurações do Site** para setup inicial
-2. **Mantenha website_slug simples** (ex: "joao", não "joao-silva-corretor-123")
-3. **Custom domain deve substituir SaaS**, não criar subdomínios
-4. **Teste no SaaS primeiro**, depois configure custom domain
+1. **Use slugs simples** - "joao" em vez de "joao-silva-corretor-123"
+2. **Teste o SaaS primeiro** - Certifique-se que funciona antes de configurar custom domain
+3. **Configure www** - Use `www.seudominio.com` em vez de apenas `seudominio.com`
+4. **Aguarde propagação** - DNS leva tempo, seja paciente
 
 ### DON'T ❌
 
-1. ❌ Não tente criar "subdomínio dentro de custom domain"
-2. ❌ Não use caracteres especiais em website_slug
-3. ❌ Não adicione múltiplos domínios sem necessidade real
-4. ❌ Não desative o domínio principal em broker_domains sem fallback
+1. ❌ **Não use caracteres especiais** no slug (acentos, espaços, etc)
+2. ❌ **Não mude o slug frequentemente** - Links antigos param de funcionar
+3. ❌ **Não tente criar subdomínios** dentro do custom domain
+4. ❌ **Não desative o custom domain** sem ter o SaaS configurado
 
 ---
 
-## 🚀 Guia Rápido de Configuração
+## 🔄 Fluxo de Resolução
 
-### Passo 1: Subdomínio SaaS (Grátis e Imediato)
+### Como o Sistema Identifica seu Site
 
-1. Acesse: `painel.adminimobiliaria.site/painel/site`
-2. Preencha o slug: `joao`
-3. Clique em **Salvar**
-4. Pronto! Seu site: `joao.adminimobiliaria.site`
+```typescript
+// Ordem de verificação:
+1. Verifica se é subdomínio SaaS (*.adminimobiliaria.site)
+   → Busca por website_slug
 
-### Passo 2: Domínio Próprio (Opcional)
+2. Se não for SaaS, verifica custom_domain
+   → Busca por domínio personalizado
 
-1. Na mesma página, seção "Domínio Personalizado"
-2. Digite: `www.imobiliariajoao.com.br`
-3. Configure CNAME no seu provedor DNS:
-   ```
-   Tipo: CNAME
-   Nome: www (ou @)
-   Valor: adminimobiliaria.site
-   ```
-4. Aguarde propagação DNS (até 48h)
-5. Clique em **Verificar DNS**
-
-### Passo 3: Domínios Adicionais (Avançado)
-
-1. Acesse: `painel.adminimobiliaria.site/painel/configuracoes`
-2. Role até "Domínios Adicionais"
-3. Adicione quantos domínios precisar
-4. Configure DNS para cada um
-5. Ative/desative conforme necessário
-
----
-
-## 🔧 Sincronização Automática
-
-### Trigger SQL: `website_slug` ↔ `subdomain`
-
-```sql
--- Mantém subdomain sempre igual a website_slug
-CREATE TRIGGER trigger_sync_broker_subdomain
-  BEFORE UPDATE ON public.brokers
-  FOR EACH ROW
-  EXECUTE FUNCTION public.sync_broker_subdomain();
+3. Se não encontrar, retorna 404
 ```
 
-**Comportamento:**
-- Atualiza `website_slug` → `subdomain` atualiza automaticamente
-- Atualiza `subdomain` → `website_slug` atualiza automaticamente
-- Garante consistência 100%
+**Exemplo prático:**
+
+```
+Acesso: joao.adminimobiliaria.site
+✅ Encontra broker com website_slug = "joao"
+✅ Carrega site do João
+
+Acesso: www.imobiliariajoao.com.br
+✅ Encontra broker com custom_domain = "www.imobiliariajoao.com.br"
+✅ Carrega site do João
+
+Acesso: naoexiste.adminimobiliaria.site
+❌ Não encontra broker
+❌ Retorna 404
+```
 
 ---
 
-## 📁 Arquivos Relacionados
+## 🛠️ Configuração de Perfil
+
+### Onde Configurar
+
+**Use: `painel/configuracoes.tsx`**
+
+Acesso: `painel.adminimobiliaria.site/painel/configuracoes`
+
+### Informações Disponíveis
+
+```
+✅ Nome da Empresa
+✅ Nome de Exibição
+✅ Email de Contato
+✅ Telefone
+✅ WhatsApp
+✅ CRECI
+✅ Endereço
+✅ Sobre a Imobiliária
+✅ Texto do Rodapé
+```
+
+**Nota:** Para configurar domínios, use `painel/site`, não `configuracoes`.
+
+---
+
+## 📁 Arquivos do Sistema
 
 ```
 frontend/pages/
 ├── painel/
-│   ├── site.tsx              ← Configuração simples (USE ESTE)
-│   └── configuracoes.tsx     ← Redireciona para settings.tsx
-└── settings.tsx              ← Configuração avançada
+│   ├── site.tsx              ← Configuração de domínios
+│   └── configuracoes.tsx     ← Configuração de perfil
+└── settings.tsx              ← Implementação do perfil
 
 frontend/lib/
 └── brokerResolver.ts         ← Lógica de resolução de domínios
@@ -228,29 +245,72 @@ docs/
 
 ---
 
-## 🎯 Resumo Final
+## ❓ Perguntas Frequentes
 
-### Para Usuários Normais:
-```
-Use: painel/site.tsx
-Configure: 1 slug + 1 custom domain (opcional)
-Resultado: Site funcionando em minutos
-```
+### 1. Posso ter múltiplos domínios?
+Não. Cada broker tem:
+- 1 subdomínio SaaS
+- 1 domínio personalizado (opcional)
 
-### Para Power Users:
-```
-Use: painel/configuracoes.tsx
-Configure: Múltiplos domínios adicionais
-Resultado: Flexibilidade máxima (mas mais complexo)
-```
+### 2. O que acontece se eu mudar o slug?
+- O endereço antigo para de funcionar
+- Links compartilhados quebram
+- Recomendamos não mudar após divulgação
 
-### Recomendação:
-**99% dos brokers devem usar apenas `painel/site.tsx`**
+### 3. Preciso pagar pelo custom domain?
+- O sistema não cobra
+- Você precisa ter um domínio registrado (GoDaddy, Registro.br, etc)
+- O custo é do registro do domínio (~R$40/ano)
 
-A página de configurações avançadas existe para casos especiais, mas não é necessária para operação normal.
+### 4. Custom domain funciona sem o SaaS?
+- Não! Sempre configure o SaaS primeiro
+- Custom domain é adicional, não substitui internamente
+- Se DNS falhar, o SaaS serve como fallback
+
+### 5. Posso usar domínio raiz (sem www)?
+- Sim, mas CNAME pode não funcionar
+- Recomendamos usar `www.seudominio.com`
+- Para domínio raiz, consulte seu provedor sobre A/AAAA records
 
 ---
 
-**Dúvidas?** Consulte:
-- `docs/DOMAIN_ARCHITECTURE.md` - Arquitetura detalhada
-- `docs/SUBDOMAIN_SYNC_SOLUTION.md` - Sincronização automática
+## 📞 Suporte
+
+Problemas com configuração?
+
+1. **Verifique o DNS:** https://dnschecker.org
+2. **Consulte o provedor:** Cada provedor tem processo diferente
+3. **Aguarde propagação:** Pode levar até 48h
+
+---
+
+## 🎯 Resumo Final
+
+### Configuração Simples (Recomendado):
+```
+1. Configure slug em painel/site
+2. Pronto! Use: seuslug.adminimobiliaria.site
+```
+
+### Configuração com Domínio Próprio:
+```
+1. Configure slug em painel/site
+2. Adicione custom domain
+3. Configure CNAME no provedor
+4. Aguarde propagação
+5. Verifique status
+```
+
+### Configuração de Perfil:
+```
+1. Acesse painel/configuracoes
+2. Preencha dados da empresa
+3. Salve alterações
+```
+
+---
+
+**Tudo configurado!** Agora você tem:
+- ✅ Subdomínio SaaS funcionando
+- ✅ (Opcional) Domínio personalizado
+- ✅ Perfil da empresa completo

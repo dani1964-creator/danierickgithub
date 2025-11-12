@@ -1,5 +1,5 @@
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { logger } from '@/lib/logger';
 import PropertyCard from '@/components/properties/PropertyCard';
 import { Button } from '@/components/ui/button';
@@ -52,6 +52,42 @@ const PropertiesGrid = ({
 
   // Expose function globally for navigation restoration
   window.ensurePropertyVisible = ensurePropertyVisible;
+
+  // Restaurar scroll ao voltar da página de detalhes
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
+    const lastViewedPropertyId = sessionStorage.getItem('lastViewedPropertyId');
+    if (lastViewedPropertyId) {
+      logger.debug('Restoring scroll position to property:', lastViewedPropertyId);
+      
+      // Primeiro, garantir que o imóvel está visível no grid
+      ensurePropertyVisible(lastViewedPropertyId);
+      
+      // Aguardar um pouco para o DOM atualizar
+      setTimeout(() => {
+        const propertyElement = document.getElementById(`property-${lastViewedPropertyId}`);
+        if (propertyElement) {
+          // Scroll suave até o elemento com offset para header fixo
+          const headerOffset = 100; // Espaço para o header fixo
+          const elementPosition = propertyElement.getBoundingClientRect().top;
+          const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+          
+          window.scrollTo({
+            top: offsetPosition,
+            behavior: 'smooth'
+          });
+          
+          logger.debug('Scrolled to property:', lastViewedPropertyId);
+        } else {
+          logger.warn('Property element not found:', `property-${lastViewedPropertyId}`);
+        }
+        
+        // Limpar o sessionStorage após o scroll
+        sessionStorage.removeItem('lastViewedPropertyId');
+      }, 300); // Delay para garantir que o grid foi expandido
+    }
+  }, [regularProperties]); // Executa quando as propriedades carregam
 
   const hasMoreProperties = regularProperties.length > visibleCount;
 

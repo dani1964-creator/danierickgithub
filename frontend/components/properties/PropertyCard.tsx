@@ -86,6 +86,11 @@ const PropertyCard = ({
   };
 
   const handleViewDetails = async () => {
+    // Salva o ID do imóvel para restaurar a posição ao voltar
+    if (typeof window !== 'undefined' && property.id) {
+      sessionStorage.setItem('lastViewedPropertyId', property.id);
+    }
+    
     // Dispara prefetch e navega em seguida
     prefetchDetail();
     const propertySlug = property.slug;

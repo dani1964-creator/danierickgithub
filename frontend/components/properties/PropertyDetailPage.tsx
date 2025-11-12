@@ -1232,37 +1232,62 @@ const PropertyDetailPage = () => {
                   onClick={() => router.push(`/${slug || ''}`)}
                   className="flex items-center hover:opacity-80 transition-all duration-200 min-w-0 flex-1 group"
                 >
-                  {brokerProfile.logo_url ? (
+                  {/* Opção 1: Imagem combinada de logo + nome */}
+                  {brokerProfile.header_brand_image_url ? (
                     <div 
                       className="relative flex-shrink-0 rounded-xl overflow-hidden shadow-sm group-hover:shadow-md transition-shadow"
                       style={{ 
                         height: `${Math.min(brokerProfile.logo_size || 80, 60)}px`,
-                        width: `${Math.min(brokerProfile.logo_size || 80, 60) * 2}px`
+                        width: 'auto',
+                        maxWidth: '400px'
                       }}
                     >
                       <SafeImage 
-                        src={brokerProfile.logo_url} 
-                        alt={brokerProfile.business_name} 
+                        src={brokerProfile.header_brand_image_url} 
+                        alt={`${brokerProfile.business_name} - Logo e Nome`}
                         fill
-                        className="object-contain"
-                        sizes="(max-width: 640px) 120px, 160px"
+                        className="object-contain object-left"
+                        sizes="(max-width: 640px) 300px, 400px"
                         fallbackColor={brokerProfile.primary_color}
                         priority
                       />
                     </div>
                   ) : (
-                    <div 
-                      className="h-8 w-8 sm:h-12 sm:w-12 rounded-xl text-white flex items-center justify-center font-bold text-sm flex-shrink-0 shadow-sm"
-                      style={{ backgroundColor: brokerProfile.primary_color || '#374151' }}
-                    >
-                      {brokerProfile.business_name?.charAt(0) || 'I'}
-                    </div>
+                    /* Opção 2: Logo + nome separados (comportamento atual) */
+                    <>
+                      {brokerProfile.logo_url ? (
+                        <div 
+                          className="relative flex-shrink-0 rounded-xl overflow-hidden shadow-sm group-hover:shadow-md transition-shadow"
+                          style={{ 
+                            height: `${Math.min(brokerProfile.logo_size || 80, 60)}px`,
+                            width: `${Math.min(brokerProfile.logo_size || 80, 60) * 2}px`
+                          }}
+                        >
+                          <SafeImage 
+                            src={brokerProfile.logo_url} 
+                            alt={brokerProfile.business_name} 
+                            fill
+                            className="object-contain"
+                            sizes="(max-width: 640px) 120px, 160px"
+                            fallbackColor={brokerProfile.primary_color}
+                            priority
+                          />
+                        </div>
+                      ) : (
+                        <div 
+                          className="h-8 w-8 sm:h-12 sm:w-12 rounded-xl text-white flex items-center justify-center font-bold text-sm flex-shrink-0 shadow-sm"
+                          style={{ backgroundColor: brokerProfile.primary_color || '#374151' }}
+                        >
+                          {brokerProfile.business_name?.charAt(0) || 'I'}
+                        </div>
+                      )}
+                      <span className={`ml-3 text-lg sm:text-xl font-bold truncate transition-colors duration-300 ${
+                        isDarkMode ? 'text-white' : 'text-gray-900'
+                      }`}>
+                        {brokerProfile.business_name}
+                      </span>
+                    </>
                   )}
-                  <span className={`ml-3 text-lg sm:text-xl font-bold truncate transition-colors duration-300 ${
-                    isDarkMode ? 'text-white' : 'text-gray-900'
-                  }`}>
-                    {brokerProfile.business_name}
-                  </span>
                 </button>
               </div>
 

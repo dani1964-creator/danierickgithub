@@ -31,6 +31,8 @@ export interface BrokerData {
   primary_color?: string | null;
   secondary_color?: string | null;
   logo_url?: string | null;
+  logo_size?: number | null;
+  header_brand_image_url?: string | null; // Logo + nome combinado em uma imagem
   whatsapp_button_text?: string | null;
   whatsapp_button_color?: string | null;
   sections_background_style?: string | null;

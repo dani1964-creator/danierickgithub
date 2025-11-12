@@ -50,33 +50,57 @@ const FixedHeader = ({ brokerProfile }: FixedHeaderProps) => {
             className="flex items-center space-x-2 sm:space-x-3 hover:opacity-80 transition-opacity cursor-pointer bg-transparent border-none p-0"
             aria-label="Voltar ao início"
           >
-            {brokerProfile.logo_url && (
-               <div 
-                 className="flex-shrink-0 relative"
-                 style={{ 
-                   height: `${Math.min(brokerProfile.logo_size || 80, 60)}px`,
-                   width: `${Math.min(brokerProfile.logo_size || 80, 60) * 2}px`
-                 }}
-               >
-                 <Image
-                   src={brokerProfile.logo_url}
-                   alt={`Logo ${displayName}`}
-                   fill
-                   className="object-contain rounded-md"
-                   sizes="(max-width: 768px) 120px, 160px"
-                   priority
-                 />
-               </div>
-            )}
-            
-            <div className="flex flex-col min-w-0">
-              <h1 
-                className="text-base sm:text-lg md:text-xl font-bold tracking-tight truncate"
-                style={{ color: brokerProfile.primary_color || '#2563eb' }}
+            {/* Opção 1: Imagem combinada de logo + nome */}
+            {brokerProfile.header_brand_image_url ? (
+              <div 
+                className="flex-shrink-0 relative"
+                style={{ 
+                  height: `${Math.min(brokerProfile.logo_size || 80, 60)}px`,
+                  width: 'auto',
+                  maxWidth: '400px'
+                }}
               >
-                {displayName}
-              </h1>
-            </div>
+                <Image
+                  src={brokerProfile.header_brand_image_url}
+                  alt={`${displayName} - Logo e Nome`}
+                  fill
+                  className="object-contain object-left rounded-md"
+                  sizes="(max-width: 768px) 300px, 400px"
+                  priority
+                />
+              </div>
+            ) : (
+              /* Opção 2: Logo + nome separados (comportamento atual) */
+              <>
+                {brokerProfile.logo_url && (
+                  <div 
+                    className="flex-shrink-0 relative"
+                    style={{ 
+                      height: `${Math.min(brokerProfile.logo_size || 80, 60)}px`,
+                      width: `${Math.min(brokerProfile.logo_size || 80, 60) * 2}px`
+                    }}
+                  >
+                    <Image
+                      src={brokerProfile.logo_url}
+                      alt={`Logo ${displayName}`}
+                      fill
+                      className="object-contain rounded-md"
+                      sizes="(max-width: 768px) 120px, 160px"
+                      priority
+                    />
+                  </div>
+                )}
+                
+                <div className="flex flex-col min-w-0">
+                  <h1 
+                    className="text-base sm:text-lg md:text-xl font-bold tracking-tight truncate"
+                    style={{ color: brokerProfile.primary_color || '#2563eb' }}
+                  >
+                    {displayName}
+                  </h1>
+                </div>
+              </>
+            )}
           </button>
 
           {/* Favorites Button */}

@@ -542,19 +542,46 @@ const WebsiteSettings = () => {
                         Seu próprio domínio (requer configuração DNS). Ex: www.minhaimobiliaria.com.br
                       </p>
                       {profile.custom_domain && (
-                        <div className="mt-2 p-3 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-md">
-                          <p className="text-sm font-medium text-blue-900 dark:text-blue-100 mb-1">
-                            ⚙️ Configuração DNS necessária
-                          </p>
-                          <p className="text-xs text-blue-800 dark:text-blue-200">
-                            Adicione um registro <strong>CNAME</strong> no seu provedor DNS apontando para:
-                          </p>
-                          <code className="block mt-1 px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-900 dark:text-blue-100 rounded text-xs font-mono">
-                            adminimobiliaria.site
-                          </code>
-                          <p className="text-xs text-blue-700 dark:text-blue-300 mt-1">
-                            Após salvar, aguarde até 48h para propagação do DNS.
-                          </p>
+                        <div className="mt-2 p-4 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-md space-y-3">
+                          <div>
+                            <p className="text-sm font-semibold text-blue-900 dark:text-blue-100 mb-2">
+                              ⚙️ Configuração DNS Necessária
+                            </p>
+                            <p className="text-xs text-blue-800 dark:text-blue-200 mb-2">
+                              Acesse o painel do seu provedor de DNS (Registro.br, GoDaddy, Hostgator, etc) e adicione o seguinte registro:
+                            </p>
+                          </div>
+
+                          <div className="bg-white dark:bg-gray-900 p-3 rounded border border-blue-300 dark:border-blue-700">
+                            <div className="grid grid-cols-3 gap-2 text-xs font-mono">
+                              <div>
+                                <span className="text-gray-500 dark:text-gray-400">Tipo:</span>
+                                <div className="font-semibold text-blue-900 dark:text-blue-100">CNAME</div>
+                              </div>
+                              <div>
+                                <span className="text-gray-500 dark:text-gray-400">Nome/Host:</span>
+                                <div className="font-semibold text-blue-900 dark:text-blue-100">@ ou www</div>
+                              </div>
+                              <div>
+                                <span className="text-gray-500 dark:text-gray-400">Valor/Destino:</span>
+                                <div className="font-semibold text-blue-900 dark:text-blue-100 break-all">
+                                  {process.env.NEXT_PUBLIC_CNAME_TARGET || 'whale-app-w84mh.ondigitalocean.app'}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="space-y-1">
+                            <p className="text-xs text-blue-700 dark:text-blue-300 font-medium">
+                              📌 Observações importantes:
+                            </p>
+                            <ul className="text-xs text-blue-700 dark:text-blue-300 space-y-1 list-disc list-inside">
+                              <li>Se usar <strong>www.seudominio.com.br</strong>, configure CNAME com nome "www"</li>
+                              <li>Se usar apenas <strong>seudominio.com.br</strong> (sem www), alguns provedores exigem usar "@" ou deixar em branco</li>
+                              <li>Alguns provedores não permitem CNAME no registro raiz (@). Neste caso, use um registro <strong>ALIAS</strong> ou <strong>ANAME</strong> se disponível</li>
+                              <li>Aguarde de 10 minutos a 48h para propagação DNS completa</li>
+                            </ul>
+                          </div>
                         </div>
                       )}
                     </div>

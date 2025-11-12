@@ -88,14 +88,32 @@ CNAME   painel   adminimobiliaria.site                  ✅      Auto
 
 O broker precisa configurar no painel do registrador dele:
 
+**Opção 1 - CNAME (Recomendado para www):**
 ```
-Tipo    Nome    Conteúdo                    TTL
--------------------------------------------------
-CNAME   @       adminimobiliaria.site       Auto
-CNAME   www     adminimobiliaria.site       Auto
+Tipo    Nome    Conteúdo                              TTL
+-----------------------------------------------------------
+CNAME   www     whale-app-w84mh.ondigitalocean.app    Auto
 ```
 
-**OU (se o registrador não aceitar CNAME no @):**
+**Opção 2 - CNAME no registro raiz (se o provedor permitir):**
+```
+Tipo    Nome    Conteúdo                              TTL
+-----------------------------------------------------------
+CNAME   @       whale-app-w84mh.ondigitalocean.app    Auto
+```
+
+**Opção 3 - ALIAS/ANAME (se CNAME não for permitido no @):**
+```
+Tipo     Nome    Conteúdo                              TTL
+-----------------------------------------------------------
+ALIAS    @       whale-app-w84mh.ondigitalocean.app    Auto
+```
+
+⚠️ **Observações Importantes:**
+- O destino **DEVE SER** `whale-app-w84mh.ondigitalocean.app` (URL do app no DigitalOcean)
+- **NÃO** use `adminimobiliaria.site` como destino (isso causaria loop de redirecionamento)
+- Se o registrador não aceitar CNAME no registro raiz (@), use ALIAS ou ANAME
+- Alguns provedores DNS (Registro.br, por exemplo) não permitem CNAME no @, prefira usar `www.seudominio.com.br`
 
 ```
 Tipo    Nome    Conteúdo                              TTL

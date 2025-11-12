@@ -1588,7 +1588,7 @@ const PropertyDetailPage = () => {
                       </h1>
                       <div className="property-detail-location">
                         <MapPin className="h-5 w-5" />
-                        <span>{property.neighborhood}, {property.uf}</span>
+                        <span>{property.neighborhood && `${property.neighborhood}, `}{property.city && `${property.city} - `}{property.uf}</span>
                       </div>
                       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                         <div className="inline-flex items-baseline gap-2">
@@ -1869,7 +1869,12 @@ const PropertyDetailPage = () => {
                   <div className="space-y-4">
                     <div className="flex items-center text-gray-700 text-sm bg-primary-50 p-3 rounded-lg border border-primary-200">
                       <MapPin className="h-4 w-4 mr-3 text-primary-600 flex-shrink-0" />
-                      <span className="font-medium">{property.address}</span>
+                      <span className="font-medium">
+                        {property.address}
+                        {property.neighborhood && `, ${property.neighborhood}`}
+                        {property.city && ` - ${property.city}`}
+                        {property.uf && `/${property.uf}`}
+                      </span>
                     </div>
                     
                     {/* Mapa OpenStreetMap Integrado - GRATUITO */}
@@ -1891,7 +1896,9 @@ const PropertyDetailPage = () => {
                       />
                       <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-3">
                         <a
-                          href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(property.address)}`}
+                          href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                            `${property.address}, ${property.neighborhood || ''}, ${property.city || ''} - ${property.uf || ''}, Brasil`
+                          )}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="inline-flex items-center gap-2 text-white text-xs font-medium hover:underline"
@@ -1906,11 +1913,17 @@ const PropertyDetailPage = () => {
                     <div className="grid grid-cols-2 gap-3 text-xs">
                       <div className="bg-neutral-50 p-3 rounded-lg">
                         <p className="text-gray-500 mb-1">Bairro</p>
-                        <p className="font-semibold text-gray-900">{property.neighborhood}</p>
+                        <p className="font-semibold text-gray-900">{property.neighborhood || 'Não informado'}</p>
                       </div>
                       <div className="bg-neutral-50 p-3 rounded-lg">
-                        <p className="text-gray-500 mb-1">Cidade/Estado</p>
-                        <p className="font-semibold text-gray-900">{property.city || property.uf}</p>
+                        <p className="text-gray-500 mb-1">Cidade</p>
+                        <p className="font-semibold text-gray-900">{property.city || 'Não informado'}</p>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-1 gap-3 text-xs">
+                      <div className="bg-neutral-50 p-3 rounded-lg">
+                        <p className="text-gray-500 mb-1">Estado</p>
+                        <p className="font-semibold text-gray-900">{property.uf || 'Não informado'}</p>
                       </div>
                     </div>
                   </div>

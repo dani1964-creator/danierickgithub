@@ -63,8 +63,9 @@ app.get('/health', (req, res) => {
   });
 });
 
-// Rotas de identificação de tenant (sem middleware de autenticação)
-app.use('/api/tenant', tenantRouter);
+// Rotas de identificação de tenant/broker (sem middleware de autenticação)
+app.use('/api/tenant', tenantRouter); // Mantido para retrocompatibilidade
+app.use('/api/broker', tenantRouter); // Novo: alias semântico para 'tenant'
 
 // Rota de debug opcional (ativa apenas se ENABLE_DEBUG_ROUTES=true)
 if (process.env.ENABLE_DEBUG_ROUTES === 'true') {

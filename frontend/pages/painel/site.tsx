@@ -237,10 +237,12 @@ export default function WebsiteConfiguration() {
             <div className="flex gap-2 mt-2">
               <Input
                 id="website-slug"
+                name="website-slug"
                 value={websiteSlug}
                 onChange={(e) => setWebsiteSlug(e.target.value.toLowerCase())}
                 placeholder="minha-imobiliaria"
                 className="flex-1"
+                autoComplete="off"
               />
               <Button onClick={handleSaveSlug} disabled={loading}>
                 {loading ? 'Salvando...' : 'Salvar'}
@@ -286,10 +288,13 @@ export default function WebsiteConfiguration() {
             <div className="flex gap-2 mt-2">
               <Input
                 id="custom-domain"
+                name="custom-domain"
                 value={customDomain}
                 onChange={(e) => setCustomDomain(e.target.value.toLowerCase())}
                 placeholder="imobiliariajoao.com.br"
                 className="flex-1"
+                autoComplete="off"
+                type="url"
               />
               <Button onClick={handleSaveCustomDomain} disabled={loading}>
                 {loading ? 'Salvando...' : 'Salvar'}

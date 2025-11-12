@@ -204,9 +204,11 @@ const Settings = () => {
                     <Label htmlFor="business_name">Nome da Empresa</Label>
                     <Input
                       id="business_name"
+                      name="organization"
                       value={profile.business_name || ''}
                       onChange={(e) => updateProfile('business_name', e.target.value)}
                       placeholder="Imobiliária João Silva"
+                      autoComplete="organization"
                     />
                   </div>
                   <div className="space-y-2">
@@ -234,9 +236,12 @@ const Settings = () => {
                     <Label htmlFor="contact_email">Email de Contato</Label>
                     <Input
                       id="contact_email"
+                      name="email"
+                      type="email"
                       value={profile.contact_email || ''}
                       onChange={(e) => updateProfile('contact_email', e.target.value)}
                       placeholder="contato@imobiliaria.com"
+                      autoComplete="email"
                     />
                   </div>
                 </div>
@@ -246,18 +251,24 @@ const Settings = () => {
                     <Label htmlFor="phone">Telefone</Label>
                     <Input
                       id="phone"
+                      name="tel"
+                      type="tel"
                       value={profile.phone || ''}
                       onChange={(e) => updateProfile('phone', e.target.value)}
                       placeholder="(11) 99999-9999"
+                      autoComplete="tel"
                     />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="whatsapp_number">WhatsApp para Contato</Label>
                     <Input
                       id="whatsapp_number"
+                      name="tel-whatsapp"
+                      type="tel"
                       value={profile.whatsapp_number || ''}
                       onChange={(e) => updateProfile('whatsapp_number', e.target.value)}
                       placeholder="5511999999999"
+                      autoComplete="tel"
                     />
                     <p className="text-sm text-muted-foreground">
                       Formato: Código do país + DDD + número (sem espaços ou caracteres especiais)
@@ -279,9 +290,11 @@ const Settings = () => {
                     <Label htmlFor="address">Endereço</Label>
                     <Input
                       id="address"
+                      name="street-address"
                       value={profile.address || ''}
                       onChange={(e) => updateProfile('address', e.target.value)}
                       placeholder="Rua Exemplo, 123 - Cidade/UF"
+                      autoComplete="street-address"
                     />
                   </div>
                 </div>

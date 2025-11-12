@@ -1446,7 +1446,7 @@ const PropertyDetailPage = () => {
                     
                     {/* Thumbnails Mobile - ABAIXO DA FOTO PRINCIPAL */}
                     {propertyImages.length > 1 && (
-                      <div className="bg-transparent p-3 rounded-b-2xl">
+                      <div className="p-3">
                         <div className="flex gap-2 overflow-x-auto scrollbar-hide">
                           {propertyImages.map((image, index) => (
                             <button
@@ -1509,7 +1509,7 @@ const PropertyDetailPage = () => {
                     
                     {/* Visualizações - TOP LEFT */}
                     <div className="absolute top-6 left-6 z-20">
-                      <Badge className="bg-white/95 text-gray-900 hover:bg-white px-6 py-3 text-sm font-bold rounded-full shadow-xl backdrop-blur-sm">
+                      <Badge className="bg-black/70 text-white hover:bg-black/80 px-6 py-3 text-sm font-bold rounded-full shadow-xl backdrop-blur-sm">
                         <Eye className="h-5 w-5 mr-2" />
                         {viewsCount} visualizações
                       </Badge>
@@ -1529,13 +1529,13 @@ const PropertyDetailPage = () => {
                       <>
                         <button
                           onClick={() => handleThumbnailClick(currentImageIndex > 0 ? currentImageIndex - 1 : propertyImages.length - 1)}
-                          className="absolute left-6 top-1/2 -translate-y-1/2 bg-white/90 text-gray-800 p-4 rounded-full hover:bg-white transition-all duration-300 z-20 backdrop-blur-sm shadow-xl hover:scale-110"
+                          className="absolute left-6 top-1/2 -translate-y-1/2 bg-black/30 text-white p-4 rounded-full hover:bg-black/50 transition-all duration-300 z-20 backdrop-blur-sm shadow-xl hover:scale-110"
                         >
                           <ChevronLeft className="h-6 w-6" />
                         </button>
                         <button
                           onClick={() => handleThumbnailClick(currentImageIndex < propertyImages.length - 1 ? currentImageIndex + 1 : 0)}
-                          className="absolute right-6 top-1/2 -translate-y-1/2 bg-white/90 text-gray-800 p-4 rounded-full hover:bg-white transition-all duration-300 z-20 backdrop-blur-sm shadow-xl hover:scale-110"
+                          className="absolute right-6 top-1/2 -translate-y-1/2 bg-black/30 text-white p-4 rounded-full hover:bg-black/50 transition-all duration-300 z-20 backdrop-blur-sm shadow-xl hover:scale-110"
                         >
                           <ChevronLeft className="h-6 w-6 rotate-180" />
                         </button>

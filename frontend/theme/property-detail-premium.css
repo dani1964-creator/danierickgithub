@@ -448,19 +448,20 @@
   position: absolute;
   bottom: var(--space-6);
   right: var(--space-6);
-  background: rgba(255, 255, 255, 0.95);
-  color: var(--neutral-800);
+  background: rgba(0, 0, 0, 0.3);
+  color: white;
   padding: var(--space-4);
   border-radius: var(--radius-full);
   border: none;
   cursor: pointer;
   transition: all var(--duration-fast) var(--ease-smooth);
   box-shadow: var(--shadow-lg);
+  backdrop-filter: blur(8px);
   z-index: 20;
 }
 
 .property-detail-gallery__expand:hover {
-  background: white;
+  background: rgba(0, 0, 0, 0.5);
   transform: scale(1.1);
   box-shadow: var(--shadow-xl);
 }

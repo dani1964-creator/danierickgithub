@@ -42,16 +42,25 @@ const PropertiesGrid = ({
   );
 
   // Function to ensure specific property is visible
-  const ensurePropertyVisible = (propertyId: string) => {
+  const ensurePropertyVisible = useCallback((propertyId: string) => {
     const propertyIndex = regularProperties.findIndex(p => p.id === propertyId);
     if (propertyIndex >= 0 && propertyIndex >= visibleCount) {
       logger.debug(`Expanding grid to show property ${propertyId} at index ${propertyIndex}`);
       setVisibleCount(Math.ceil((propertyIndex + 1) / 12) * 12);
     }
-  };
+  }, [regularProperties, visibleCount]);
 
   // Expose function globally for navigation restoration
-  window.ensurePropertyVisible = ensurePropertyVisible;
+  useEffect(() => {
+    // Re-assign to ensure latest closure is used by external callers
+    window.ensurePropertyVisible = ensurePropertyVisible;
+    return () => {
+      // Clean up global to avoid stale refs
+      if (window.ensurePropertyVisible === ensurePropertyVisible) {
+        delete window.ensurePropertyVisible;
+      }
+    };
+  }, [ensurePropertyVisible]);
 
   // Restaurar scroll ao voltar da página de detalhes
   useEffect(() => {
@@ -87,7 +96,7 @@ const PropertiesGrid = ({
         sessionStorage.removeItem('lastViewedPropertyId');
       }, 300); // Delay para garantir que o grid foi expandido
     }
-  }, [regularProperties]); // Executa quando as propriedades carregam
+  }, [ensurePropertyVisible]); // Executa quando ensurePropertyVisible (e suas deps) mudam
 
   const hasMoreProperties = regularProperties.length > visibleCount;
 

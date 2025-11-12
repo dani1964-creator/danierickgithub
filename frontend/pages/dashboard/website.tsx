@@ -15,6 +15,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import LogoUpload from '@/components/settings/LogoUpload';
+import HeaderBrandUpload from '@/components/settings/HeaderBrandUpload';
 import BackgroundImageUpload from '@/components/settings/BackgroundImageUpload';
 import SocialLinksManager from '@/components/social/SocialLinksManager';
 import BackgroundStyleSelector from '@/components/backgrounds/BackgroundStyleSelector';
@@ -115,6 +116,7 @@ const WebsiteSettings = () => {
         hero_subtitle: profile.hero_subtitle,
         logo_url: profile.logo_url,
         logo_size: profile.logo_size,
+        header_brand_image_url: profile.header_brand_image_url,
   primary_color: profile.primary_color,
   secondary_color: profile.secondary_color,
         background_image_url: profile.background_image_url,
@@ -715,6 +717,11 @@ const WebsiteSettings = () => {
                   logoSize={profile?.logo_size || 80}
                   onLogoChange={(url) => updateProfile('logo_url', url)}
                   onLogoSizeChange={(size) => updateProfile('logo_size', size)}
+                />
+
+                <HeaderBrandUpload
+                  brandImageUrl={profile?.header_brand_image_url || ''}
+                  onBrandImageChange={(url) => updateProfile('header_brand_image_url', url)}
                 />
 
                 <div className="grid gap-4 md:grid-cols-2">

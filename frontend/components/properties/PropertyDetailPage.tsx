@@ -1435,16 +1435,16 @@ const PropertyDetailPage = () => {
                         ))}
                       </CarouselContent>
                       
-                      {/* Botões de navegação premium */}
+                      {/* Botões de navegação - TRANSPARENTES */}
                       {propertyImages.length > 1 && (
                         <>
-                          <CarouselPrevious className="absolute left-3 top-1/2 -translate-y-1/2 bg-white/90 text-gray-800 border-0 hover:bg-white z-20 backdrop-blur-sm rounded-full h-10 w-10 transition-all duration-300 shadow-lg hover:scale-110" />
-                          <CarouselNext className="absolute right-3 top-1/2 -translate-y-1/2 bg-white/90 text-gray-800 border-0 hover:bg-white z-20 backdrop-blur-sm rounded-full h-10 w-10 transition-all duration-300 shadow-lg hover:scale-110" />
+                          <CarouselPrevious className="absolute left-3 top-1/2 -translate-y-1/2 bg-black/30 text-white border-0 hover:bg-black/50 z-20 backdrop-blur-sm rounded-full h-10 w-10 transition-all duration-300 shadow-lg hover:scale-110" />
+                          <CarouselNext className="absolute right-3 top-1/2 -translate-y-1/2 bg-black/30 text-white border-0 hover:bg-black/50 z-20 backdrop-blur-sm rounded-full h-10 w-10 transition-all duration-300 shadow-lg hover:scale-110" />
                         </>
                       )}
                     </Carousel>
                     
-                    {/* Thumbnails Mobile - ABAIXO DA FOTO PRINCIPAL */}
+                    {/* Thumbnails Mobile - SEM FUNDO BRANCO */}
                     {propertyImages.length > 1 && (
                       <div className="p-3">
                         <div className="flex gap-2 overflow-x-auto scrollbar-hide">
@@ -1452,8 +1452,10 @@ const PropertyDetailPage = () => {
                             <button
                               key={index}
                               onClick={() => handleThumbnailClick(index)}
-                              className={`property-detail-gallery__thumb flex-shrink-0 ${
-                                index === currentImageIndex ? 'is-active' : ''
+                              className={`relative flex-shrink-0 w-16 h-12 rounded-lg overflow-hidden border-2 transition-all duration-200 ${
+                                index === currentImageIndex 
+                                  ? 'border-white shadow-[0_0_0_2px_rgba(255,255,255,0.3)]' 
+                                  : 'border-white/50 hover:border-white/75 hover:scale-105'
                               }`}
                             >
                               <SafeImage
@@ -1502,29 +1504,29 @@ const PropertyDetailPage = () => {
                     {/* Overlay gradiente premium */}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
                     
-                    {/* Contador de fotos premium - TOP RIGHT */}
-                    <div className="property-detail-gallery__counter">
+                    {/* Contador de fotos - FIXO NO TOPO DIREITO */}
+                    <div className="fixed top-4 right-4 bg-black/80 text-white px-6 py-3 rounded-full text-sm font-bold backdrop-blur-sm z-50 shadow-xl">
                       {currentImageIndex + 1} / {propertyImages.length}
                     </div>
                     
-                    {/* Visualizações - TOP LEFT */}
-                    <div className="absolute top-6 left-6 z-20">
+                    {/* Visualizações - FIXO NO TOPO ESQUERDO */}
+                    <div className="fixed top-4 left-4 z-50">
                       <Badge className="bg-black/70 text-white hover:bg-black/80 px-6 py-3 text-sm font-bold rounded-full shadow-xl backdrop-blur-sm">
                         <Eye className="h-5 w-5 mr-2" />
                         {viewsCount} visualizações
                       </Badge>
                     </div>
                     
-                    {/* Botão expandir premium - CANTO SUPERIOR DIREITO */}
+                    {/* Botão expandir - FIXO ABAIXO DO CONTADOR */}
                     <button
                       onClick={() => setIsImageModalOpen(true)}
-                      className="property-detail-gallery__expand"
+                      className="fixed top-[68px] right-4 bg-black/30 hover:bg-black/50 text-white p-4 rounded-full transition-all duration-300 backdrop-blur-sm shadow-xl hover:scale-110 z-50"
                       title="Ampliar imagem"
                     >
                       <Maximize2 className="h-6 w-6" />
                     </button>
 
-                    {/* Botões de navegação premium - TRANSPARENTES */}
+                    {/* Botões de navegação - TRANSPARENTES */}
                     {propertyImages.length > 1 && (
                       <>
                         <button
@@ -1542,17 +1544,18 @@ const PropertyDetailPage = () => {
                       </>
                     )}
 
-                    {/* Desktop Thumbnails Premium - ABAIXO DA FOTO */}
+                    {/* Desktop Thumbnails - ABAIXO DA FOTO SEM FUNDO BRANCO */}
                     {propertyImages.length > 1 && (
-                      <div className="property-detail-gallery__thumbs-wrapper">
-                        <div className="property-detail-gallery__thumbs">
+                      <div className="absolute bottom-6 left-6 right-20 z-20">
+                        <div className="flex gap-2 overflow-x-auto scrollbar-hide">
                           {propertyImages.map((image, index) => (
                             <button
                               key={index}
-                              data-thumbnail-index={index}
                               onClick={() => handleThumbnailClick(index)}
-                              className={`property-detail-gallery__thumb ${
-                                index === currentImageIndex ? 'is-active' : ''
+                              className={`relative flex-shrink-0 w-16 h-12 rounded-lg overflow-hidden border-2 transition-all duration-200 ${
+                                index === currentImageIndex 
+                                  ? 'border-white shadow-[0_0_0_2px_rgba(255,255,255,0.3)]' 
+                                  : 'border-white/50 hover:border-white/75 hover:scale-105'
                               }`}
                             >
                               <SafeImage

@@ -63,7 +63,20 @@ export class BrokerResolver {
         return data?.id || null;
       }
 
-      // Domínio customizado
+      // Domínio customizado - Verificar campo custom_domain na tabela brokers
+      const { data: customDomainBroker, error: customDomainError } = await supabase
+        .from('brokers')
+        .select('id')
+        .eq('custom_domain', host)
+        .eq('is_active', true)
+        .maybeSingle();
+
+      if (customDomainError) throw customDomainError;
+      if (customDomainBroker?.id) {
+        return customDomainBroker.id;
+      }
+
+      // Fallback: Verificar broker_domains (para compatibilidade com domínios antigos)
       const { data: domainData, error: domainError } = await supabase
         .from('broker_domains')
         .select('broker_id')

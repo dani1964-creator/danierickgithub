@@ -506,20 +506,58 @@ const WebsiteSettings = () => {
                   
                   <div className="space-y-4">
                     <div className="space-y-2">
-                      <Label htmlFor="website_slug_config">Subdomínio do Site Público</Label>
+                      <Label htmlFor="website_slug_config">Subdomínio SaaS</Label>
                       <div className="flex items-center space-x-2">
                         <Input
                           id="website_slug_config"
+                          name="website_slug"
                           value={profile.website_slug || ''}
                           onChange={(e) => updateProfile('website_slug', e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '-'))}
-                          placeholder="danierick"
+                          placeholder="minhaimobiliaria"
                           className="flex-1"
+                          autoComplete="username"
                         />
                         <span className="text-sm text-muted-foreground">.adminimobiliaria.site</span>
                       </div>
                       <p className="text-sm text-muted-foreground">
-                        Subdomínio do seu site público. Ex: <strong>danierick</strong>.adminimobiliaria.site
+                        Seu subdomínio gratuito. Ex: <strong>minhaimobiliaria</strong>.adminimobiliaria.site
                       </p>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="custom_domain">Domínio Personalizado (Opcional)</Label>
+                      <Input
+                        id="custom_domain"
+                        name="custom_domain"
+                        type="url"
+                        value={profile.custom_domain || ''}
+                        onChange={(e) => updateProfile('custom_domain', e.target.value.toLowerCase())}
+                        placeholder="www.minhaimobiliaria.com.br"
+                        className="flex-1"
+                        autoComplete="url"
+                      />
+                      <p className="text-sm text-muted-foreground">
+                        Seu próprio domínio (requer configuração DNS). Ex: www.minhaimobiliaria.com.br
+                      </p>
+                      {profile.custom_domain && (
+                        <div className="mt-2 p-3 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-md">
+                          <p className="text-sm font-medium text-blue-900 dark:text-blue-100 mb-1">
+                            ⚙️ Configuração DNS necessária
+                          </p>
+                          <p className="text-xs text-blue-800 dark:text-blue-200">
+                            Adicione um registro <strong>CNAME</strong> no seu provedor DNS apontando para:
+                          </p>
+                          <code className="block mt-1 px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-900 dark:text-blue-100 rounded text-xs font-mono">
+                            adminimobiliaria.site
+                          </code>
+                          <p className="text-xs text-blue-700 dark:text-blue-300 mt-1">
+                            Após salvar, aguarde até 48h para propagação do DNS.
+                          </p>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="space-y-2">
                       {/* Preview do URL público configurado e botão para abrir */}
                       <div className="mt-3 flex items-center gap-3">
                         <div className="text-sm text-muted-foreground flex-1">

@@ -12,8 +12,26 @@ import { logger } from '@/lib/logger';
 import { supabase } from '@/integrations/supabase/client';
 
 /**
- * Página de Configurações do Site (Slug e Domínio Personalizado)
+ * ============================================================================
+ * CONFIGURAÇÕES DO SITE - Subdomínio e Domínio Principal
+ * ============================================================================
+ * 
+ * Esta página gerencia:
+ * ✅ Subdomínio SaaS (*.adminimobiliaria.site)
+ *    - Campo: website_slug (ex: "joao" → joao.adminimobiliaria.site)
+ *    - subdomain é sincronizado automaticamente via trigger SQL
+ * 
+ * ✅ Domínio Personalizado Principal (1 único)
+ *    - Campo: custom_domain (ex: www.imobiliariajoao.com.br)
+ *    - Substitui o subdomínio SaaS quando configurado
+ * 
+ * ⚠️ IMPORTANTE:
+ *    - Cada broker tem 1 subdomínio SaaS + opcionalmente 1 custom domain
+ *    - Custom domain NÃO cria subdomínios (ex: teste.seudominio.com)
+ *    - Para gerenciar múltiplos domínios avançados: ver Configurações > Domínios
+ * 
  * Acesso: painel.adminimobiliaria.site/painel/site
+ * ============================================================================
  */
 export default function WebsiteConfiguration() {
   const { toast } = useToast();
@@ -194,17 +212,23 @@ export default function WebsiteConfiguration() {
 
       <div className="mb-6">
         <h1 className="text-3xl font-bold">Configurações do Site</h1>
-        <p className="text-muted-foreground">
-          Configure o endereço do seu site público e domínio personalizado
+        <p className="text-muted-foreground mt-2">
+          Configure seu subdomínio SaaS e domínio personalizado principal
         </p>
+        <Alert className="mt-4">
+          <AlertDescription className="text-sm">
+            💡 <strong>Dica:</strong> O subdomínio SaaS é grátis e funciona imediatamente. 
+            O domínio personalizado é opcional e requer configuração DNS.
+          </AlertDescription>
+        </Alert>
       </div>
 
       {/* Slug Amigável (Subdomínio) */}
       <Card className="mb-6">
         <CardHeader>
-          <CardTitle>Slug Amigável (Subdomínio)</CardTitle>
+          <CardTitle>Subdomínio SaaS</CardTitle>
           <CardDescription>
-            Defina o endereço do seu site sob o domínio {baseDomain}
+            Seu endereço gratuito em {baseDomain} - Funciona imediatamente
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -251,9 +275,9 @@ export default function WebsiteConfiguration() {
       {/* Domínio Personalizado */}
       <Card>
         <CardHeader>
-          <CardTitle>Domínio Personalizado</CardTitle>
+          <CardTitle>Domínio Personalizado (Opcional)</CardTitle>
           <CardDescription>
-            Use seu próprio domínio para o site público (ex: imobiliariajoao.com.br)
+            Use seu próprio domínio para substituir o subdomínio SaaS (ex: www.imobiliariajoao.com.br)
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">

@@ -1,5 +1,5 @@
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { logger } from '@/lib/logger';
 import PropertyCard from '@/components/properties/PropertyCard';
 import { Button } from '@/components/ui/button';

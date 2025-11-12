@@ -1,3 +1,37 @@
+/**
+ * ============================================================================
+ * CONFIGURAÇÕES GERAIS - Perfil e Domínios Avançados
+ * ============================================================================
+ * 
+ * Esta página gerencia:
+ * ✅ Informações do Perfil do Broker
+ *    - Dados de contato, endereço, CRECI, etc.
+ * 
+ * ✅ Domínios Personalizados Avançados (Múltiplos)
+ *    - Tabela: broker_domains
+ *    - Permite adicionar vários domínios adicionais
+ *    - Ex: vitrine.cliente.com, app.cliente.com.br, etc.
+ * 
+ * ⚠️ DIFERENÇA entre painel/site.tsx e settings.tsx:
+ *    
+ *    painel/site.tsx (Simples):
+ *    - 1 subdomínio SaaS (*.adminimobiliaria.site)
+ *    - 1 custom_domain principal (campo brokers.custom_domain)
+ *    - Ideal para 99% dos casos
+ *    
+ *    settings.tsx (Avançado):
+ *    - Múltiplos domínios adicionais (tabela broker_domains)
+ *    - Gerenciamento individual (ativar/desativar)
+ *    - Provisionamento manual no servidor
+ *    - Para casos especiais (multi-marca, testes, etc)
+ * 
+ * 💡 RECOMENDAÇÃO:
+ *    Usuários normais devem usar apenas painel/site.tsx
+ *    settings.tsx é para casos avançados e específicos
+ * 
+ * Acesso: painel.adminimobiliaria.site/painel/configuracoes
+ * ============================================================================
+ */
 
 import { useState, useEffect, useCallback } from 'react';
 import dynamic from 'next/dynamic';
@@ -391,10 +425,11 @@ const Settings = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Globe2 className="h-5 w-5" />
-                Domínios personalizados
+                Domínios Adicionais (Avançado)
               </CardTitle>
               <CardDescription>
-                Cadastre domínios para sua vitrine pública. Crie um registro CNAME no seu provedor de DNS apontando o host para o domínio do app.
+                Gerencie múltiplos domínios personalizados para casos especiais.
+                Para configuração simples de 1 domínio, use: <strong>Configurações do Site</strong>.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">

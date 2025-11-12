@@ -1228,11 +1228,22 @@ const PropertyDetailPage = () => {
                   <span className="hidden sm:inline font-semibold text-sm">Voltar</span>
                 </Button>
                 
+                <div className="flex items-center min-w-0 flex-1">
+                  <h1 
+                    className="text-lg sm:text-xl md:text-2xl font-bold tracking-tight"
+                    style={{ color: brokerProfile.primary_color || '#2563eb' }}
+                  >
+                    Detalhes do Imóvel
+                  </h1>
+                </div>
+                
+                {/* Mantém botão invisível para facilitar navegação futura se necessário */}
                 <button
                   onClick={() => router.push(`/${slug || ''}`)}
-                  className="flex items-center hover:opacity-80 transition-all duration-200 min-w-0 flex-1 group"
+                  className="hidden"
+                  aria-label="Voltar para home"
                 >
-                  {/* Opção 1: Imagem combinada de logo + nome */}
+                  {/* Removido logo + nome do header de detalhes */}
                   {brokerProfile.header_brand_image_url ? (
                     (() => {
                       const h = Math.min(brokerProfile.logo_size || 80, 60);

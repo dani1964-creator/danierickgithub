@@ -116,33 +116,62 @@ const Footer = ({ brokerProfile, socialLinks = [], onContactRequest }: FooterPro
             {/* Logo e Informações da Empresa */}
             <div className="md:col-span-2 space-y-4">
               <div className="flex items-center">
-                {brokerProfile?.logo_url ? (
-                  <div 
-                    className="relative mr-3"
-                    style={{ 
-                      height: `${Math.min(brokerProfile.logo_size || 80, 40)}px`,
-                      width: `${Math.min(brokerProfile.logo_size || 80, 40) * 2}px`
-                    }}
-                  >
-                    <Image 
-                      src={brokerProfile.logo_url} 
-                      alt={brokerProfile.business_name} 
-                      fill
-                      className="object-contain"
-                      sizes="(max-width: 768px) 80px, 160px"
-                    />
-                  </div>
+                {/* Usar header_brand_image_url se disponível, senão logo_url + nome */}
+                {brokerProfile?.header_brand_image_url ? (
+                  (() => {
+                    const h = Math.min(brokerProfile.logo_size || 80, 40);
+                    const w = Math.round(h * 5);
+                    return (
+                      <div
+                        className="relative"
+                        style={{
+                          height: `${h}px`,
+                          width: `${w}px`,
+                          maxWidth: '300px'
+                        }}
+                      >
+                        <Image
+                          src={brokerProfile.header_brand_image_url}
+                          alt={`${brokerProfile.business_name} - Logo e Nome`}
+                          width={w}
+                          height={h}
+                          className="object-contain object-left"
+                          sizes="(max-width: 768px) 200px, 300px"
+                        />
+                      </div>
+                    );
+                  })()
                 ) : (
-                  <div 
-                    className="h-8 w-8 rounded-lg text-white flex items-center justify-center text-sm font-semibold mr-3"
-                    style={{ backgroundColor: brokerProfile?.primary_color || '#2563eb' }}
-                  >
-                    {brokerProfile?.business_name?.charAt(0) || 'I'}
-                  </div>
+                  <>
+                    {brokerProfile?.logo_url ? (
+                      <div 
+                        className="relative mr-3"
+                        style={{ 
+                          height: `${Math.min(brokerProfile.logo_size || 80, 40)}px`,
+                          width: `${Math.min(brokerProfile.logo_size || 80, 40) * 2}px`
+                        }}
+                      >
+                        <Image 
+                          src={brokerProfile.logo_url} 
+                          alt={brokerProfile.business_name} 
+                          fill
+                          className="object-contain"
+                          sizes="(max-width: 768px) 80px, 160px"
+                        />
+                      </div>
+                    ) : (
+                      <div 
+                        className="h-8 w-8 rounded-lg text-white flex items-center justify-center text-sm font-semibold mr-3"
+                        style={{ backgroundColor: brokerProfile?.primary_color || '#2563eb' }}
+                      >
+                        {brokerProfile?.business_name?.charAt(0) || 'I'}
+                      </div>
+                    )}
+                    <span className="text-lg font-semibold text-gray-900 dark:text-white">
+                      {brokerProfile?.business_name || 'Imobiliária'}
+                    </span>
+                  </>
                 )}
-                <span className="text-lg font-semibold text-gray-900 dark:text-white">
-                  {brokerProfile?.business_name || 'Imobiliária'}
-                </span>
               </div>
               
               <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed max-w-md">

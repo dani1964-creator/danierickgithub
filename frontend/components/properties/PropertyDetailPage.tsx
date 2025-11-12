@@ -1028,6 +1028,14 @@ const PropertyDetailPage = () => {
           property="og:image" 
           content={property?.main_image_url ? 
             (property.main_image_url.startsWith('http') ? property.main_image_url : `${origin}${property.main_image_url}`) :
+            brokerProfile?.site_share_image_url ?
+              (brokerProfile.site_share_image_url.startsWith('http') ?
+                brokerProfile.site_share_image_url :
+                `${origin}${brokerProfile.site_share_image_url}`) :
+            brokerProfile?.header_brand_image_url ?
+              (brokerProfile.header_brand_image_url.startsWith('http') ?
+                brokerProfile.header_brand_image_url :
+                `${origin}${brokerProfile.header_brand_image_url}`) :
             brokerProfile?.logo_url ? 
               (brokerProfile.logo_url.startsWith('http') ? brokerProfile.logo_url : `${origin}${brokerProfile.logo_url}`) :
               `${origin}/placeholder.svg`

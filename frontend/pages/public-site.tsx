@@ -422,6 +422,10 @@ const PublicSite = () => {
               (brokerProfile.site_share_image_url.startsWith('http') ? 
                 brokerProfile.site_share_image_url : 
                 `${origin}${brokerProfile.site_share_image_url}`) :
+              brokerProfile?.header_brand_image_url ?
+                (brokerProfile.header_brand_image_url.startsWith('http') ?
+                  brokerProfile.header_brand_image_url :
+                  `${origin}${brokerProfile.header_brand_image_url}`) :
               brokerProfile?.logo_url ? 
                 (brokerProfile.logo_url.startsWith('http') ? 
                   brokerProfile.logo_url : 

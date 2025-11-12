@@ -38,10 +38,12 @@ export default function OGDebugPage() {
     const fetchBroker = async () => {
       if (!slug) return;
 
+      const slugString = Array.isArray(slug) ? slug[0] : slug;
+
       const { data, error } = await supabase
         .from('brokers')
         .select('id, business_name, website_slug, logo_url, header_brand_image_url, site_share_image_url, site_title, site_description, primary_color')
-        .eq('website_slug', slug)
+        .eq('website_slug', slugString)
         .single();
 
       if (error) {

@@ -111,14 +111,20 @@ const PropertiesGrid = ({
         color3={brokerProfile?.sections_background_color_3 || '#ffffff'}
         className="py-16"
       >
-        <div className="content-container">
+        <div className="ds-container">
         <SectionHeader
           title="Todos os Imóveis"
           subtitle="Explore nossa seleção completa de propriedades"
           className="mb-8"
         />
 
-        <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 desktop-grid">
+        <div 
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+          style={{
+            gap: 'var(--spacing-6)',
+            marginBottom: 'var(--spacing-12)'
+          }}
+        >
           {visibleProperties.map((property) => (
             <PropertyCard 
               key={property.id}
@@ -135,10 +141,10 @@ const PropertiesGrid = ({
         </div>
 
         {hasMoreProperties && (
-          <div className="text-center mt-6 sm:mt-8">
+          <div className="text-center">
             <Button
               onClick={() => setVisibleCount(prev => prev + 12)}
-              className="px-6 sm:px-8 py-2 text-sm sm:text-base"
+              className="px-8 py-3 text-base font-semibold rounded-lg transition-all duration-300 hover:shadow-xl hover:-translate-y-1"
               style={{ 
                 backgroundColor: brokerProfile?.primary_color || '#2563eb',
                 borderColor: brokerProfile?.primary_color || '#2563eb',

@@ -1,10 +1,12 @@
 
+import { useEffect } from 'react';
 import { SwipeableCarousel } from '@/components/ui/swipeable-carousel';
 import PropertyCard from '@/components/properties/PropertyCard';
 import BackgroundRenderer from '@/components/backgrounds/BackgroundRenderer';
 import SectionHeader from '@/components/common/SectionHeader';
 import { Property } from '@/shared/types/tenant';
 import { BrokerProfile } from '@/shared/types/broker';
+import { logger } from '@/lib/logger';
 
 interface FeaturedPropertiesProps {
   properties: Property[];
@@ -27,6 +29,44 @@ const FeaturedProperties = ({
 }: FeaturedPropertiesProps) => {
   // Filter featured properties (for now show all since we don't have is_featured field)
   const featuredProperties = properties.slice(0, 8);
+
+  // Restaurar scroll ao voltar da página de detalhes
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
+    const lastViewedPropertyId = sessionStorage.getItem('lastViewedPropertyId');
+    if (lastViewedPropertyId) {
+      // Verificar se o imóvel está na seção de destaques
+      const isFeatured = featuredProperties.some(p => p.id === lastViewedPropertyId);
+      
+      if (isFeatured) {
+        logger.debug('Restoring scroll position to featured property:', lastViewedPropertyId);
+        
+        // Aguardar um pouco para o DOM atualizar
+        setTimeout(() => {
+          const propertyElement = document.getElementById(`property-featured-${lastViewedPropertyId}`);
+          if (propertyElement) {
+            // Scroll suave até o elemento com offset para header fixo
+            const headerOffset = 100;
+            const elementPosition = propertyElement.getBoundingClientRect().top;
+            const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+            
+            window.scrollTo({
+              top: offsetPosition,
+              behavior: 'smooth'
+            });
+            
+            logger.debug('Scrolled to featured property:', lastViewedPropertyId);
+            
+            // Limpar o sessionStorage após o scroll
+            sessionStorage.removeItem('lastViewedPropertyId');
+          } else {
+            logger.warn('Featured property element not found:', `property-featured-${lastViewedPropertyId}`);
+          }
+        }, 300);
+      }
+    }
+  }, [featuredProperties]);
 
   if (featuredProperties.length === 0) return null;
 

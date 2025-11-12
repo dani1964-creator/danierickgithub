@@ -1233,14 +1233,21 @@ const PropertyDetailPage = () => {
                   className="flex items-center hover:opacity-80 transition-all duration-200 min-w-0 flex-1 group"
                 >
                   {brokerProfile.logo_url ? (
-                    <div className="relative h-8 w-8 sm:h-12 sm:w-12 flex-shrink-0 rounded-xl overflow-hidden shadow-sm group-hover:shadow-md transition-shadow">
+                    <div 
+                      className="relative flex-shrink-0 rounded-xl overflow-hidden shadow-sm group-hover:shadow-md transition-shadow"
+                      style={{ 
+                        height: `${Math.min(brokerProfile.logo_size || 80, 60)}px`,
+                        width: `${Math.min(brokerProfile.logo_size || 80, 60) * 2}px`
+                      }}
+                    >
                       <SafeImage 
                         src={brokerProfile.logo_url} 
                         alt={brokerProfile.business_name} 
                         fill
                         className="object-contain"
-                        sizes="(max-width: 640px) 32px, 48px"
+                        sizes="(max-width: 640px) 120px, 160px"
                         fallbackColor={brokerProfile.primary_color}
+                        priority
                       />
                     </div>
                   ) : (

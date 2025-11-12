@@ -21,7 +21,7 @@ function TenantProvider({ children, initialTenant }) {
             setLoading(true);
             setError(null);
             // Primeiro, tentar obter do header (setado pelo middleware)
-            const tenantHeader = document.querySelector('meta[name="x-tenant-data"]')?.getAttribute('content');
+            const tenantHeader = document.querySelector('meta[name="x-broker-data"]')?.getAttribute('content');
             if (tenantHeader) {
                 try {
                     const tenantFromHeader = JSON.parse(tenantHeader);

@@ -351,6 +351,7 @@ const PropertyDetailPage = () => {
 
           const userAgent = typeof navigator !== 'undefined' ? navigator.userAgent : '';
           
+          // @ts-ignore - RPC function não está nos tipos gerados ainda
           const { data, error } = await supabase.rpc('track_unique_property_view', {
             p_property_id: propertyData.id,
             p_viewer_ip: clientIp,

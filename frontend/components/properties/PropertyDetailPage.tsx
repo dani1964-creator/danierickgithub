@@ -1234,24 +1234,31 @@ const PropertyDetailPage = () => {
                 >
                   {/* Opção 1: Imagem combinada de logo + nome */}
                   {brokerProfile.header_brand_image_url ? (
-                    <div 
-                      className="relative flex-shrink-0 rounded-xl overflow-hidden shadow-sm group-hover:shadow-md transition-shadow"
-                      style={{ 
-                        height: `${Math.min(brokerProfile.logo_size || 80, 60)}px`,
-                        width: 'auto',
-                        maxWidth: '400px'
-                      }}
-                    >
-                      <SafeImage 
-                        src={brokerProfile.header_brand_image_url} 
-                        alt={`${brokerProfile.business_name} - Logo e Nome`}
-                        fill
-                        className="object-contain object-left"
-                        sizes="(max-width: 640px) 300px, 400px"
-                        fallbackColor={brokerProfile.primary_color}
-                        priority
-                      />
-                    </div>
+                    (() => {
+                      const h = Math.min(brokerProfile.logo_size || 80, 60);
+                      const w = Math.round(h * 5);
+                      return (
+                        <div
+                          className="relative flex-shrink-0 rounded-xl overflow-hidden shadow-sm group-hover:shadow-md transition-shadow"
+                          style={{
+                            height: `${h}px`,
+                            width: `${w}px`,
+                            maxWidth: '400px'
+                          }}
+                        >
+                          <SafeImage
+                            src={brokerProfile.header_brand_image_url}
+                            alt={`${brokerProfile.business_name} - Logo e Nome`}
+                            width={w}
+                            height={h}
+                            className="object-contain object-left"
+                            sizes="(max-width: 640px) 300px, 400px"
+                            fallbackColor={brokerProfile.primary_color}
+                            priority
+                          />
+                        </div>
+                      );
+                    })()
                   ) : (
                     /* Opção 2: Logo + nome separados (comportamento atual) */
                     <>

@@ -52,23 +52,30 @@ const FixedHeader = ({ brokerProfile }: FixedHeaderProps) => {
           >
             {/* Opção 1: Imagem combinada de logo + nome */}
             {brokerProfile.header_brand_image_url ? (
-              <div 
-                className="flex-shrink-0 relative"
-                style={{ 
-                  height: `${Math.min(brokerProfile.logo_size || 80, 60)}px`,
-                  width: 'auto',
-                  maxWidth: '400px'
-                }}
-              >
-                <Image
-                  src={brokerProfile.header_brand_image_url}
-                  alt={`${displayName} - Logo e Nome`}
-                  fill
-                  className="object-contain object-left rounded-md"
-                  sizes="(max-width: 768px) 300px, 400px"
-                  priority
-                />
-              </div>
+              (() => {
+                const h = Math.min(brokerProfile.logo_size || 80, 60);
+                const w = Math.round(h * 5); // assume aspect ratio ~5:1 (400x80)
+                return (
+                  <div
+                    className="flex-shrink-0 relative"
+                    style={{
+                      height: `${h}px`,
+                      width: `${w}px`,
+                      maxWidth: '400px'
+                    }}
+                  >
+                    <Image
+                      src={brokerProfile.header_brand_image_url}
+                      alt={`${displayName} - Logo e Nome`}
+                      width={w}
+                      height={h}
+                      className="object-contain object-left rounded-md"
+                      sizes="(max-width: 768px) 300px, 400px"
+                      priority
+                    />
+                  </div>
+                );
+              })()
             ) : (
               /* Opção 2: Logo + nome separados (comportamento atual) */
               <>

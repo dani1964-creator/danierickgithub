@@ -1,14 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
-import { Heart, Filter, SortAsc, Trash2, Search, Home as HomeIcon, X } from 'lucide-react';
+import { Heart, Filter, SortAsc, Trash2, Search, Home as HomeIcon, X, MapPin, Bed, Bath, Square } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useFavorites } from '@/hooks/useFavorites';
 import { useNotifications } from '@/hooks/useNotifications';
-import PropertyCard from '@/components/properties/PropertyCard';
+import { SafeImage } from '@/components/ui/SafeImage';
 import { PropertyListSkeleton } from '@/components/skeletons/PropertySkeletons';
 import { analytics } from '@/lib/analytics';
 import { useDomainAware } from '@/hooks/useDomainAware';

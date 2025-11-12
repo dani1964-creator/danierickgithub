@@ -36,9 +36,9 @@ function TenantProvider({ children, initialTenant }) {
             }
             // Fallback: fazer requisição para API
             const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
-            const response = await fetch(`${apiUrl}/api/tenant/info`, {
+            const response = await fetch(`${apiUrl}/api/broker/info`, {
                 headers: {
-                    'x-tenant-domain': window.location.hostname
+                    'x-broker-domain': window.location.hostname
                 }
             });
             if (!response.ok) {
@@ -48,8 +48,8 @@ function TenantProvider({ children, initialTenant }) {
                 throw new Error('Erro ao carregar dados da imobiliária');
             }
             const data = await response.json();
-            setTenant(data.tenant);
-            applyTenantTheme(data.tenant);
+            setTenant(data.broker || data.tenant); // Aceitar 'broker' ou 'tenant' (retrocompatibilidade)
+            applyTenantTheme(data.broker || data.tenant);
         }
         catch (err) {
             logger_1.logger.error('Error loading tenant:', err);

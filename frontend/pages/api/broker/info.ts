@@ -2,9 +2,9 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { logger } from '@/lib/logger';
 
 /**
- * API Route: /api/tenant/info
+ * API Route: /api/broker/info
  * 
- * Proxy para o backend que busca informações do tenant baseado no domínio.
+ * Proxy para o backend que busca informações do broker baseado no domínio.
  * Esta rota serve como ponte entre o frontend e o backend, facilitando
  * requisições cross-origin de subdomínios.
  */
@@ -24,7 +24,7 @@ export default async function handler(
     res.setHeader('Access-Control-Allow-Origin', origin);
     res.setHeader('Access-Control-Allow-Credentials', 'true');
     res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-tenant-domain');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-broker-domain');
   }
 
   // Tratar preflight OPTIONS - IMPORTANTE para CORS!
@@ -40,37 +40,37 @@ export default async function handler(
 
   try {
     // Obter o hostname do header ou query
-    let tenantDomain = 
-      req.headers['x-tenant-domain'] as string || 
+    let brokerDomain = 
+      req.headers['x-broker-domain'] as string || 
       req.query.domain as string ||
       req.headers['x-forwarded-host'] as string ||
       req.headers.host as string;
 
-    if (!tenantDomain) {
+    if (!brokerDomain) {
       return res.status(400).json({ 
-        error: 'Missing tenant domain',
-        message: 'Não foi possível identificar o domínio do tenant'
+        error: 'Missing broker domain',
+        message: 'Não foi possível identificar o domínio da imobiliária'
       });
     }
 
     // Normalizar domínio: remover www. e porta
-    tenantDomain = tenantDomain
+    brokerDomain = brokerDomain
       .toLowerCase()
       .replace(/^www\./, '') // Remove www.
       .split(':')[0]; // Remove porta se presente
 
-    logger.info(`[API] Fetching tenant info for domain: ${tenantDomain}`);
+    logger.info(`[API] Fetching broker info for domain: ${brokerDomain}`);
 
     // URL do backend
     const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
-    const apiEndpoint = `${backendUrl}/api/tenant/identify?domain=${encodeURIComponent(tenantDomain)}`;
+    const apiEndpoint = `${backendUrl}/api/tenant/identify?domain=${encodeURIComponent(brokerDomain)}`;
 
     // Fazer requisição para o backend
     const response = await fetch(apiEndpoint, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
-        'x-tenant-domain': tenantDomain,
+        'x-broker-domain': brokerDomain,
       },
     });
 
@@ -79,9 +79,9 @@ export default async function handler(
       
       if (response.status === 404) {
         return res.status(404).json({
-          error: 'Tenant not found',
+          error: 'Broker not found',
           message: 'Imobiliária não encontrada para este domínio',
-          domain: tenantDomain
+          domain: brokerDomain
         });
       }
 
@@ -90,18 +90,18 @@ export default async function handler(
 
     const data = await response.json();
 
-    // Retornar dados do tenant
+    // Retornar dados do broker
     return res.status(200).json({
-      tenant: data.data || data.tenant || data,
-      domain: tenantDomain
+      broker: data.data || data.tenant || data,
+      domain: brokerDomain
     });
 
   } catch (error: any) {
-    logger.error('[API] Error fetching tenant info:', error);
+    logger.error('[API] Error fetching broker info:', error);
     
     return res.status(500).json({
       error: 'Internal server error',
-      message: error.message || 'Erro ao buscar informações do tenant'
+      message: error.message || 'Erro ao buscar informações da imobiliária'
     });
   }
 }

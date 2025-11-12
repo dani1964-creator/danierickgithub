@@ -1,6 +1,5 @@
 
 import { useEffect } from 'react';
-import { SwipeableCarousel } from '@/components/ui/swipeable-carousel';
 import PropertyCard from '@/components/properties/PropertyCard';
 import BackgroundRenderer from '@/components/backgrounds/BackgroundRenderer';
 import SectionHeader from '@/components/common/SectionHeader';
@@ -86,22 +85,27 @@ const FeaturedProperties = ({
             className="mb-8"
           />
 
-          <SwipeableCarousel autoplay={true} autoplayDelay={5000}>
+          {/* Grid responsivo igual ao PropertiesGrid para consistência */}
+          <div 
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+            style={{
+              gap: 'var(--spacing-6)',
+            }}
+          >
             {featuredProperties.map((property) => (
-              <div key={property.id} className="flex-none w-full sm:w-1/2 lg:w-1/3 xl:w-1/4 px-1 sm:px-2">
-                <PropertyCard 
-                  id={`property-featured-${property.id}`}
-                  property={property} 
-                  brokerProfile={brokerProfile} 
-                  onContactLead={onContactLead}
-                  onShare={onShare}
-                  onFavorite={onFavorite}
-                  isFavorited={isFavorited}
-                  onImageClick={onImageClick}
-                />
-              </div>
+              <PropertyCard 
+                key={property.id}
+                id={`property-featured-${property.id}`}
+                property={property} 
+                brokerProfile={brokerProfile} 
+                onContactLead={onContactLead}
+                onShare={onShare}
+                onFavorite={onFavorite}
+                isFavorited={isFavorited}
+                onImageClick={onImageClick}
+              />
             ))}
-          </SwipeableCarousel>
+          </div>
         </div>
       </BackgroundRenderer>
     </section>

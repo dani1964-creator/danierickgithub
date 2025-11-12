@@ -6,7 +6,7 @@ import { Toaster } from '@/components/ui/toaster';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import '@/index.css';
 import '@/theme/design-system.css';
-import '@/theme/property-card.css';
+import '@/theme/property-card-premium.css';
 import { TenantProvider } from '@/contexts/TenantContext';
 import { analytics } from '@/lib/analytics';
 

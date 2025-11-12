@@ -290,6 +290,26 @@ const PublicSite = () => {
     }
   }, [slug, fetchBrokerData, isCustomDomain]);
 
+  // Invalidar cache quando usuário volta para a página (ex: depois de ver detalhes)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        // Limpar cache quando página fica visível novamente
+        const slugString = Array.isArray(slug) ? slug[0] : slug;
+        const effectiveSlug = isCustomDomain() ? undefined : slugString;
+        const cacheKey = effectiveSlug || (typeof window !== 'undefined' ? window.location.hostname : '');
+        brokerCache.delete(cacheKey);
+        // Recarregar dados atualizados
+        fetchBrokerData();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [slug, isCustomDomain, fetchBrokerData]);
+
   // Fetch contact info when broker profile is loaded
   useEffect(() => {
     if (brokerProfile?.website_slug) {

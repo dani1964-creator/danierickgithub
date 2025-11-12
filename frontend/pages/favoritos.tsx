@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useFavorites } from '@/hooks/useFavorites';
 import { useNotifications } from '@/hooks/useNotifications';
-import { SafeImage } from '@/components/ui/SafeImage';
+import PropertyCard from '@/components/properties/PropertyCard';
 import { PropertyListSkeleton } from '@/components/skeletons/PropertySkeletons';
 import { analytics } from '@/lib/analytics';
 import { useDomainAware } from '@/hooks/useDomainAware';
@@ -244,88 +244,20 @@ export default function FavoritesPage() {
           {/* Loading State */}
           {isLoading && <PropertyListSkeleton count={6} />}
 
-          {/* Favorites Grid */}
+          {/* Favorites Grid - ESTILO PREMIUM */}
           {!isLoading && displayedFavorites.length > 0 && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {displayedFavorites.map((property) => (
-                <div
+                <PropertyCard
                   key={property.id}
-                  className="group bg-white rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden border border-gray-200 cursor-pointer"
-                >
-                  {/* Image */}
-                  <div
-                    className="relative h-64 overflow-hidden"
-                    onClick={() => handlePropertyClick(property.slug, property.broker_slug)}
-                  >
-                    <SafeImage
-                      src={property.main_image_url}
-                      alt={property.title}
-                      fill
-                      className="object-cover group-hover:scale-110 transition-transform duration-500"
-                      sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                    />
-                    
-                    {/* Remove Button */}
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleRemoveFavorite(property.id, property.title);
-                      }}
-                      className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm p-2 rounded-full hover:bg-white transition-all duration-200 hover:scale-110 z-10"
-                      title="Remover dos favoritos"
-                    >
-                      <Heart className="h-5 w-5 text-pink-500 fill-pink-500" />
-                    </button>
-
-                    {/* Transaction Type Badge */}
-                    <div className="absolute top-3 left-3">
-                      <Badge className="bg-blue-600 text-white">
-                        {property.property_type}
-                      </Badge>
-                    </div>
-                  </div>
-
-                  {/* Content */}
-                  <div
-                    className="p-4"
-                    onClick={() => handlePropertyClick(property.slug, property.broker_slug)}
-                  >
-                    {/* Price */}
-                    <div className="text-2xl font-bold text-blue-600 mb-2">
-                      {formatPrice(property.price)}
-                    </div>
-
-                    {/* Title */}
-                    <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2 min-h-[3rem]">
-                      {property.title}
-                    </h3>
-
-                    {/* Location */}
-                    <p className="text-sm text-gray-600 mb-3">
-                      {property.city}{property.uf ? `, ${property.uf}` : ''}
-                    </p>
-
-                    {/* Features */}
-                    <div className="flex items-center gap-4 text-sm text-gray-600">
-                      {property.bedrooms > 0 && (
-                        <span>{property.bedrooms} quartos</span>
-                      )}
-                      {property.bathrooms > 0 && (
-                        <span>{property.bathrooms} banheiros</span>
-                      )}
-                      {property.area_m2 > 0 && (
-                        <span>{property.area_m2}m²</span>
-                      )}
-                    </div>
-
-                    {/* Favorited Date */}
-                    <div className="mt-3 pt-3 border-t border-gray-100">
-                      <p className="text-xs text-gray-400">
-                        Salvo em {new Date(property.favorited_at).toLocaleDateString('pt-BR')}
-                      </p>
-                    </div>
-                  </div>
-                </div>
+                  property={property}
+                  brokerProfile={null}
+                  onContactLead={() => {}}
+                  onShare={() => {}}
+                  onFavorite={() => handleRemoveFavorite(property.id, property.title)}
+                  isFavorited={() => true}
+                  onImageClick={() => handlePropertyClick(property.slug, property.broker_slug)}
+                />
               ))}
             </div>
           )}

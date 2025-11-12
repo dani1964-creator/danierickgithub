@@ -336,18 +336,36 @@ const PropertyDetailPage = () => {
       setSocialLinks(socialData || []);
       setViewsCount(propertyData.views_count || 0);
 
-      // Atualiza contador de views sem bloquear a UI
-      const updatedViews = (propertyData.views_count || 0) + 1;
-      setViewsCount(updatedViews);
+      // Rastrear visualização única por IP usando a RPC function
       (async () => {
         try {
-          const { error: updateError } = await supabase
-            .from('properties')
-            .update({ views_count: updatedViews })
-            .eq('id', propertyData.id);
-          if (updateError) logger.warn('views_count update error:', updateError.message || updateError);
-          } catch (e) {
-          logger.warn('views_count update failed:', e);
+          // Obter IP do cliente (approximado via headers ou usar um serviço)
+          let clientIp = '0.0.0.0';
+          try {
+            const ipResponse = await fetch('https://api.ipify.org?format=json');
+            const ipData = await ipResponse.json();
+            clientIp = ipData.ip;
+          } catch (ipError) {
+            logger.warn('Could not fetch client IP, using default:', ipError);
+          }
+
+          const userAgent = typeof navigator !== 'undefined' ? navigator.userAgent : '';
+          
+          const { data, error } = await supabase.rpc('track_unique_property_view', {
+            p_property_id: propertyData.id,
+            p_viewer_ip: clientIp,
+            p_user_agent: userAgent
+          });
+
+          if (error) {
+            logger.warn('track_unique_property_view error:', error.message || error);
+          } else if (data) {
+            logger.info('View tracked:', data);
+            // Atualizar o contador local com o valor real do banco
+            setViewsCount(data.total_views || 0);
+          }
+        } catch (e) {
+          logger.warn('track_unique_property_view failed:', e);
         }
       })();
 
@@ -1383,31 +1401,8 @@ const PropertyDetailPage = () => {
               {/* Galeria de Imagens Mobile Premium */}
               {propertyImages.length > 0 ? (
                 <div className="lg:hidden mb-8 relative">
-                  {/* CONTROLES FIXOS MOBILE - FORA DO CAROUSEL */}
-                  {/* Contador de fotos - FIXO NO TOPO DIREITO */}
-                  <div className="fixed top-20 right-4 bg-black/80 text-white px-4 py-2 rounded-full text-xs font-bold z-[100] backdrop-blur-md shadow-xl pointer-events-none">
-                    {currentImageIndex + 1} / {propertyImages.length}
-                  </div>
-                  
-                  {/* Badge Visualizações - FIXO NO TOPO ESQUERDO */}
-                  <div className="fixed top-20 left-4 z-[100] pointer-events-none">
-                    <Badge className="bg-black/70 text-white px-3 py-2 text-xs font-bold rounded-full backdrop-blur-sm shadow-lg border-0">
-                      <Eye className="h-3.5 w-3.5 mr-1.5" />
-                      {viewsCount}
-                    </Badge>
-                  </div>
-                  
-                  {/* Botão Ampliar - FIXO ABAIXO DO CONTADOR */}
-                  <button
-                    onClick={() => setIsImageModalOpen(true)}
-                    className="fixed top-[88px] right-4 bg-black/30 hover:bg-black/50 text-white p-3 rounded-full transition-all duration-300 z-[100] backdrop-blur-sm shadow-xl"
-                    title="Ampliar imagem"
-                  >
-                    <Maximize2 className="h-4 w-4" />
-                  </button>
-
                   {/* CAROUSEL DA GALERIA */}
-                  <div className="property-detail-gallery">
+                  <div className="property-detail-gallery rounded-2xl overflow-hidden shadow-2xl">
                     <Carousel 
                       className="property-detail-gallery__main" 
                       setApi={setCarouselApi}
@@ -1419,7 +1414,7 @@ const PropertyDetailPage = () => {
                       <CarouselContent>
                         {propertyImages.map((image, index) => (
                           <CarouselItem key={index}>
-                             <div className="relative h-80 sm:h-96 bg-gradient-to-br from-gray-100 to-gray-200 overflow-hidden rounded-t-2xl">
+                             <div className="relative h-80 sm:h-96 bg-gradient-to-br from-gray-100 to-gray-200 overflow-hidden">
                                <SafeImage
                                  src={image}
                                  alt={`${property.title} - Imagem ${index + 1}`}
@@ -1437,18 +1432,41 @@ const PropertyDetailPage = () => {
                         ))}
                       </CarouselContent>
                       
-                      {/* Botões de navegação - TRANSPARENTES */}
+                      {/* Botões de navegação */}
                       {propertyImages.length > 1 && (
                         <>
                           <CarouselPrevious className="absolute left-3 top-1/2 -translate-y-1/2 bg-black/30 text-white border-0 hover:bg-black/50 z-20 backdrop-blur-sm rounded-full h-10 w-10 transition-all duration-300 shadow-lg hover:scale-110" />
                           <CarouselNext className="absolute right-3 top-1/2 -translate-y-1/2 bg-black/30 text-white border-0 hover:bg-black/50 z-20 backdrop-blur-sm rounded-full h-10 w-10 transition-all duration-300 shadow-lg hover:scale-110" />
                         </>
                       )}
+                      
+                      {/* CONTROLES - NO CARD */}
+                      {/* Contador - CANTO SUPERIOR DIREITO */}
+                      <div className="absolute top-3 right-3 bg-black/80 text-white px-3 py-2 rounded-full text-xs font-bold backdrop-blur-sm z-50 shadow-xl pointer-events-none">
+                        {currentImageIndex + 1} / {propertyImages.length}
+                      </div>
+                      
+                      {/* Badge Visualizações - CANTO SUPERIOR ESQUERDO */}
+                      <div className="absolute top-3 left-3 z-50 pointer-events-none">
+                        <Badge className="bg-black/70 text-white px-3 py-2 text-xs font-bold rounded-full backdrop-blur-sm shadow-lg border-0">
+                          <Eye className="h-3.5 w-3.5 mr-1.5" />
+                          {viewsCount}
+                        </Badge>
+                      </div>
+                      
+                      {/* Botão Ampliar - CANTO INFERIOR DIREITO */}
+                      <button
+                        onClick={() => setIsImageModalOpen(true)}
+                        className="absolute bottom-16 right-3 bg-black/30 hover:bg-black/50 text-white p-3 rounded-full transition-all duration-300 z-50 backdrop-blur-sm shadow-xl hover:scale-110"
+                        title="Ampliar imagem"
+                      >
+                        <Maximize2 className="h-4 w-4" />
+                      </button>
                     </Carousel>
                     
-                    {/* Thumbnails Mobile - SEM FUNDO BRANCO */}
+                    {/* Thumbnails - SEM FUNDO, APENAS IMAGENS */}
                     {propertyImages.length > 1 && (
-                      <div className="p-3 bg-black/10 backdrop-blur-sm">
+                      <div className="p-3 bg-gray-900/5">
                         <div className="flex gap-2 overflow-x-auto scrollbar-hide">
                           {propertyImages.map((image, index) => (
                             <button
@@ -1456,10 +1474,9 @@ const PropertyDetailPage = () => {
                               onClick={() => handleThumbnailClick(index)}
                               className={`relative flex-shrink-0 w-16 h-12 rounded-md overflow-hidden transition-all duration-200 ${
                                 index === currentImageIndex 
-                                  ? 'ring-2 ring-white ring-offset-2 ring-offset-black/20 scale-110' 
+                                  ? 'ring-2 ring-white scale-110' 
                                   : 'opacity-70 hover:opacity-100 hover:scale-105'
                               }`}
-                              style={{ backgroundColor: 'transparent' }}
                             >
                               <SafeImage
                                 src={image}
@@ -1492,29 +1509,6 @@ const PropertyDetailPage = () => {
               <div className="hidden lg:block mb-8 relative">
                 {propertyImages.length > 0 ? (
                   <>
-                    {/* CONTROLES FIXOS - FORA DA GALERIA */}
-                    {/* Contador de fotos - FIXO NO TOPO DIREITO DA TELA */}
-                    <div className="fixed top-24 right-4 bg-black/80 text-white px-6 py-3 rounded-full text-sm font-bold backdrop-blur-sm z-[100] shadow-xl pointer-events-none">
-                      {currentImageIndex + 1} / {propertyImages.length}
-                    </div>
-                    
-                    {/* Badge Visualizações - FIXO NO TOPO ESQUERDO DA TELA */}
-                    <div className="fixed top-24 left-4 z-[100] pointer-events-none">
-                      <Badge className="bg-black/70 text-white px-6 py-3 text-sm font-bold rounded-full shadow-xl backdrop-blur-sm border-0">
-                        <Eye className="h-5 w-5 mr-2" />
-                        {viewsCount} visualizações
-                      </Badge>
-                    </div>
-                    
-                    {/* Botão Ampliar - FIXO ABAIXO DO CONTADOR */}
-                    <button
-                      onClick={() => setIsImageModalOpen(true)}
-                      className="fixed top-[140px] right-4 bg-black/30 hover:bg-black/50 text-white p-4 rounded-full transition-all duration-300 backdrop-blur-sm shadow-xl hover:scale-110 z-[100]"
-                      title="Ampliar imagem"
-                    >
-                      <Maximize2 className="h-6 w-6" />
-                    </button>
-
                     {/* CONTAINER DA GALERIA */}
                     <div className="relative h-[600px] rounded-2xl overflow-hidden shadow-2xl bg-gradient-to-br from-gray-100 to-gray-200">
                       <SafeImage
@@ -1531,8 +1525,31 @@ const PropertyDetailPage = () => {
                       
                       {/* Overlay gradiente */}
                       <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent pointer-events-none" />
+                      
+                      {/* CONTROLES - BASEADOS NO CARD DA FOTO */}
+                      {/* Contador de fotos - CANTO SUPERIOR DIREITO DO CARD */}
+                      <div className="absolute top-4 right-4 bg-black/80 text-white px-6 py-3 rounded-full text-sm font-bold backdrop-blur-sm z-50 shadow-xl pointer-events-none">
+                        {currentImageIndex + 1} / {propertyImages.length}
+                      </div>
+                      
+                      {/* Badge Visualizações - CANTO SUPERIOR ESQUERDO DO CARD */}
+                      <div className="absolute top-4 left-4 z-50 pointer-events-none">
+                        <Badge className="bg-black/70 text-white px-6 py-3 text-sm font-bold rounded-full shadow-xl backdrop-blur-sm border-0">
+                          <Eye className="h-5 w-5 mr-2" />
+                          {viewsCount} visualizações
+                        </Badge>
+                      </div>
+                      
+                      {/* Botão Ampliar - CANTO INFERIOR DIREITO DO CARD */}
+                      <button
+                        onClick={() => setIsImageModalOpen(true)}
+                        className="absolute bottom-6 right-6 bg-black/30 hover:bg-black/50 text-white p-4 rounded-full transition-all duration-300 backdrop-blur-sm shadow-xl hover:scale-110 z-50"
+                        title="Ampliar imagem"
+                      >
+                        <Maximize2 className="h-6 w-6" />
+                      </button>
 
-                      {/* Botões de navegação - DENTRO da galeria mas não fixed */}
+                      {/* Botões de navegação */}
                       {propertyImages.length > 1 && (
                         <>
                           <button
@@ -1550,20 +1567,19 @@ const PropertyDetailPage = () => {
                         </>
                       )}
 
-                      {/* Thumbnails - SEM FUNDO BRANCO */}
+                      {/* Thumbnails - SEM FUNDO, APENAS IMAGENS */}
                       {propertyImages.length > 1 && (
-                        <div className="absolute bottom-6 left-6 right-6 z-20">
-                          <div className="flex gap-2 overflow-x-auto scrollbar-hide bg-black/20 backdrop-blur-sm p-2 rounded-lg">
+                        <div className="absolute bottom-6 left-6 right-24 z-20">
+                          <div className="flex gap-2 overflow-x-auto scrollbar-hide">
                             {propertyImages.map((image, index) => (
                               <button
                                 key={index}
                                 onClick={() => handleThumbnailClick(index)}
                                 className={`relative flex-shrink-0 w-16 h-12 rounded-md overflow-hidden transition-all duration-200 ${
                                   index === currentImageIndex 
-                                    ? 'ring-2 ring-white ring-offset-2 ring-offset-black/20 scale-110' 
-                                    : 'opacity-70 hover:opacity-100 hover:scale-105'
+                                    ? 'ring-2 ring-white scale-105' 
+                                    : 'opacity-60 hover:opacity-100 hover:scale-105'
                                 }`}
-                                style={{ backgroundColor: 'transparent' }}
                               >
                                 <SafeImage
                                   src={image}

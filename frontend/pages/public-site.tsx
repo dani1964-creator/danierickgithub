@@ -206,25 +206,27 @@ const PublicSite = () => {
   }, [typeGroups]);
   const propertyTypeOptions = useMemo(() => sortedTypeGroups.flatMap((g) => g.options.map(o => ({ value: o.value, label: o.label }))), [sortedTypeGroups]);
 
-  const fetchBrokerData = useCallback(async () => {
+  const fetchBrokerData = useCallback(async (forceRefresh = false) => {
     try {
       // Garantir que slug seja string | undefined (router.query pode retornar string[])
       const slugString = Array.isArray(slug) ? slug[0] : slug;
       const effectiveSlug = isCustomDomain() ? undefined : slugString;
       const cacheKey = effectiveSlug || (typeof window !== 'undefined' ? window.location.hostname : '');
       
-      // Verificar cache
-      const cached = brokerCache.get(cacheKey);
-      if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
-        logger.debug('Using cached broker data for:', cacheKey);
-        setBrokerProfile(cached.data.broker);
-        setProperties(cached.data.properties);
-        setSocialLinks(cached.data.socialLinks);
-        setLoading(false);
-        return;
+      // Verificar cache (apenas se não for refresh forçado)
+      if (!forceRefresh) {
+        const cached = brokerCache.get(cacheKey);
+        if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+          logger.debug('Using cached broker data for:', cacheKey);
+          setBrokerProfile(cached.data.broker);
+          setProperties(cached.data.properties);
+          setSocialLinks(cached.data.socialLinks);
+          setLoading(false);
+          return;
+        }
       }
       
-      logger.debug('Fetching broker data - Custom domain:', isCustomDomain(), 'Slug:', effectiveSlug);
+      logger.debug('Fetching broker data - Custom domain:', isCustomDomain(), 'Slug:', effectiveSlug, 'Force refresh:', forceRefresh);
       const brokerData = await getBrokerByDomainOrSlug(effectiveSlug);
       logger.debug('Broker data from domain-aware hook:', brokerData);
       if (!brokerData) {
@@ -235,6 +237,14 @@ const PublicSite = () => {
       // Converte brokerData para BrokerProfile (Row) com cast via unknown para evitar conflito de tipos gerados
       setBrokerProfile(brokerData as unknown as BrokerProfile);
       const propertiesData = await getPropertiesByDomainOrSlug(effectiveSlug, 50, 0);
+      logger.info('✅ Properties fetched from database:', {
+        count: propertiesData?.length || 0,
+        sample: propertiesData?.[0] ? {
+          id: propertiesData[0].id,
+          title: propertiesData[0].title,
+          views_count: propertiesData[0].views_count
+        } : null
+      });
       setProperties((propertiesData || []) as unknown as Property[]);
       const { data: socialLinksData, error: socialError } = await supabase
         .from('social_links')
@@ -294,13 +304,11 @@ const PublicSite = () => {
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
-        // Limpar cache quando página fica visível novamente
-        const slugString = Array.isArray(slug) ? slug[0] : slug;
-        const effectiveSlug = isCustomDomain() ? undefined : slugString;
-        const cacheKey = effectiveSlug || (typeof window !== 'undefined' ? window.location.hostname : '');
-        brokerCache.delete(cacheKey);
-        // Recarregar dados atualizados
-        fetchBrokerData();
+        // Limpar TODOS os caches quando página fica visível
+        brokerCache.clear();
+        logger.info('Cache cleared on page visibility, reloading fresh data...');
+        // Recarregar dados atualizados COM FORÇA (bypass do cache)
+        fetchBrokerData(true);
       }
     };
 
@@ -308,7 +316,7 @@ const PublicSite = () => {
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [slug, isCustomDomain, fetchBrokerData]);
+  }, [fetchBrokerData]);
 
   // Fetch contact info when broker profile is loaded
   useEffect(() => {

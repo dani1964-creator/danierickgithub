@@ -2,14 +2,19 @@
 -- SOLUÇÃO DEFINITIVA: Sincronização automática de website_slug e subdomain
 -- ============================================================================
 -- PROBLEMA: 
---   - website_slug e subdomain estão desincronizados
---   - Admin panel atualiza um mas não o outro consistentemente
---   - Queries precisam verificar ambos os campos (OR condition)
+--   - website_slug e subdomain estavam desincronizados
+--   - Admin panel atualizava um mas não o outro consistentemente
+--   - Queries precisavam verificar ambos os campos (OR condition)
 --
 -- DECISÃO ARQUITETURAL:
---   - website_slug = FONTE DA VERDADE (usado em todas as RPCs e URLs)
---   - subdomain = SINÔNIMO/ALIAS (para compatibilidade e domínios *.adminimobiliaria.site)
---   - custom_domain = Domínio próprio do cliente (opcional)
+--   - website_slug = FONTE DA VERDADE (identificador único do broker)
+--   - subdomain = SINÔNIMO/ALIAS (mantido igual a website_slug via trigger)
+--   - custom_domain = DOMÍNIO PRÓPRIO do cliente (opcional, substitui SaaS)
+--
+-- IMPORTANTE:
+--   website_slug/subdomain: Usado APENAS para *.adminimobiliaria.site
+--   custom_domain: Usado para domínios próprios (ex: www.imobiliaria.com.br)
+--   NÃO criar "subdomínio dentro de custom_domain" - cada broker tem 1 site
 --
 -- SOLUÇÃO:
 --   - Trigger que mantém subdomain SEMPRE igual a website_slug

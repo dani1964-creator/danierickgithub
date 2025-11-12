@@ -3,6 +3,16 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ========================================
+   DESIGN SYSTEM PREMIUM - IMPORTS
+   ======================================== */
+
+@import './theme/design-system.css';
+@import './theme/property-card-premium.css';
+@import './theme/search-filters-premium.css';
+@import './theme/header-footer-premium.css';
+@import './theme/property-detail-premium.css';
+
 /* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
 All colors MUST be HSL.
 */

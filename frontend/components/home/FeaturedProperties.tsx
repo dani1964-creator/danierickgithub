@@ -85,11 +85,40 @@ const FeaturedProperties = ({
             className="mb-8"
           />
 
-          {/* Grid responsivo igual ao PropertiesGrid para consistência */}
+          {/* Grid responsivo - Desktop usa grid, Mobile usa carousel com peek */}
+          
+          {/* Mobile: Carousel com peek (mostra laterais) */}
+          <div className="block sm:hidden overflow-x-auto scrollbar-hide">
+            <div className="flex gap-4 px-6" style={{ scrollSnapType: 'x mandatory' }}>
+              {featuredProperties.map((property) => (
+                <div 
+                  key={property.id}
+                  className="flex-shrink-0"
+                  style={{ 
+                    width: 'calc(100vw - 80px)',
+                    scrollSnapAlign: 'center'
+                  }}
+                >
+                  <PropertyCard 
+                    id={`property-featured-${property.id}`}
+                    property={property} 
+                    brokerProfile={brokerProfile} 
+                    onContactLead={onContactLead}
+                    onShare={onShare}
+                    onFavorite={onFavorite}
+                    isFavorited={isFavorited}
+                    onImageClick={onImageClick}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Tablet e Desktop: Grid normal */}
           <div 
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+            className="hidden sm:grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
             style={{
-              gap: 'var(--spacing-6)',
+              gap: 'var(--space-6)',
             }}
           >
             {featuredProperties.map((property) => (

@@ -472,3 +472,24 @@
     gap: var(--space-8);
   }
 }
+
+/* ========================================
+   MOBILE CAROUSEL - PEEK EFFECT
+   ======================================== */
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Smooth scroll no mobile */
+@media (max-width: 640px) {
+  .overflow-x-auto {
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+  }
+}

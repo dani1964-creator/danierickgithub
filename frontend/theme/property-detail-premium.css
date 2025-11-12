@@ -1,0 +1,524 @@
+/**
+ * Property Detail Page Premium - Design Único
+ * 
+ * Página de detalhes com galeria premium, informações hierarquizadas
+ * CTAs destacados, breadcrumbs elegantes
+ */
+
+/* ========================================
+   CONTAINER PRINCIPAL
+   ======================================== */
+
+.property-detail-premium {
+  background: var(--neutral-50);
+  min-height: 100vh;
+}
+
+.property-detail-premium__container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: var(--space-6);
+}
+
+@media (min-width: 768px) {
+  .property-detail-premium__container {
+    padding: var(--space-8);
+  }
+}
+
+/* ========================================
+   BREADCRUMBS PREMIUM
+   ======================================== */
+
+.property-detail-breadcrumbs {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-4) 0;
+  font-size: var(--text-sm);
+  color: var(--neutral-600);
+}
+
+.property-detail-breadcrumbs__link {
+  color: var(--neutral-600);
+  text-decoration: none;
+  transition: color var(--duration-fast) var(--ease-smooth);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.property-detail-breadcrumbs__link:hover {
+  color: var(--primary-700);
+}
+
+.property-detail-breadcrumbs__separator {
+  color: var(--neutral-400);
+}
+
+.property-detail-breadcrumbs__current {
+  color: var(--neutral-900);
+  font-weight: var(--weight-medium);
+}
+
+/* ========================================
+   GALERIA PREMIUM
+   ======================================== */
+
+.property-detail-gallery {
+  background: white;
+  border-radius: var(--radius-2xl);
+  overflow: hidden;
+  box-shadow: var(--shadow-lg);
+  border: var(--border-width-thin) solid var(--border-color-light);
+  margin-bottom: var(--space-8);
+}
+
+.property-detail-gallery__main {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  background: var(--neutral-900);
+}
+
+.property-detail-gallery__main img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform var(--duration-slower) var(--ease-smooth);
+}
+
+.property-detail-gallery__main:hover img {
+  transform: scale(1.05);
+}
+
+.property-detail-gallery__thumbs {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: var(--space-2);
+  padding: var(--space-4);
+  background: var(--neutral-100);
+}
+
+.property-detail-gallery__thumb {
+  aspect-ratio: 4 / 3;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: all var(--duration-fast) var(--ease-smooth);
+}
+
+.property-detail-gallery__thumb:hover {
+  border-color: var(--primary-500);
+  transform: scale(1.05);
+  box-shadow: var(--shadow-md);
+}
+
+.property-detail-gallery__thumb.is-active {
+  border-color: var(--primary-600);
+  box-shadow: var(--shadow-primary);
+}
+
+.property-detail-gallery__thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* ========================================
+   CONTENT GRID
+   ======================================== */
+
+.property-detail-content {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-8);
+}
+
+@media (min-width: 1024px) {
+  .property-detail-content {
+    grid-template-columns: 2fr 1fr;
+  }
+}
+
+/* ========================================
+   MAIN INFO - HIERARQUIA
+   ======================================== */
+
+.property-detail-main {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.property-detail-header {
+  background: white;
+  padding: var(--space-6);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-md);
+  border: var(--border-width-thin) solid var(--border-color-light);
+}
+
+.property-detail-title {
+  font-size: var(--text-3xl);
+  font-weight: var(--weight-bold);
+  color: var(--neutral-900);
+  line-height: var(--leading-tight);
+  margin-bottom: var(--space-3);
+}
+
+@media (min-width: 768px) {
+  .property-detail-title {
+    font-size: var(--text-4xl);
+  }
+}
+
+.property-detail-location {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--neutral-600);
+  font-size: var(--text-base);
+  margin-bottom: var(--space-4);
+}
+
+.property-detail-location svg {
+  width: 20px;
+  height: 20px;
+  color: var(--primary-600);
+}
+
+.property-detail-price {
+  font-size: var(--text-4xl);
+  font-weight: var(--weight-extrabold);
+  background: var(--gradient-primary);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: var(--leading-tight);
+  margin-bottom: var(--space-2);
+}
+
+@media (min-width: 768px) {
+  .property-detail-price {
+    font-size: var(--text-5xl);
+  }
+}
+
+.property-detail-code {
+  font-size: var(--text-sm);
+  color: var(--neutral-500);
+  font-weight: var(--weight-medium);
+}
+
+/* ========================================
+   FEATURES GRID PREMIUM
+   ======================================== */
+
+.property-detail-features {
+  background: white;
+  padding: var(--space-6);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-md);
+  border: var(--border-width-thin) solid var(--border-color-light);
+}
+
+.property-detail-features__title {
+  font-size: var(--text-xl);
+  font-weight: var(--weight-semibold);
+  color: var(--neutral-900);
+  margin-bottom: var(--space-4);
+}
+
+.property-detail-features__grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-4);
+}
+
+@media (min-width: 640px) {
+  .property-detail-features__grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .property-detail-features__grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.property-detail-feature {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  background: var(--neutral-50);
+  border-radius: var(--radius-lg);
+  border: var(--border-width-thin) solid var(--border-color-light);
+  transition: all var(--duration-fast) var(--ease-smooth);
+}
+
+.property-detail-feature:hover {
+  background: var(--primary-50);
+  border-color: var(--primary-300);
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md);
+}
+
+.property-detail-feature__icon {
+  width: 24px;
+  height: 24px;
+  color: var(--primary-600);
+}
+
+.property-detail-feature__value {
+  font-size: var(--text-lg);
+  font-weight: var(--weight-bold);
+  color: var(--neutral-900);
+}
+
+.property-detail-feature__label {
+  font-size: var(--text-xs);
+  color: var(--neutral-600);
+  text-align: center;
+}
+
+/* ========================================
+   DESCRIPTION PREMIUM
+   ======================================== */
+
+.property-detail-description {
+  background: white;
+  padding: var(--space-6);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-md);
+  border: var(--border-width-thin) solid var(--border-color-light);
+}
+
+.property-detail-description__title {
+  font-size: var(--text-xl);
+  font-weight: var(--weight-semibold);
+  color: var(--neutral-900);
+  margin-bottom: var(--space-4);
+}
+
+.property-detail-description__text {
+  font-size: var(--text-base);
+  color: var(--neutral-700);
+  line-height: var(--leading-relaxed);
+  white-space: pre-wrap;
+}
+
+/* ========================================
+   SIDEBAR - CTAs PREMIUM
+   ======================================== */
+
+.property-detail-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.property-detail-cta-card {
+  background: white;
+  padding: var(--space-6);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg);
+  border: var(--border-width-thin) solid var(--border-color-light);
+  position: sticky;
+  top: var(--space-6);
+}
+
+.property-detail-cta__title {
+  font-size: var(--text-lg);
+  font-weight: var(--weight-semibold);
+  color: var(--neutral-900);
+  margin-bottom: var(--space-4);
+}
+
+.property-detail-cta__buttons {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.property-detail-cta__button-primary {
+  width: 100%;
+  padding: var(--space-4);
+  font-size: var(--text-base);
+  font-weight: var(--weight-semibold);
+  color: white;
+  background: var(--gradient-primary);
+  border: none;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-primary);
+  cursor: pointer;
+  transition: all var(--duration-base) var(--ease-smooth);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  position: relative;
+  overflow: hidden;
+}
+
+.property-detail-cta__button-primary::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  transform: translate(-50%, -50%);
+  transition: width var(--duration-slow) var(--ease-bounce),
+              height var(--duration-slow) var(--ease-bounce);
+}
+
+.property-detail-cta__button-primary:hover::before {
+  width: 300px;
+  height: 300px;
+}
+
+.property-detail-cta__button-primary:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-xl);
+}
+
+.property-detail-cta__button-secondary {
+  width: 100%;
+  padding: var(--space-4);
+  font-size: var(--text-base);
+  font-weight: var(--weight-semibold);
+  color: var(--primary-700);
+  background: var(--primary-50);
+  border: var(--border-width-base) solid var(--primary-300);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease-smooth);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+}
+
+.property-detail-cta__button-secondary:hover {
+  background: var(--primary-100);
+  border-color: var(--primary-500);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+/* ========================================
+   REALTOR CARD PREMIUM
+   ======================================== */
+
+.property-detail-realtor {
+  background: white;
+  padding: var(--space-6);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-md);
+  border: var(--border-width-thin) solid var(--border-color-light);
+}
+
+.property-detail-realtor__header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  margin-bottom: var(--space-4);
+}
+
+.property-detail-realtor__avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: var(--radius-full);
+  border: 3px solid var(--primary-200);
+  object-fit: cover;
+}
+
+.property-detail-realtor__info {
+  flex: 1;
+}
+
+.property-detail-realtor__name {
+  font-size: var(--text-lg);
+  font-weight: var(--weight-semibold);
+  color: var(--neutral-900);
+}
+
+.property-detail-realtor__creci {
+  font-size: var(--text-sm);
+  color: var(--neutral-600);
+}
+
+.property-detail-realtor__bio {
+  font-size: var(--text-sm);
+  color: var(--neutral-700);
+  line-height: var(--leading-relaxed);
+  margin-bottom: var(--space-4);
+}
+
+/* ========================================
+   ACTION BUTTONS - MOBILE FIXED
+   ======================================== */
+
+.property-detail-mobile-actions {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: white;
+  padding: var(--space-4);
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
+  z-index: var(--z-sticky);
+  display: flex;
+  gap: var(--space-3);
+  border-top: var(--border-width-thin) solid var(--border-color-light);
+}
+
+@media (min-width: 1024px) {
+  .property-detail-mobile-actions {
+    display: none;
+  }
+}
+
+.property-detail-mobile-actions__favorite {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--neutral-100);
+  border: var(--border-width-base) solid var(--border-color-light);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease-smooth);
+}
+
+.property-detail-mobile-actions__favorite:hover {
+  background: var(--primary-50);
+  border-color: var(--primary-300);
+}
+
+.property-detail-mobile-actions__favorite.is-favorited {
+  background: #fce7f3;
+  border-color: #fbcfe8;
+  color: #ec4899;
+}
+
+.property-detail-mobile-actions__cta {
+  flex: 1;
+  height: 48px;
+  background: var(--gradient-primary);
+  color: white;
+  border: none;
+  border-radius: var(--radius-lg);
+  font-size: var(--text-base);
+  font-weight: var(--weight-semibold);
+  cursor: pointer;
+  box-shadow: var(--shadow-primary);
+}

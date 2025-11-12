@@ -35,7 +35,23 @@ export function TenantProvider({ children, initialTenant }: TenantProviderProps)
       setLoading(true);
       setError(null);
       
-      // Resolver broker_id usando o BrokerResolver
+      // Primeiro, tentar obter do meta tag (setado pelo middleware)
+      if (typeof window !== 'undefined') {
+        const tenantHeader = document.querySelector('meta[name="x-broker-data"]')?.getAttribute('content');
+        if (tenantHeader) {
+          try {
+            const tenantFromHeader = JSON.parse(tenantHeader);
+            setTenant(tenantFromHeader);
+            applyTenantTheme(tenantFromHeader);
+            setLoading(false);
+            return;
+          } catch (e) {
+            logger.warn('Failed to parse broker from meta tag');
+          }
+        }
+      }
+      
+      // Fallback: Resolver broker_id usando o BrokerResolver
       const brokerId = await BrokerResolver.resolveBrokerByHost();
       
       if (!brokerId) {

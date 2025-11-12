@@ -1383,6 +1383,30 @@ const PropertyDetailPage = () => {
               {/* Galeria de Imagens Mobile Premium */}
               {propertyImages.length > 0 ? (
                 <div className="lg:hidden mb-8 relative">
+                  {/* CONTROLES FIXOS MOBILE - FORA DO CAROUSEL */}
+                  {/* Contador de fotos - FIXO NO TOPO DIREITO */}
+                  <div className="fixed top-20 right-4 bg-black/80 text-white px-4 py-2 rounded-full text-xs font-bold z-[100] backdrop-blur-md shadow-xl pointer-events-none">
+                    {currentImageIndex + 1} / {propertyImages.length}
+                  </div>
+                  
+                  {/* Badge Visualizações - FIXO NO TOPO ESQUERDO */}
+                  <div className="fixed top-20 left-4 z-[100] pointer-events-none">
+                    <Badge className="bg-black/70 text-white px-3 py-2 text-xs font-bold rounded-full backdrop-blur-sm shadow-lg border-0">
+                      <Eye className="h-3.5 w-3.5 mr-1.5" />
+                      {viewsCount}
+                    </Badge>
+                  </div>
+                  
+                  {/* Botão Ampliar - FIXO ABAIXO DO CONTADOR */}
+                  <button
+                    onClick={() => setIsImageModalOpen(true)}
+                    className="fixed top-[88px] right-4 bg-black/30 hover:bg-black/50 text-white p-3 rounded-full transition-all duration-300 z-[100] backdrop-blur-sm shadow-xl"
+                    title="Ampliar imagem"
+                  >
+                    <Maximize2 className="h-4 w-4" />
+                  </button>
+
+                  {/* CAROUSEL DA GALERIA */}
                   <div className="property-detail-gallery">
                     <Carousel 
                       className="property-detail-gallery__main" 
@@ -1407,29 +1431,7 @@ const PropertyDetailPage = () => {
                                  fallbackColor={brokerProfile?.primary_color}
                                />
                                {/* Overlay gradiente */}
-                               <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
-                               
-                               {/* Contador de fotos premium - FIXO NO TOPO */}
-                               <div className="fixed top-20 right-4 bg-black/70 text-white px-3 py-1.5 rounded-full text-xs font-semibold z-50 backdrop-blur-md">
-                                 {currentImageIndex + 1} / {propertyImages.length}
-                               </div>
-                               
-                               {/* Visualizações - TOP LEFT */}
-                               <div className="absolute top-4 left-4 z-30">
-                                 <Badge className="bg-black/70 text-white hover:bg-black/80 px-3 py-1.5 text-xs font-medium rounded-full backdrop-blur-sm shadow-lg">
-                                   <Eye className="h-3.5 w-3.5 mr-1.5" />
-                                   {viewsCount}
-                                 </Badge>
-                               </div>
-                               
-                               {/* Botão expandir - FIXO NO TOPO */}
-                               <button
-                                 onClick={() => setIsImageModalOpen(true)}
-                                 className="fixed top-32 right-4 bg-black/30 text-white p-2.5 rounded-full hover:bg-black/50 transition-all duration-300 z-50 backdrop-blur-sm shadow-lg"
-                                 title="Ampliar imagem"
-                               >
-                                 <Maximize2 className="h-4 w-4" />
-                               </button>
+                               <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent pointer-events-none" />
                             </div>
                           </CarouselItem>
                         ))}
@@ -1446,17 +1448,18 @@ const PropertyDetailPage = () => {
                     
                     {/* Thumbnails Mobile - SEM FUNDO BRANCO */}
                     {propertyImages.length > 1 && (
-                      <div className="p-3">
+                      <div className="p-3 bg-black/10 backdrop-blur-sm">
                         <div className="flex gap-2 overflow-x-auto scrollbar-hide">
                           {propertyImages.map((image, index) => (
                             <button
                               key={index}
                               onClick={() => handleThumbnailClick(index)}
-                              className={`relative flex-shrink-0 w-16 h-12 rounded-lg overflow-hidden border-2 transition-all duration-200 ${
+                              className={`relative flex-shrink-0 w-16 h-12 rounded-md overflow-hidden transition-all duration-200 ${
                                 index === currentImageIndex 
-                                  ? 'border-white shadow-[0_0_0_2px_rgba(255,255,255,0.3)]' 
-                                  : 'border-white/50 hover:border-white/75 hover:scale-105'
+                                  ? 'ring-2 ring-white ring-offset-2 ring-offset-black/20 scale-110' 
+                                  : 'opacity-70 hover:opacity-100 hover:scale-105'
                               }`}
+                              style={{ backgroundColor: 'transparent' }}
                             >
                               <SafeImage
                                 src={image}
@@ -1486,93 +1489,98 @@ const PropertyDetailPage = () => {
               )}
 
               {/* Desktop Gallery Premium */}
-              <div className="hidden lg:block mb-8">
+              <div className="hidden lg:block mb-8 relative">
                 {propertyImages.length > 0 ? (
-                  <div className="relative h-[600px] rounded-2xl overflow-hidden shadow-2xl bg-gradient-to-br from-gray-100 to-gray-200">
-                    <SafeImage
-                      key={`desktop-image-${currentImageIndex}`}
-                      src={propertyImages[currentImageIndex]}
-                      alt={`${property.title} - Imagem ${currentImageIndex + 1}`}
-                      fill
-                      className="object-cover transition-all duration-500"
-                      loading="eager"
-                      sizes="(max-width: 1024px) 100vw, 1024px"
-                      priority
-                      fallbackColor={brokerProfile?.primary_color}
-                    />
-                    
-                    {/* Overlay gradiente premium */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
-                    
-                    {/* Contador de fotos - FIXO NO TOPO DIREITO */}
-                    <div className="fixed top-4 right-4 bg-black/80 text-white px-6 py-3 rounded-full text-sm font-bold backdrop-blur-sm z-50 shadow-xl">
+                  <>
+                    {/* CONTROLES FIXOS - FORA DA GALERIA */}
+                    {/* Contador de fotos - FIXO NO TOPO DIREITO DA TELA */}
+                    <div className="fixed top-24 right-4 bg-black/80 text-white px-6 py-3 rounded-full text-sm font-bold backdrop-blur-sm z-[100] shadow-xl pointer-events-none">
                       {currentImageIndex + 1} / {propertyImages.length}
                     </div>
                     
-                    {/* Visualizações - FIXO NO TOPO ESQUERDO */}
-                    <div className="fixed top-4 left-4 z-50">
-                      <Badge className="bg-black/70 text-white hover:bg-black/80 px-6 py-3 text-sm font-bold rounded-full shadow-xl backdrop-blur-sm">
+                    {/* Badge Visualizações - FIXO NO TOPO ESQUERDO DA TELA */}
+                    <div className="fixed top-24 left-4 z-[100] pointer-events-none">
+                      <Badge className="bg-black/70 text-white px-6 py-3 text-sm font-bold rounded-full shadow-xl backdrop-blur-sm border-0">
                         <Eye className="h-5 w-5 mr-2" />
                         {viewsCount} visualizações
                       </Badge>
                     </div>
                     
-                    {/* Botão expandir - FIXO ABAIXO DO CONTADOR */}
+                    {/* Botão Ampliar - FIXO ABAIXO DO CONTADOR */}
                     <button
                       onClick={() => setIsImageModalOpen(true)}
-                      className="fixed top-[68px] right-4 bg-black/30 hover:bg-black/50 text-white p-4 rounded-full transition-all duration-300 backdrop-blur-sm shadow-xl hover:scale-110 z-50"
+                      className="fixed top-[140px] right-4 bg-black/30 hover:bg-black/50 text-white p-4 rounded-full transition-all duration-300 backdrop-blur-sm shadow-xl hover:scale-110 z-[100]"
                       title="Ampliar imagem"
                     >
                       <Maximize2 className="h-6 w-6" />
                     </button>
 
-                    {/* Botões de navegação - TRANSPARENTES */}
-                    {propertyImages.length > 1 && (
-                      <>
-                        <button
-                          onClick={() => handleThumbnailClick(currentImageIndex > 0 ? currentImageIndex - 1 : propertyImages.length - 1)}
-                          className="absolute left-6 top-1/2 -translate-y-1/2 bg-black/30 text-white p-4 rounded-full hover:bg-black/50 transition-all duration-300 z-20 backdrop-blur-sm shadow-xl hover:scale-110"
-                        >
-                          <ChevronLeft className="h-6 w-6" />
-                        </button>
-                        <button
-                          onClick={() => handleThumbnailClick(currentImageIndex < propertyImages.length - 1 ? currentImageIndex + 1 : 0)}
-                          className="absolute right-6 top-1/2 -translate-y-1/2 bg-black/30 text-white p-4 rounded-full hover:bg-black/50 transition-all duration-300 z-20 backdrop-blur-sm shadow-xl hover:scale-110"
-                        >
-                          <ChevronLeft className="h-6 w-6 rotate-180" />
-                        </button>
-                      </>
-                    )}
+                    {/* CONTAINER DA GALERIA */}
+                    <div className="relative h-[600px] rounded-2xl overflow-hidden shadow-2xl bg-gradient-to-br from-gray-100 to-gray-200">
+                      <SafeImage
+                        key={`desktop-image-${currentImageIndex}`}
+                        src={propertyImages[currentImageIndex]}
+                        alt={`${property.title} - Imagem ${currentImageIndex + 1}`}
+                        fill
+                        className="object-cover transition-all duration-500"
+                        loading="eager"
+                        sizes="(max-width: 1024px) 100vw, 1024px"
+                        priority
+                        fallbackColor={brokerProfile?.primary_color}
+                      />
+                      
+                      {/* Overlay gradiente */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent pointer-events-none" />
 
-                    {/* Desktop Thumbnails - ABAIXO DA FOTO SEM FUNDO BRANCO */}
-                    {propertyImages.length > 1 && (
-                      <div className="absolute bottom-6 left-6 right-20 z-20">
-                        <div className="flex gap-2 overflow-x-auto scrollbar-hide">
-                          {propertyImages.map((image, index) => (
-                            <button
-                              key={index}
-                              onClick={() => handleThumbnailClick(index)}
-                              className={`relative flex-shrink-0 w-16 h-12 rounded-lg overflow-hidden border-2 transition-all duration-200 ${
-                                index === currentImageIndex 
-                                  ? 'border-white shadow-[0_0_0_2px_rgba(255,255,255,0.3)]' 
-                                  : 'border-white/50 hover:border-white/75 hover:scale-105'
-                              }`}
-                            >
-                              <SafeImage
-                                src={image}
-                                alt={`Miniatura ${index + 1}`}
-                                fill
-                                className="object-cover"
-                                loading="lazy"
-                                sizes="64px"
-                                fallbackColor={brokerProfile?.primary_color}
-                              />
-                            </button>
-                          ))}
+                      {/* Botões de navegação - DENTRO da galeria mas não fixed */}
+                      {propertyImages.length > 1 && (
+                        <>
+                          <button
+                            onClick={() => handleThumbnailClick(currentImageIndex > 0 ? currentImageIndex - 1 : propertyImages.length - 1)}
+                            className="absolute left-6 top-1/2 -translate-y-1/2 bg-black/30 text-white p-4 rounded-full hover:bg-black/50 transition-all duration-300 z-20 backdrop-blur-sm shadow-xl hover:scale-110"
+                          >
+                            <ChevronLeft className="h-6 w-6" />
+                          </button>
+                          <button
+                            onClick={() => handleThumbnailClick(currentImageIndex < propertyImages.length - 1 ? currentImageIndex + 1 : 0)}
+                            className="absolute right-6 top-1/2 -translate-y-1/2 bg-black/30 text-white p-4 rounded-full hover:bg-black/50 transition-all duration-300 z-20 backdrop-blur-sm shadow-xl hover:scale-110"
+                          >
+                            <ChevronLeft className="h-6 w-6 rotate-180" />
+                          </button>
+                        </>
+                      )}
+
+                      {/* Thumbnails - SEM FUNDO BRANCO */}
+                      {propertyImages.length > 1 && (
+                        <div className="absolute bottom-6 left-6 right-6 z-20">
+                          <div className="flex gap-2 overflow-x-auto scrollbar-hide bg-black/20 backdrop-blur-sm p-2 rounded-lg">
+                            {propertyImages.map((image, index) => (
+                              <button
+                                key={index}
+                                onClick={() => handleThumbnailClick(index)}
+                                className={`relative flex-shrink-0 w-16 h-12 rounded-md overflow-hidden transition-all duration-200 ${
+                                  index === currentImageIndex 
+                                    ? 'ring-2 ring-white ring-offset-2 ring-offset-black/20 scale-110' 
+                                    : 'opacity-70 hover:opacity-100 hover:scale-105'
+                                }`}
+                                style={{ backgroundColor: 'transparent' }}
+                              >
+                                <SafeImage
+                                  src={image}
+                                  alt={`Miniatura ${index + 1}`}
+                                  fill
+                                  className="object-cover"
+                                  loading="lazy"
+                                  sizes="64px"
+                                  fallbackColor={brokerProfile?.primary_color}
+                                />
+                              </button>
+                            ))}
+                          </div>
                         </div>
-                      </div>
-                    )}
-                  </div>
+                      )}
+                    </div>
+                  </>
                 ) : (
                   <div className="h-[500px] bg-gray-200 flex items-center justify-center rounded-lg shadow-lg">
                     <p className="text-gray-500 text-lg font-medium">Nenhuma imagem disponível</p>

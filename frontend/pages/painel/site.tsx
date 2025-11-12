@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { ExternalLink, Globe, CheckCircle2, XCircle, AlertCircle, Copy } from 'lucide-react';
 import Head from 'next/head';
 import { logger } from '@/lib/logger';
+import { supabase } from '@/integrations/supabase/client';
 
 /**
  * Página de Configurações do Site (Slug e Domínio Personalizado)
@@ -52,8 +53,29 @@ export default function WebsiteConfiguration() {
 
     setLoading(true);
     try {
-      // TODO: Chamar API para atualizar website_slug
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulação
+      // Obter token de autenticação
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        throw new Error('Não autenticado');
+      }
+
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+      const response = await fetch(`${apiUrl}/api/broker/update`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
+        },
+        body: JSON.stringify({
+          website_slug: websiteSlug,
+          subdomain: websiteSlug // Atualizar subdomain também
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Erro ao atualizar');
+      }
 
       toast({
         title: 'Slug atualizado!',
@@ -63,7 +85,7 @@ export default function WebsiteConfiguration() {
       logger.error('Error saving slug:', error);
       toast({
         title: 'Erro ao salvar',
-        description: 'Não foi possível atualizar o slug.',
+        description: error instanceof Error ? error.message : 'Não foi possível atualizar o slug.',
         variant: 'destructive',
       });
     } finally {
@@ -83,8 +105,28 @@ export default function WebsiteConfiguration() {
 
     setLoading(true);
     try {
-      // TODO: Chamar API para salvar custom_domain
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulação
+      // Obter token de autenticação
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        throw new Error('Não autenticado');
+      }
+
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+      const response = await fetch(`${apiUrl}/api/broker/update`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
+        },
+        body: JSON.stringify({
+          custom_domain: customDomain
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Erro ao salvar domínio');
+      }
       
       setCustomDomainStatus('pending');
       toast({
@@ -95,7 +137,7 @@ export default function WebsiteConfiguration() {
       logger.error('Error saving custom domain:', error);
       toast({
         title: 'Erro ao salvar',
-        description: 'Não foi possível salvar o domínio personalizado.',
+        description: error instanceof Error ? error.message : 'Não foi possível salvar o domínio personalizado.',
         variant: 'destructive',
       });
     } finally {

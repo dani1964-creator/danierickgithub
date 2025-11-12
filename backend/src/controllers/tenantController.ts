@@ -214,11 +214,17 @@ export class TenantController {
         return;
       }
 
-      const { website_slug, custom_domain } = req.body as { website_slug?: string; custom_domain?: string };
+      const { website_slug, custom_domain, subdomain } = req.body as { website_slug?: string; custom_domain?: string; subdomain?: string };
 
       // Validações básicas
       if (website_slug && !/^[a-z0-9-]{1,50}$/.test(website_slug)) {
         res.status(400).json({ error: 'Invalid slug. Only lowercase letters, numbers and hyphens allowed, max 50 chars.' });
+        return;
+      }
+
+      // Validar subdomain (mesmo formato do slug)
+      if (subdomain && !/^[a-z0-9-]{1,50}$/.test(subdomain)) {
+        res.status(400).json({ error: 'Invalid subdomain. Only lowercase letters, numbers and hyphens allowed, max 50 chars.' });
         return;
       }
 
@@ -254,6 +260,7 @@ export class TenantController {
       // Executar update
   const updatePayload: Record<string, unknown> = {};
   if (website_slug !== undefined) updatePayload['website_slug'] = website_slug;
+  if (subdomain !== undefined) updatePayload['subdomain'] = subdomain;
   if (custom_domain !== undefined) updatePayload['custom_domain'] = custom_domain ? custom_domain.replace(/https?:\/\//, '').replace(/\/$/, '') : null;
 
       const { error: updateErr } = await supabase

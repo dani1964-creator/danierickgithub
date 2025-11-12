@@ -93,6 +93,9 @@ export type Database = {
           hero_subtitle: string | null
           hero_title: string | null
           header_brand_image_url: string | null
+          detail_header_text_color: string | null
+          detail_button_color: string | null
+          search_button_color: string | null
           id: string
           is_active: boolean | null
           is_super_admin: boolean | null
@@ -156,6 +159,9 @@ export type Database = {
           hero_subtitle?: string | null
           hero_title?: string | null
           header_brand_image_url?: string | null
+          detail_header_text_color?: string | null
+          detail_button_color?: string | null
+          search_button_color?: string | null
           id?: string
           is_active?: boolean | null
           is_super_admin?: boolean | null
@@ -219,6 +225,9 @@ export type Database = {
           hero_subtitle?: string | null
           hero_title?: string | null
           header_brand_image_url?: string | null
+          detail_header_text_color?: string | null
+          detail_button_color?: string | null
+          search_button_color?: string | null
           id?: string
           is_active?: boolean | null
           is_super_admin?: boolean | null

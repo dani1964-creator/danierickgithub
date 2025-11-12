@@ -296,8 +296,8 @@ const PropertyCard = ({
             onMouseEnter={prefetchDetail}
             onFocus={prefetchDetail}
             style={{ 
-              backgroundColor: brokerProfile?.primary_color || '#2563eb',
-              borderColor: brokerProfile?.primary_color || '#2563eb',
+              backgroundColor: brokerProfile?.detail_button_color || brokerProfile?.primary_color || '#2563eb',
+              borderColor: brokerProfile?.detail_button_color || brokerProfile?.primary_color || '#2563eb',
               color: 'white'
             }}
           >

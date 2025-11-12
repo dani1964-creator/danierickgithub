@@ -502,6 +502,7 @@ const PublicSite = () => {
             hasActiveFilters={hasActiveFilters}
             primaryColor={brokerProfile?.primary_color || '#2563eb'}
             secondaryColor={brokerProfile?.secondary_color || '#64748b'}
+            brokerProfile={brokerProfile}
             propertyTypeOptions={propertyTypeOptions}
             propertyTypeGroups={sortedTypeGroups.map(g => ({ label: g.label, options: g.options.map(o => ({ value: o.value, label: o.label })) }))}
           />

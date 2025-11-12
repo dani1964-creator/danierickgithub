@@ -4,6 +4,9 @@ import type { Database } from '../../frontend/integrations/supabase/types';
 export type BrokerProfile = Database['public']['Tables']['brokers']['Row'] & {
   // Campos adicionados recentemente que podem não estar nos types gerados ainda
   header_brand_image_url?: string | null;
+  detail_header_text_color?: string | null;
+  detail_button_color?: string | null;
+  search_button_color?: string | null;
 };
 
 // Tipo compartilhado para contatos públicos do corretor (RPC get_public_broker_contact)
@@ -36,6 +39,9 @@ export interface BrokerData {
   logo_url?: string | null;
   logo_size?: number | null;
   header_brand_image_url?: string | null; // Logo + nome combinado em uma imagem
+  detail_header_text_color?: string | null;
+  detail_button_color?: string | null;
+  search_button_color?: string | null;
   whatsapp_button_text?: string | null;
   whatsapp_button_color?: string | null;
   sections_background_style?: string | null;

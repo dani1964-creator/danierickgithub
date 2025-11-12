@@ -119,6 +119,9 @@ const WebsiteSettings = () => {
         header_brand_image_url: profile.header_brand_image_url,
   primary_color: profile.primary_color,
   secondary_color: profile.secondary_color,
+        detail_header_text_color: profile.detail_header_text_color,
+        detail_button_color: profile.detail_button_color,
+        search_button_color: profile.search_button_color,
         background_image_url: profile.background_image_url,
         overlay_color: profile.overlay_color,
         overlay_opacity: profile.overlay_opacity,
@@ -787,6 +790,72 @@ const WebsiteSettings = () => {
                         className="flex-1"
                       />
                     </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="detail_header_text_color">Cor "Detalhes do Imóvel"</Label>
+                    <div className="flex items-center gap-2">
+                      <Input
+                        id="detail_header_text_color"
+                        type="color"
+                        value={profile?.detail_header_text_color || profile?.primary_color || '#2563eb'}
+                        onChange={(e) => updateProfile('detail_header_text_color', e.target.value)}
+                        className="w-16 h-10 p-1"
+                      />
+                      <Input
+                        value={profile?.detail_header_text_color || profile?.primary_color || '#2563eb'}
+                        onChange={(e) => updateProfile('detail_header_text_color', e.target.value)}
+                        placeholder="#2563eb"
+                        className="flex-1"
+                      />
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      Cor do texto "Detalhes do Imóvel" no topo da página de detalhes
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="detail_button_color">Cor Botões "Ver Detalhes"</Label>
+                    <div className="flex items-center gap-2">
+                      <Input
+                        id="detail_button_color"
+                        type="color"
+                        value={profile?.detail_button_color || profile?.primary_color || '#2563eb'}
+                        onChange={(e) => updateProfile('detail_button_color', e.target.value)}
+                        className="w-16 h-10 p-1"
+                      />
+                      <Input
+                        value={profile?.detail_button_color || profile?.primary_color || '#2563eb'}
+                        onChange={(e) => updateProfile('detail_button_color', e.target.value)}
+                        placeholder="#2563eb"
+                        className="flex-1"
+                      />
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      Cor dos botões "Ver Detalhes" nos cards de imóveis
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="search_button_color">Cor Botão de Busca</Label>
+                    <div className="flex items-center gap-2">
+                      <Input
+                        id="search_button_color"
+                        type="color"
+                        value={profile?.search_button_color || profile?.primary_color || '#2563eb'}
+                        onChange={(e) => updateProfile('search_button_color', e.target.value)}
+                        className="w-16 h-10 p-1"
+                      />
+                      <Input
+                        value={profile?.search_button_color || profile?.primary_color || '#2563eb'}
+                        onChange={(e) => updateProfile('search_button_color', e.target.value)}
+                        placeholder="#2563eb"
+                        className="flex-1"
+                      />
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      Cor do botão "Buscar" no campo de pesquisa
+                    </p>
                   </div>
                 </div>
 

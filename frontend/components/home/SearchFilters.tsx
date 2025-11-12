@@ -1,4 +1,3 @@
-
 import { useRef, useState } from 'react';
 import { Search, Filter, X, ChevronDown, ChevronUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -6,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGroup, SelectLabel } from '@/components/ui/select';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { sanitizeInput } from '@/lib/security';
+import type { BrokerProfile } from '@/shared/types/broker';
 
 interface SearchFiltersProps {
   searchTerm: string;
@@ -37,6 +37,7 @@ interface SearchFiltersProps {
   hasActiveFilters: boolean;
   primaryColor?: string;
   secondaryColor?: string;
+  brokerProfile?: BrokerProfile | null;
   propertyTypeOptions?: { value: string; label: string }[];
   propertyTypeGroups?: { label: string; options: { value: string; label: string }[] }[];
 }
@@ -49,6 +50,7 @@ const SearchFilters = ({
   hasActiveFilters,
   primaryColor = '#2563eb',
   secondaryColor = '#64748b',
+  brokerProfile,
   propertyTypeOptions,
   propertyTypeGroups
 }: SearchFiltersProps) => {
@@ -121,7 +123,7 @@ const SearchFilters = ({
         {/* Botão de busca sempre visível */}
         <Button 
           className="h-12 sm:h-14 px-6 sm:px-8 text-base font-semibold rounded-xl shadow-sm hover:shadow-md transition-all duration-200"
-          style={{ backgroundColor: primaryColor }}
+          style={{ backgroundColor: brokerProfile?.search_button_color || primaryColor }}
         >
           <Search className="h-5 w-5 mr-2" />
           <span>Buscar</span>

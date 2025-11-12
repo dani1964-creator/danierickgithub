@@ -256,6 +256,7 @@ const AddPropertyDialog = ({ onPropertyAdded }: AddPropertyDialogProps) => {
         transaction_type: 'sale',
         address: '',
         neighborhood: '',
+        city: '',
         uf: '',
         bedrooms: '',
         bathrooms: '',

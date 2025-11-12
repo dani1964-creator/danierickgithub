@@ -336,37 +336,18 @@ const PropertyDetailPage = () => {
       setSocialLinks(socialData || []);
       setViewsCount(propertyData.views_count || 0);
 
-      // Rastrear visualização única por IP usando a RPC function
+      // Atualiza contador de views sem bloquear a UI
+      const updatedViews = (propertyData.views_count || 0) + 1;
+      setViewsCount(updatedViews);
       (async () => {
         try {
-          // Obter IP do cliente (approximado via headers ou usar um serviço)
-          let clientIp = '0.0.0.0';
-          try {
-            const ipResponse = await fetch('https://api.ipify.org?format=json');
-            const ipData = await ipResponse.json();
-            clientIp = ipData.ip;
-          } catch (ipError) {
-            logger.warn('Could not fetch client IP, using default:', ipError);
-          }
-
-          const userAgent = typeof navigator !== 'undefined' ? navigator.userAgent : '';
-          
-          // @ts-ignore - RPC function não está nos tipos gerados ainda
-          const { data, error } = await supabase.rpc('track_unique_property_view', {
-            p_property_id: propertyData.id,
-            p_viewer_ip: clientIp,
-            p_user_agent: userAgent
-          });
-
-          if (error) {
-            logger.warn('track_unique_property_view error:', error.message || error);
-          } else if (data) {
-            logger.info('View tracked:', data);
-            // Atualizar o contador local com o valor real do banco
-            setViewsCount(data.total_views || 0);
-          }
+          const { error: updateError } = await supabase
+            .from('properties')
+            .update({ views_count: updatedViews })
+            .eq('id', propertyData.id);
+          if (updateError) logger.warn('views_count update error:', updateError.message || updateError);
         } catch (e) {
-          logger.warn('track_unique_property_view failed:', e);
+          logger.warn('views_count update failed:', e);
         }
       })();
 

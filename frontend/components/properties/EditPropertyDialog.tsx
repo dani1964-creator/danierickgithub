@@ -536,33 +536,31 @@ const EditPropertyDialog = ({ property, open, onOpenChange, onPropertyUpdated }:
 
           <div className="grid gap-4 md:grid-cols-3">
             <div className="space-y-2">
-              <Label htmlFor="neighborhood">Bairro *</Label>
+              <Label htmlFor="neighborhood">Bairro</Label>
               <Input
                 id="neighborhood"
                 value={formData.neighborhood}
                 onChange={(e) => handleInputChange('neighborhood', e.target.value)}
-                placeholder="Centro"
+                placeholder="Ex: Centro, Jardins"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="city">Cidade *</Label>
+              <Label htmlFor="city">Cidade</Label>
               <Input
                 id="city"
                 value={formData.city}
                 onChange={(e) => handleInputChange('city', e.target.value)}
                 placeholder="Ex: São Paulo"
-                required
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="uf">Estado (UF) *</Label>
+              <Label htmlFor="uf">Estado (UF)</Label>
               <Input
                 id="uf"
                 value={formData.uf}
                 onChange={(e) => handleInputChange('uf', e.target.value)}
                 placeholder="Ex: SP, RJ, MG"
                 maxLength={2}
-                required
               />
             </div>
           </div>

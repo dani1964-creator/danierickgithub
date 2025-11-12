@@ -244,20 +244,95 @@ export default function FavoritesPage() {
           {/* Loading State */}
           {isLoading && <PropertyListSkeleton count={6} />}
 
-          {/* Favorites Grid - ESTILO PREMIUM */}
+          {/* Favorites Grid - PREMIUM DESIGN */}
           {!isLoading && displayedFavorites.length > 0 && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {displayedFavorites.map((property) => (
-                <PropertyCard
+                <div
                   key={property.id}
-                  property={property}
-                  brokerProfile={null}
-                  onContactLead={() => {}}
-                  onShare={() => {}}
-                  onFavorite={() => handleRemoveFavorite(property.id, property.title)}
-                  isFavorited={() => true}
-                  onImageClick={() => handlePropertyClick(property.slug, property.broker_slug)}
-                />
+                  className="property-card-premium"
+                  onClick={() => handlePropertyClick(property.slug, property.broker_slug)}
+                >
+                  {/* Image Container */}
+                  <div className="property-card-image">
+                    <SafeImage
+                      src={property.main_image_url}
+                      alt={property.title}
+                      fill
+                      className="object-cover"
+                      sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                      loading="lazy"
+                    />
+                    
+                    {/* Badges Premium */}
+                    <div className="property-card-badges">
+                      <div className="property-card-badge property-card-badge--sale">
+                        {property.property_type}
+                      </div>
+                    </div>
+
+                    {/* Action Buttons Premium */}
+                    <div className="property-card-actions">
+                      <button
+                        className="property-card-action property-card-action--favorite is-favorited"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleRemoveFavorite(property.id, property.title);
+                        }}
+                        title="Remover dos favoritos"
+                      >
+                        <Heart className="h-4 w-4 fill-current" />
+                      </button>
+                    </div>
+                    
+                    {/* Data Badge */}
+                    <div className="absolute bottom-3 left-3 bg-black/70 text-white px-3 py-1.5 rounded-full text-xs font-medium backdrop-blur-sm">
+                      {new Date(property.favorited_at).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}
+                    </div>
+                  </div>
+
+                  {/* Content Premium */}
+                  <div className="property-card-content">
+                    {/* Título e Localização */}
+                    <div>
+                      <h3 className="property-card-title">
+                        {property.title}
+                      </h3>
+                      
+                      <div className="property-card-location">
+                        <MapPin className="h-3.5 w-3.5" />
+                        <span className="truncate">{property.city}{property.uf ? `, ${property.uf}` : ''}</span>
+                      </div>
+                    </div>
+                    
+                    {/* Preço Premium */}
+                    <div className="property-card-price">
+                      {formatPrice(property.price)}
+                    </div>
+                    
+                    {/* Features Premium */}
+                    <div className="property-card-features">
+                      {property.bedrooms > 0 && (
+                        <div className="property-card-feature">
+                          <Bed className="h-4 w-4" />
+                          <span>{property.bedrooms}</span>
+                        </div>
+                      )}
+                      {property.bathrooms > 0 && (
+                        <div className="property-card-feature">
+                          <Bath className="h-4 w-4" />
+                          <span>{property.bathrooms}</span>
+                        </div>
+                      )}
+                      {property.area_m2 > 0 && (
+                        <div className="property-card-feature">
+                          <Square className="h-4 w-4" />
+                          <span>{property.area_m2}m²</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
               ))}
             </div>
           )}

@@ -244,14 +244,14 @@ const HeroBanner = ({ brokerProfile, onContactClick }: HeroBannerProps) => {
       </div>
 
       {/* Scroll Indicator */}
-      <div className="absolute bottom-8 left-0 right-0 z-10 flex justify-center items-center">
+      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 animate-bounce">
         <button
           onClick={scrollToSearch}
-          className="flex flex-col items-center gap-2 text-white/80 hover:text-white transition-colors duration-300 animate-bounce"
+          className="flex flex-col items-center gap-2 text-white/80 hover:text-white transition-colors duration-300"
           aria-label="Rolar para baixo"
         >
-          <span className="text-sm font-medium text-center">Explorar</span>
-          <svg className="w-6 h-6 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <span className="text-sm font-medium">Explorar</span>
+          <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
           </svg>
         </button>

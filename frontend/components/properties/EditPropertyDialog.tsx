@@ -80,7 +80,7 @@ interface Property {
   opportunity_badge_text?: string | null;
   // Campos de métodos de pagamento
   payment_methods_type?: string | null;
-  payment_methods_text?: string | null;
+  payment_methods_text?: string[] | null;
   payment_methods_banner_url?: string | null;
 }
 
@@ -153,7 +153,9 @@ const EditPropertyDialog = ({ property, open, onOpenChange, onPropertyUpdated }:
     opportunity_badge_text: property.opportunity_badge_text || '',
     // Campos de métodos de pagamento
     payment_methods_type: property.payment_methods_type || 'none',
-    payment_methods_text: property.payment_methods_text || '',
+    payment_methods_text: Array.isArray(property.payment_methods_text) 
+      ? property.payment_methods_text.join('\n') 
+      : property.payment_methods_text || '',
     payment_methods_banner_url: property.payment_methods_banner_url || '',
   });
 
@@ -242,7 +244,9 @@ const EditPropertyDialog = ({ property, open, onOpenChange, onPropertyUpdated }:
         opportunity_badge_text: property.opportunity_badge_text || '',
         // Campos de métodos de pagamento
         payment_methods_type: property.payment_methods_type || 'none',
-        payment_methods_text: property.payment_methods_text || '',
+        payment_methods_text: Array.isArray(property.payment_methods_text) 
+          ? property.payment_methods_text.join('\n') 
+          : property.payment_methods_text || '',
         payment_methods_banner_url: property.payment_methods_banner_url || '',
       });
       setSelectedImages([]);
@@ -415,7 +419,7 @@ const EditPropertyDialog = ({ property, open, onOpenChange, onPropertyUpdated }:
         // Campos de formas de pagamento
         payment_methods_type: formData.payment_methods_type,
         payment_methods_text: formData.payment_methods_type === 'text' 
-          ? formData.payment_methods_text 
+          ? formData.payment_methods_text.split('\n').map(m => m.trim()).filter(m => m.length > 0)
           : null,
         payment_methods_banner_url: formData.payment_methods_type === 'banner' 
           ? formData.payment_methods_banner_url 
@@ -1059,9 +1063,10 @@ const EditPropertyDialog = ({ property, open, onOpenChange, onPropertyUpdated }:
                   id="payment_methods_text"
                   value={formData.payment_methods_text}
                   onChange={(e) => handleInputChange('payment_methods_text', e.target.value)}
-                  placeholder="Ex: Aceita PIX, Cartão, Financiamento..."
-                  rows={2}
+                  placeholder="Digite cada método de pagamento em uma linha separada:\nPIX\nCartão de crédito\nFinanciamento bancário\nDinheiro"
+                  rows={4}
                 />
+                <p className="text-xs text-muted-foreground">Digite cada método de pagamento em uma linha separada</p>
               </div>
             )}
 

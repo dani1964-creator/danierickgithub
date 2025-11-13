@@ -613,10 +613,9 @@ const Properties = () => {
                       variant="outline"
                       onClick={() => handleDeleteProperty(property.id)}
                       className="flex-1 hover:bg-destructive/10 hover:text-destructive hover:border-destructive/20"
-                      >
-                        <Trash2 className="h-3 w-3" />
-                      </Button>
-                    </div>
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </Button>
                   </div>
                 </CardContent>
               </Card>

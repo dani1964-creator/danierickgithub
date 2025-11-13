@@ -1382,9 +1382,9 @@ const PropertyDetailPage = () => {
             <div className="lg:col-span-2">
               {/* Galeria de Imagens Mobile Modernizada */}
               {propertyImages.length > 0 ? (
-                <div className="lg:hidden mb-8 property-detail-gallery">
+                <div className="lg:hidden mb-8 relative">
                   <Carousel 
-                    className="property-detail-gallery__main" 
+                    className="w-full rounded-2xl overflow-hidden shadow-soft-2" 
                     setApi={setCarouselApi}
                     opts={{
                       align: "start",

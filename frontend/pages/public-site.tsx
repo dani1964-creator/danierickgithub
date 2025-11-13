@@ -165,14 +165,16 @@ const PublicSite = () => {
   // Função para sucesso no modal de boas-vindas
   const handleWelcomeModalSuccess = useCallback(() => {
     setShowWelcomeModal(false);
-    if (slug) {
-      localStorage.setItem(`lead-submitted-${slug}`, 'true');
+    // Usar hostname para consistência com a verificação de primeira visita
+    const visitIdentifier = typeof window !== 'undefined' ? window.location.hostname : '';
+    if (visitIdentifier) {
+      localStorage.setItem(`lead-submitted-${visitIdentifier}`, 'true');
     }
     toast({
       title: "Cadastro realizado!",
       description: "Entraremos em contato em breve.",
     });
-  }, [slug, toast]);
+  }, [toast]);
 
   // Safe origin/href values to avoid SSR failures when rendering Helmet
   const origin = typeof window !== 'undefined' ? window.location.origin : '';
@@ -285,7 +287,8 @@ const PublicSite = () => {
       setFavorites(JSON.parse(savedFavorites));
     }
   // Check if it's first visit and user hasn't submitted a lead yet
-  const visitIdentifier = isCustomDomain() ? (typeof window !== 'undefined' ? window.location.hostname : '') : slug;
+  // Usar sempre o hostname como identificador único (mais confiável que slug)
+  const visitIdentifier = typeof window !== 'undefined' ? window.location.hostname : '';
     if (visitIdentifier) {
       const visitKey = `first-visit-${visitIdentifier}`;
       const leadSubmittedKey = `lead-submitted-${visitIdentifier}`;

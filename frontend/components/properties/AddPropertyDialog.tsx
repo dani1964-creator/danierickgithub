@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import { logger } from '@/lib/logger';
-import { Plus, Upload, X } from 'lucide-react';
+import { Plus, Upload, X, Calculator, Flame, CreditCard } from 'lucide-react';
 import { useAuth } from '@/shared/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -14,6 +14,7 @@ import { usePropertyTypes } from '@/hooks/usePropertyTypes';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { toSlug } from '@/lib/utils';
 import { getErrorMessage } from '@/lib/utils';
@@ -87,6 +88,18 @@ const AddPropertyDialog = ({ onPropertyAdded }: AddPropertyDialogProps) => {
     features: [] as string[],
     property_code: '',
     realtor_id: '',
+    // Campos de financiamento
+    financing_enabled: false,
+    financing_down_payment_percentage: '30',
+    financing_max_installments: '360',
+    financing_interest_rate: '0.8',
+    // Campos de badge de oportunidade
+    show_opportunity_badge: false,
+    opportunity_badge_text: 'Oportunidade!',
+    // Campos de formas de pagamento
+    payment_methods_type: 'none' as 'none' | 'text' | 'banner',
+    payment_methods_text: [] as string[],
+    payment_methods_banner_url: '',
   });
 
   const { groups: propertyTypes, valueToId } = usePropertyTypes();
@@ -113,6 +126,22 @@ const AddPropertyDialog = ({ onPropertyAdded }: AddPropertyDialogProps) => {
       features: prev.features.includes(feature)
         ? prev.features.filter(f => f !== feature)
         : [...prev.features, feature]
+    }));
+  };
+
+  const handleAddPaymentMethod = (method: string) => {
+    if (method.trim() && !formData.payment_methods_text.includes(method.trim())) {
+      setFormData(prev => ({
+        ...prev,
+        payment_methods_text: [...prev.payment_methods_text, method.trim()]
+      }));
+    }
+  };
+
+  const handleRemovePaymentMethod = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      payment_methods_text: prev.payment_methods_text.filter((_, i) => i !== index)
     }));
   };
 
@@ -226,6 +255,30 @@ const AddPropertyDialog = ({ onPropertyAdded }: AddPropertyDialogProps) => {
         main_image_url: allImageUrls[0] || null,
         property_code: formData.property_code,
         realtor_id: formData.realtor_id || null,
+        // Campos de financiamento
+        financing_enabled: formData.financing_enabled && formData.transaction_type === 'sale',
+        financing_down_payment_percentage: formData.financing_enabled 
+          ? parseFloat(formData.financing_down_payment_percentage) 
+          : null,
+        financing_max_installments: formData.financing_enabled 
+          ? parseInt(formData.financing_max_installments) 
+          : null,
+        financing_interest_rate: formData.financing_enabled 
+          ? parseFloat(formData.financing_interest_rate) 
+          : null,
+        // Campos de badge de oportunidade
+        show_opportunity_badge: formData.show_opportunity_badge,
+        opportunity_badge_text: formData.show_opportunity_badge 
+          ? formData.opportunity_badge_text 
+          : null,
+        // Campos de formas de pagamento
+        payment_methods_type: formData.payment_methods_type,
+        payment_methods_text: formData.payment_methods_type === 'text' 
+          ? formData.payment_methods_text 
+          : null,
+        payment_methods_banner_url: formData.payment_methods_type === 'banner' 
+          ? formData.payment_methods_banner_url 
+          : null,
     // mínimos obrigatórios adicionais
         is_active: true,
   slug: toSlug(formData.title),
@@ -266,6 +319,15 @@ const AddPropertyDialog = ({ onPropertyAdded }: AddPropertyDialogProps) => {
         features: [],
         property_code: '',
         realtor_id: '',
+        financing_enabled: false,
+        financing_down_payment_percentage: '30',
+        financing_max_installments: '360',
+        financing_interest_rate: '0.8',
+        show_opportunity_badge: false,
+        opportunity_badge_text: 'Oportunidade!',
+        payment_methods_type: 'none',
+        payment_methods_text: [],
+        payment_methods_banner_url: '',
       });
       setSelectedImages([]);
       setImageUrls([]);
@@ -301,302 +363,311 @@ const AddPropertyDialog = ({ onPropertyAdded }: AddPropertyDialogProps) => {
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Basic Info */}
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="title">Título *</Label>
-              <Input
-                id="title"
-                value={formData.title}
-                onChange={(e) => handleInputChange('title', e.target.value)}
-                placeholder="Ex: Apartamento 3 quartos no Centro"
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="price">Preço *</Label>
-              <Input
-                id="price"
-                type="number"
-                value={formData.price}
-                onChange={(e) => handleInputChange('price', e.target.value)}
-                placeholder="500000"
-                required
-              />
-            </div>
-          </div>
+          <Tabs defaultValue="basico" className="w-full">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="basico">Informações Básicas</TabsTrigger>
+              <TabsTrigger value="detalhes">Detalhes do Imóvel</TabsTrigger>
+              <TabsTrigger value="vendas">Vendas & Marketing</TabsTrigger>
+            </TabsList>
 
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="property_code">Código do Imóvel</Label>
-              <Input
-                id="property_code"
-                value={formData.property_code}
-                onChange={(e) => handleInputChange('property_code', e.target.value)}
-                placeholder="Ex: COD001, REF123, etc."
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Corretor Responsável</Label>
-              <Select
-                value={formData.realtor_id}
-                onValueChange={(value) => handleInputChange('realtor_id', value)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecionar corretor" />
-                </SelectTrigger>
-                <SelectContent>
-                  {realtors.map(realtor => (
-                    <SelectItem key={realtor.id} value={realtor.id}>
-                      {realtor.name} {realtor.creci && `(${realtor.creci})`}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
+            {/* TAB 1: INFORMAÇÕES BÁSICAS */}
+            <TabsContent value="basico" className="space-y-4 mt-4">
+              {/* Basic Info */}
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="title">Título *</Label>
+                  <Input
+                    id="title"
+                    value={formData.title}
+                    onChange={(e) => handleInputChange('title', e.target.value)}
+                    placeholder="Ex: Apartamento 3 quartos no Centro"
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="price">Preço *</Label>
+                  <Input
+                    id="price"
+                    type="number"
+                    value={formData.price}
+                    onChange={(e) => handleInputChange('price', e.target.value)}
+                    placeholder="500000"
+                    required
+                  />
+                </div>
+              </div>
 
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="space-y-2">
-              <Label>Tipo de Imóvel *</Label>
-              <Select
-                value={formData.property_type}
-                onValueChange={(value) => handleInputChange('property_type', value)}
-                required
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione o tipo" />
-                </SelectTrigger>
-                <SelectContent>
-                  {propertyTypes.map(group => (
-                    <SelectGroup key={group.label}>
-                      <SelectLabel>{group.label}</SelectLabel>
-                      {group.options.map((type) => (
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="property_code">Código do Imóvel</Label>
+                  <Input
+                    id="property_code"
+                    value={formData.property_code}
+                    onChange={(e) => handleInputChange('property_code', e.target.value)}
+                    placeholder="Ex: COD001, REF123, etc."
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Corretor Responsável</Label>
+                  <Select
+                    value={formData.realtor_id}
+                    onValueChange={(value) => handleInputChange('realtor_id', value)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecionar corretor" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {realtors.map(realtor => (
+                        <SelectItem key={realtor.id} value={realtor.id}>
+                          {realtor.name} {realtor.creci && `(${realtor.creci})`}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label>Tipo de Imóvel *</Label>
+                  <Select
+                    value={formData.property_type}
+                    onValueChange={(value) => handleInputChange('property_type', value)}
+                    required
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione o tipo" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {propertyTypes.map(group => (
+                        <SelectGroup key={group.label}>
+                          <SelectLabel>{group.label}</SelectLabel>
+                          {group.options.map((type) => (
+                            <SelectItem key={type.value} value={type.value}>
+                              {type.label}
+                            </SelectItem>
+                          ))}
+                        </SelectGroup>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Tipo de Transação *</Label>
+                  <Select
+                    value={formData.transaction_type}
+                    onValueChange={(value) => handleInputChange('transaction_type', value)}
+                    required
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Venda ou Aluguel" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {transactionTypes.map(type => (
                         <SelectItem key={type.value} value={type.value}>
                           {type.label}
                         </SelectItem>
-                      ))}
-                    </SelectGroup>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>Tipo de Transação *</Label>
-              <Select
-                value={formData.transaction_type}
-                onValueChange={(value) => handleInputChange('transaction_type', value)}
-                required
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Venda ou Aluguel" />
-                </SelectTrigger>
-                <SelectContent>
-                  {transactionTypes.map(type => (
-                    <SelectItem key={type.value} value={type.value}>
-                      {type.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="address">Endereço Completo (Rua, Número) *</Label>
-            <Input
-              id="address"
-              value={formData.address}
-              onChange={(e) => handleInputChange('address', e.target.value)}
-              placeholder="Ex: Rua das Flores, 123, Apto 45"
-              required
-            />
-          </div>
-
-          <div className="grid gap-4 md:grid-cols-3">
-            <div className="space-y-2">
-              <Label htmlFor="neighborhood">Bairro</Label>
-              <Input
-                id="neighborhood"
-                value={formData.neighborhood}
-                onChange={(e) => handleInputChange('neighborhood', e.target.value)}
-                placeholder="Ex: Centro, Jardins"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="city">Cidade</Label>
-              <Input
-                id="city"
-                value={formData.city}
-                onChange={(e) => handleInputChange('city', e.target.value)}
-                placeholder="Ex: São Paulo"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="uf">Estado (UF)</Label>
-              <Input
-                id="uf"
-                value={formData.uf}
-                onChange={(e) => handleInputChange('uf', e.target.value)}
-                placeholder="Ex: SP, RJ, MG"
-                maxLength={2}
-              />
-            </div>
-          </div>
-
-          {/* Property Details */}
-          <div className="grid gap-4 md:grid-cols-4">
-            <div className="space-y-2">
-              <Label htmlFor="bedrooms">Quartos</Label>
-              <Input
-                id="bedrooms"
-                type="number"
-                value={formData.bedrooms}
-                onChange={(e) => handleInputChange('bedrooms', e.target.value)}
-                placeholder="3"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="bathrooms">Banheiros</Label>
-              <Input
-                id="bathrooms"
-                type="number"
-                value={formData.bathrooms}
-                onChange={(e) => handleInputChange('bathrooms', e.target.value)}
-                placeholder="2"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="area_m2">Área (m²)</Label>
-              <Input
-                id="area_m2"
-                type="number"
-                value={formData.area_m2}
-                onChange={(e) => handleInputChange('area_m2', e.target.value)}
-                placeholder="120"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="parking_spaces">Vagas</Label>
-              <Input
-                id="parking_spaces"
-                type="number"
-                value={formData.parking_spaces}
-                onChange={(e) => handleInputChange('parking_spaces', e.target.value)}
-                placeholder="2"
-              />
-            </div>
-          </div>
-
-          {/* Informações gerais removidas */}
-
-          {/* Description */}
-          <div className="space-y-2">
-            <Label htmlFor="description">Descrição</Label>
-            <Textarea
-              id="description"
-              value={formData.description}
-              onChange={(e) => handleInputChange('description', e.target.value)}
-              placeholder="Descreva as principais características do imóvel..."
-              rows={4}
-            />
-          </div>
-
-          {/* Features */}
-          <div className="space-y-2">
-            <Label>Características</Label>
-            <div className="flex flex-wrap gap-2">
-              {commonFeatures.map(feature => (
-                <Badge
-                  key={feature}
-                  variant={formData.features.includes(feature) ? "default" : "outline"}
-                  className="cursor-pointer"
-                  onClick={() => handleFeatureToggle(feature)}
-                >
-                  {feature}
-                </Badge>
-              ))}
-            </div>
-          </div>
-
-          {/* Images */}
-          <div className="space-y-4">
-            <Label>Imagens</Label>
-            
-            {/* Upload de arquivos */}
-            <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6">
-              <div className="text-center">
-                <Upload className="mx-auto h-12 w-12 text-muted-foreground" />
-                <div className="mt-4">
-                  <label htmlFor="images" className="cursor-pointer">
-                    <span className="mt-2 block text-sm font-medium text-muted-foreground">
-                      Clique para adicionar imagens ou arraste aqui
-                    </span>
-                    <input
-                      id="images"
-                      type="file"
-                      multiple
-                      accept="image/*"
-                      onChange={handleImageSelect}
-                      className="sr-only"
-                    />
-                  </label>
+                        </SelectContent>
+                  </Select>
                 </div>
               </div>
-            </div>
 
-            {/* Adicionar por URL */}
-            <div className="space-y-3">
-              <Label>Ou adicione imagens por URL</Label>
-              <div className="flex gap-2">
-                <Input
-                  value={currentImageUrl}
-                  onChange={(e) => setCurrentImageUrl(e.target.value)}
-                  placeholder="https://exemplo.com/imagem.jpg"
-                  className="flex-1"
-                />
-                <Button 
-                  type="button" 
-                  onClick={addImageUrl}
-                  disabled={!currentImageUrl.trim()}
-                  variant="outline"
-                >
-                  Adicionar
-                </Button>
-              </div>
-            </div>
-            
-            {/* Preview de imagens por arquivo */}
-            {selectedImages.length > 0 && (
               <div className="space-y-2">
-                <Label>Imagens por arquivo</Label>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {selectedImages.map((file, index) => (
-                    <div key={index} className="relative h-24">
-                      <Image
-                        src={URL.createObjectURL(file)}
-                        alt={`Preview ${index + 1}`}
-                        fill
-                        className="object-cover rounded-lg"
-                        sizes="(max-width: 768px) 50vw, 25vw"
-                      />
-                      <Button
-                        type="button"
-                      variant="destructive"
-                      size="sm"
-                      className="absolute -top-2 -right-2 h-6 w-6 rounded-full p-0"
-                      onClick={() => removeImage(index)}
+                <Label htmlFor="address">Endereço Completo (Rua, Número) *</Label>
+                <Input
+                  id="address"
+                  value={formData.address}
+                  onChange={(e) => handleInputChange('address', e.target.value)}
+                  placeholder="Ex: Rua das Flores, 123, Apto 45"
+                  required
+                />
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-3">
+                <div className="space-y-2">
+                  <Label htmlFor="neighborhood">Bairro</Label>
+                  <Input
+                    id="neighborhood"
+                    value={formData.neighborhood}
+                    onChange={(e) => handleInputChange('neighborhood', e.target.value)}
+                    placeholder="Ex: Centro, Jardins"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="city">Cidade</Label>
+                  <Input
+                    id="city"
+                    value={formData.city}
+                    onChange={(e) => handleInputChange('city', e.target.value)}
+                    placeholder="Ex: São Paulo"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="uf">Estado (UF)</Label>
+                  <Input
+                    id="uf"
+                    value={formData.uf}
+                    onChange={(e) => handleInputChange('uf', e.target.value)}
+                    placeholder="Ex: SP, RJ, MG"
+                    maxLength={2}
+                  />
+                </div>
+              </div>
+            </TabsContent>
+
+            {/* TAB 2: DETALHES DO IMÓVEL */}
+            <TabsContent value="detalhes" className="space-y-4 mt-4">
+              {/* Property Details */}
+              <div className="grid gap-4 md:grid-cols-4">
+                <div className="space-y-2">
+                  <Label htmlFor="bedrooms">Quartos</Label>
+                  <Input
+                    id="bedrooms"
+                    type="number"
+                    value={formData.bedrooms}
+                    onChange={(e) => handleInputChange('bedrooms', e.target.value)}
+                    placeholder="3"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="bathrooms">Banheiros</Label>
+                  <Input
+                    id="bathrooms"
+                    type="number"
+                    value={formData.bathrooms}
+                    onChange={(e) => handleInputChange('bathrooms', e.target.value)}
+                    placeholder="2"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="area_m2">Área (m²)</Label>
+                  <Input
+                    id="area_m2"
+                    type="number"
+                    value={formData.area_m2}
+                    onChange={(e) => handleInputChange('area_m2', e.target.value)}
+                    placeholder="120"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="parking_spaces">Vagas</Label>
+                  <Input
+                    id="parking_spaces"
+                    type="number"
+                    value={formData.parking_spaces}
+                    onChange={(e) => handleInputChange('parking_spaces', e.target.value)}
+                    placeholder="2"
+                  />
+                </div>
+              </div>
+
+              {/* Description */}
+              <div className="space-y-2">
+                <Label htmlFor="description">Descrição</Label>
+                <Textarea
+                  id="description"
+                  value={formData.description}
+                  onChange={(e) => handleInputChange('description', e.target.value)}
+                  placeholder="Descreva as principais características do imóvel..."
+                  rows={4}
+                />
+              </div>
+
+              {/* Features */}
+              <div className="space-y-2">
+                <Label>Características</Label>
+                <div className="flex flex-wrap gap-2">
+                  {commonFeatures.map(feature => (
+                    <Badge
+                      key={feature}
+                      variant={formData.features.includes(feature) ? "default" : "outline"}
+                      className="cursor-pointer"
+                      onClick={() => handleFeatureToggle(feature)}
                     >
-                      <X className="h-3 w-3" />
-                     </Button>
-                    </div>
+                      {feature}
+                    </Badge>
                   ))}
                 </div>
               </div>
-            )}
 
-            {/* Preview de imagens por URL */}
-            {imageUrls.length > 0 && (
+              {/* Images */}
+              <div className="space-y-4">
+                <Label>Imagens</Label>
+                
+                {/* Upload de arquivos */}
+                <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6">
+                  <div className="text-center">
+                    <Upload className="mx-auto h-12 w-12 text-muted-foreground" />
+                    <div className="mt-4">
+                      <label htmlFor="images" className="cursor-pointer">
+                        <span className="mt-2 block text-sm font-medium text-muted-foreground">
+                          Clique para adicionar imagens ou arraste aqui
+                        </span>
+                        <input
+                          id="images"
+                          type="file"
+                          multiple
+                          accept="image/*"
+                          onChange={handleImageSelect}
+                          className="sr-only"
+                        />
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Adicionar por URL */}
+                <div className="space-y-3">
+                  <Label>Ou adicione imagens por URL</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      value={currentImageUrl}
+                      onChange={(e) => setCurrentImageUrl(e.target.value)}
+                      placeholder="https://exemplo.com/imagem.jpg"
+                      className="flex-1"
+                    />
+                    <Button 
+                      type="button" 
+                      onClick={addImageUrl}
+                      disabled={!currentImageUrl.trim()}
+                      variant="outline"
+                    >
+                      Adicionar
+                    </Button>
+                  </div>
+                </div>
+                
+                {/* Preview de imagens por arquivo */}
+                {selectedImages.length > 0 && (
+                  <div className="space-y-2">
+                    <Label>Imagens por arquivo</Label>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      {selectedImages.map((file, index) => (
+                        <div key={index} className="relative h-24">
+                          <Image
+                            src={URL.createObjectURL(file)}
+                            alt={`Preview ${index + 1}`}
+                            fill
+                            className="object-cover rounded-lg"
+                            sizes="(max-width: 768px) 50vw, 25vw"
+                          />
+                          <Button
+                            type="button"
+                          variant="destructive"
+                          size="sm"
+                          className="absolute -top-2 -right-2 h-6 w-6 rounded-full p-0"
+                          onClick={() => removeImage(index)}
+                        >
+                          <X className="h-3 w-3" />
+                         </Button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Preview de imagens por URL */}
+                {imageUrls.length > 0 && (
               <div className="space-y-2">
                 <Label>Imagens por URL</Label>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -638,6 +709,240 @@ const AddPropertyDialog = ({ onPropertyAdded }: AddPropertyDialogProps) => {
             />
             <Label htmlFor="is_featured">Imóvel em destaque</Label>
           </div>
+        </TabsContent>
+
+        {/* TAB 3: VENDAS & MARKETING */}
+        <TabsContent value="vendas" className="space-y-6 mt-4">
+          {/* Simulador de Financiamento */}
+          <div className="space-y-4 p-4 border rounded-lg">
+            <div className="flex items-center gap-2">
+              <Calculator className="h-5 w-5 text-blue-600" />
+              <h3 className="font-semibold">Simulador de Financiamento</h3>
+            </div>
+            
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="financing_enabled"
+                checked={formData.financing_enabled}
+                onCheckedChange={(checked) => handleInputChange('financing_enabled', checked)}
+                disabled={formData.transaction_type !== 'sale'}
+              />
+              <Label htmlFor="financing_enabled">
+                Habilitar simulador de financiamento
+                {formData.transaction_type !== 'sale' && (
+                  <span className="text-xs text-muted-foreground ml-2">(apenas para venda)</span>
+                )}
+              </Label>
+            </div>
+
+            {formData.financing_enabled && (
+              <div className="grid gap-4 md:grid-cols-3 pl-6">
+                <div className="space-y-2">
+                  <Label htmlFor="financing_down_payment_percentage">Entrada (%)</Label>
+                  <Input
+                    id="financing_down_payment_percentage"
+                    type="number"
+                    min="0"
+                    max="100"
+                    step="1"
+                    value={formData.financing_down_payment_percentage}
+                    onChange={(e) => handleInputChange('financing_down_payment_percentage', e.target.value)}
+                    placeholder="30"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="financing_max_installments">Parcelas (máx)</Label>
+                  <Input
+                    id="financing_max_installments"
+                    type="number"
+                    min="1"
+                    max="600"
+                    step="1"
+                    value={formData.financing_max_installments}
+                    onChange={(e) => handleInputChange('financing_max_installments', e.target.value)}
+                    placeholder="360"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="financing_interest_rate">Taxa (% a.m.)</Label>
+                  <Input
+                    id="financing_interest_rate"
+                    type="number"
+                    min="0"
+                    max="10"
+                    step="0.01"
+                    value={formData.financing_interest_rate}
+                    onChange={(e) => handleInputChange('financing_interest_rate', e.target.value)}
+                    placeholder="0.80"
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Badge de Oportunidade */}
+          <div className="space-y-4 p-4 border rounded-lg">
+            <div className="flex items-center gap-2">
+              <Flame className="h-5 w-5 text-orange-600" />
+              <h3 className="font-semibold">Badge de Oportunidade</h3>
+            </div>
+            
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="show_opportunity_badge"
+                checked={formData.show_opportunity_badge}
+                onCheckedChange={(checked) => handleInputChange('show_opportunity_badge', checked)}
+              />
+              <Label htmlFor="show_opportunity_badge">Mostrar badge "Oportunidade!"</Label>
+            </div>
+
+            {formData.show_opportunity_badge && (
+              <div className="space-y-2 pl-6">
+                <Label htmlFor="opportunity_badge_text">Texto do badge</Label>
+                <Input
+                  id="opportunity_badge_text"
+                  value={formData.opportunity_badge_text}
+                  onChange={(e) => handleInputChange('opportunity_badge_text', e.target.value)}
+                  placeholder="Oportunidade!"
+                  maxLength={30}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Prévia: <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-gradient-to-r from-orange-500 to-red-500 text-white animate-pulse">
+                    {formData.opportunity_badge_text || 'Oportunidade!'}
+                  </span>
+                </p>
+              </div>
+            )}
+          </div>
+
+          {/* Formas de Pagamento */}
+          <div className="space-y-4 p-4 border rounded-lg">
+            <div className="flex items-center gap-2">
+              <CreditCard className="h-5 w-5 text-green-600" />
+              <h3 className="font-semibold">Formas de Pagamento</h3>
+            </div>
+            
+            <div className="space-y-3">
+              <Label>Tipo de exibição</Label>
+              <div className="flex flex-col gap-2">
+                <label className="flex items-center space-x-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="payment_methods_type"
+                    value="none"
+                    checked={formData.payment_methods_type === 'none'}
+                    onChange={(e) => handleInputChange('payment_methods_type', e.target.value)}
+                    className="h-4 w-4"
+                  />
+                  <span>Não exibir</span>
+                </label>
+                <label className="flex items-center space-x-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="payment_methods_type"
+                    value="text"
+                    checked={formData.payment_methods_type === 'text'}
+                    onChange={(e) => handleInputChange('payment_methods_type', e.target.value)}
+                    className="h-4 w-4"
+                  />
+                  <span>Lista de texto</span>
+                </label>
+                <label className="flex items-center space-x-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="payment_methods_type"
+                    value="banner"
+                    checked={formData.payment_methods_type === 'banner'}
+                    onChange={(e) => handleInputChange('payment_methods_type', e.target.value)}
+                    className="h-4 w-4"
+                  />
+                  <span>Banner/imagem</span>
+                </label>
+              </div>
+            </div>
+
+            {formData.payment_methods_type === 'text' && (
+              <div className="space-y-3 pl-6">
+                <Label>Métodos de pagamento aceitos</Label>
+                <div className="flex gap-2">
+                  <Input
+                    id="new_payment_method"
+                    placeholder="Ex: PIX, Boleto, Cartão..."
+                    onKeyPress={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        const input = e.target as HTMLInputElement;
+                        handleAddPaymentMethod(input.value);
+                        input.value = '';
+                      }
+                    }}
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                      const input = document.getElementById('new_payment_method') as HTMLInputElement;
+                      if (input) {
+                        handleAddPaymentMethod(input.value);
+                        input.value = '';
+                      }
+                    }}
+                  >
+                    Adicionar
+                  </Button>
+                </div>
+                
+                {formData.payment_methods_text.length > 0 && (
+                  <div className="space-y-2">
+                    {formData.payment_methods_text.map((method, index) => (
+                      <div key={index} className="flex items-center justify-between p-2 bg-muted rounded">
+                        <span className="text-sm">{method}</span>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleRemovePaymentMethod(index)}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {formData.payment_methods_type === 'banner' && (
+              <div className="space-y-2 pl-6">
+                <Label htmlFor="payment_methods_banner_url">URL do banner</Label>
+                <Input
+                  id="payment_methods_banner_url"
+                  value={formData.payment_methods_banner_url}
+                  onChange={(e) => handleInputChange('payment_methods_banner_url', e.target.value)}
+                  placeholder="https://exemplo.com/banner-pagamentos.jpg"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Tamanho recomendado: 800x200px
+                </p>
+                {formData.payment_methods_banner_url && (
+                  <div className="relative h-24 mt-2">
+                    <Image
+                      src={formData.payment_methods_banner_url}
+                      alt="Preview banner pagamentos"
+                      fill
+                      className="object-contain rounded border"
+                      sizes="400px"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).style.border = '2px solid red';
+                      }}
+                    />
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </TabsContent>
+      </Tabs>
 
           {/* Submit Buttons */}
           <div className="flex justify-end space-x-2">

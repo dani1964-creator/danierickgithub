@@ -2,11 +2,12 @@
 import { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import dynamic from 'next/dynamic';
-import { Search, Trash2, Eye, Filter, RefreshCw, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Search, Trash2, Eye, Filter, RefreshCw, ChevronLeft, ChevronRight, Building, Star, AlertCircle, Edit, Power } from 'lucide-react';
 import { logger } from '@/lib/logger';
 import { useAuth } from '@/shared/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
+import { Switch } from '@/components/ui/switch';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -230,6 +231,70 @@ const Properties = () => {
     }
   };
 
+  const handleToggleActive = async (propertyId: string, currentStatus: boolean) => {
+    try {
+      const { error } = await supabase
+        .from('properties')
+        .update({ is_active: !currentStatus })
+        .eq('id', propertyId);
+
+      if (error) throw error;
+
+      toast({
+        title: !currentStatus ? "Imóvel ativado" : "Imóvel desativado",
+        description: !currentStatus 
+          ? "O imóvel agora está visível no site." 
+          : "O imóvel foi ocultado do site."
+      });
+
+      refreshProperties();
+    } catch (error: unknown) {
+      toast({
+        title: "Erro ao atualizar status",
+        description: getErrorMessage(error),
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleToggleFeatured = async (propertyId: string, currentStatus: boolean) => {
+    try {
+      const { error } = await supabase
+        .from('properties')
+        .update({ is_featured: !currentStatus })
+        .eq('id', propertyId);
+
+      if (error) throw error;
+
+      toast({
+        title: !currentStatus ? "Adicionado aos destaques" : "Removido dos destaques",
+        description: !currentStatus 
+          ? "O imóvel agora aparece na seção de destaques." 
+          : "O imóvel foi removido da seção de destaques."
+      });
+
+      refreshProperties();
+    } catch (error: unknown) {
+      toast({
+        title: "Erro ao atualizar destaque",
+        description: getErrorMessage(error),
+        variant: "destructive"
+      });
+    }
+  };
+        description: "O imóvel foi removido com sucesso."
+      });
+
+      refreshProperties();
+    } catch (error: unknown) {
+      toast({
+        title: "Erro ao excluir",
+        description: getErrorMessage(error),
+        variant: "destructive"
+      });
+    }
+  };
+
   const handleSearchChange = (value: string) => {
     // Limit search term length for security
     const limitedValue = value.substring(0, 100);
@@ -434,70 +499,132 @@ const Properties = () => {
                       sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, (max-width: 1280px) 33vw, 25vw"
                     />
                   ) : (
-                    <div className="flex items-center justify-center h-full text-muted-foreground bg-muted">
-                      Sem imagem
+                    <div className="flex flex-col items-center justify-center h-full text-muted-foreground bg-gradient-to-br from-muted to-muted/50">
+                      <Building className="h-12 w-12 mb-2 opacity-50" />
+                      <span className="text-xs">Sem imagem</span>
                     </div>
                   )}
-                  {property.is_featured && (
-                    <Badge className="absolute top-3 right-3 bg-gradient-to-r from-amber-500 to-amber-600 text-white shadow-lg" variant="default">
-                      ⭐ Destaque
-                    </Badge>
-                  )}
-                  {property.status && property.status !== 'active' && (
-                    <Badge className="absolute top-3 left-3 shadow-lg" variant={getStatusBadge(property.status).variant}>
-                      {getStatusBadge(property.status).label}
+                  
+                  {/* Badges de Status */}
+                  <div className="absolute top-2 left-2 right-2 flex flex-wrap gap-2">
+                    {!property.is_active && (
+                      <Badge className="bg-slate-900/90 text-white border-slate-700 backdrop-blur-sm">
+                        <Power className="h-3 w-3 mr-1" /> Inativo
+                      </Badge>
+                    )}
+                    {property.is_featured && (
+                      <Badge className="bg-gradient-to-r from-amber-500 to-amber-600 text-white shadow-lg backdrop-blur-sm border-0">
+                        <Star className="h-3 w-3 mr-1" /> Destaque
+                      </Badge>
+                    )}
+                    {property.status === 'sold' && (
+                      <Badge className="bg-green-600/90 text-white backdrop-blur-sm">
+                        ✓ Vendido
+                      </Badge>
+                    )}
+                    {property.status === 'rented' && (
+                      <Badge className="bg-blue-600/90 text-white backdrop-blur-sm">
+                        ✓ Alugado
+                      </Badge>
+                    )}
+                  </div>
+
+                  {/* Código do imóvel no canto */}
+                  {property.property_code && (
+                    <Badge variant="outline" className="absolute bottom-2 right-2 text-xs bg-black/60 text-white border-white/20 backdrop-blur-sm">
+                      #{property.property_code}
                     </Badge>
                   )}
                 </div>
                 
-                <CardHeader className="pb-3">
-                  <div className="flex items-start justify-between">
-                    <CardTitle className="text-base sm:text-lg line-clamp-2 flex-1">
-                      {property.title}
-                    </CardTitle>
-                    {property.property_code && (
-                      <Badge variant="outline" className="ml-2 text-xs bg-primary/10 text-primary border-primary/20">
-                        {property.property_code}
-                      </Badge>
-                    )}
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-lg sm:text-2xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+                <CardHeader className="pb-2 space-y-2">
+                  <CardTitle className="text-base line-clamp-2 leading-tight">
+                    {property.title}
+                  </CardTitle>
+                  
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-2xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
                       {formatPrice(property.price)}
                     </span>
-                    <Badge variant="outline" className="text-xs bg-muted/50">
+                    <Badge variant="secondary" className="text-[10px] px-2 py-0.5">
                       {property.transaction_type === 'sale' ? 'Venda' : 'Aluguel'}
                     </Badge>
                   </div>
                 </CardHeader>
 
-                <CardContent className="pt-0">
-                  <p className="text-sm text-muted-foreground mb-2 line-clamp-1">
-                    📍 {property.address}
+                <CardContent className="pt-0 space-y-3">
+                  <p className="text-xs text-muted-foreground line-clamp-1 flex items-center gap-1">
+                    <span className="text-primary">📍</span>
+                    {property.address}
                   </p>
                   
-                  <div className="flex items-center gap-3 text-xs sm:text-sm text-muted-foreground mb-3">
-                    {property.bedrooms && (
-                      <span>🛏️ {property.bedrooms} quartos</span>
-                    )}
-                    {property.bathrooms && (
-                      <span>🚿 {property.bathrooms} banheiros</span>
-                    )}
+                  {/* Info Grid */}
+                  <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
+                    {property.bedrooms ? (
+                      <div className="flex items-center gap-1">
+                        <span>🛏️</span> {property.bedrooms} {property.bedrooms === 1 ? 'quarto' : 'quartos'}
+                      </div>
+                    ) : null}
+                    {property.bathrooms ? (
+                      <div className="flex items-center gap-1">
+                        <span>🚿</span> {property.bathrooms} {property.bathrooms === 1 ? 'banheiro' : 'banheiros'}
+                      </div>
+                    ) : null}
+                    {property.area_m2 ? (
+                      <div className="flex items-center gap-1">
+                        <span>📐</span> {property.area_m2}m²
+                      </div>
+                    ) : null}
+                    {property.parking_spaces ? (
+                      <div className="flex items-center gap-1">
+                        <span>🚗</span> {property.parking_spaces} {property.parking_spaces === 1 ? 'vaga' : 'vagas'}
+                      </div>
+                    ) : null}
                   </div>
 
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                      <Eye className="h-3 w-3" />
-                      <span>{property.views_count}</span>
+                  {/* Visualizações */}
+                  <div className="flex items-center gap-1 text-xs text-muted-foreground pt-2 border-t">
+                    <Eye className="h-3 w-3" />
+                    <span>{property.views_count} visualizações</span>
+                  </div>
+
+                  {/* Ações Rápidas */}
+                  <div className="space-y-2 pt-2 border-t">
+                    {/* Toggle Ativo */}
+                    <div className="flex items-center justify-between">
+                      <label htmlFor={`active-${property.id}`} className="text-xs font-medium cursor-pointer flex items-center gap-2">
+                        <Power className="h-3 w-3" />
+                        Status Ativo
+                      </label>
+                      <Switch
+                        id={`active-${property.id}`}
+                        checked={property.is_active}
+                        onCheckedChange={() => handleToggleActive(property.id, property.is_active)}
+                      />
                     </div>
-                    
-                     <div className="flex items-center gap-1">
-                       <EditPropertyButton property={property} onPropertyUpdated={refreshProperties} />
-                      <Button 
-                        size="sm" 
-                        variant="outline"
-                        onClick={() => handleDeleteProperty(property.id)}
-                        className="hover:bg-destructive/10 hover:text-destructive hover:border-destructive/20"
+
+                    {/* Toggle Destaque */}
+                    <div className="flex items-center justify-between">
+                      <label htmlFor={`featured-${property.id}`} className="text-xs font-medium cursor-pointer flex items-center gap-2">
+                        <Star className="h-3 w-3" />
+                        Destaque
+                      </label>
+                      <Switch
+                        id={`featured-${property.id}`}
+                        checked={property.is_featured}
+                        onCheckedChange={() => handleToggleFeatured(property.id, property.is_featured)}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Botões de Ação */}
+                  <div className="flex items-center gap-2 pt-2">
+                    <EditPropertyButton property={property} onPropertyUpdated={refreshProperties} />
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => handleDeleteProperty(property.id)}
+                      className="flex-1 hover:bg-destructive/10 hover:text-destructive hover:border-destructive/20"
                       >
                         <Trash2 className="h-3 w-3" />
                       </Button>
@@ -601,9 +728,38 @@ const Properties = () => {
                     </div>
 
                     <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-                      <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                        <Eye className="h-4 w-4" />
-                        <span>{property.views_count} visualizações</span>
+                      <div className="flex items-center gap-6">
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <Eye className="h-4 w-4" />
+                          <span>{property.views_count} visualizações</span>
+                        </div>
+                        
+                        {/* Toggles inline para lista */}
+                        <div className="flex items-center gap-4">
+                          <div className="flex items-center gap-2">
+                            <Switch
+                              id={`list-active-${property.id}`}
+                              checked={property.is_active}
+                              onCheckedChange={() => handleToggleActive(property.id, property.is_active)}
+                            />
+                            <label htmlFor={`list-active-${property.id}`} className="text-xs font-medium cursor-pointer flex items-center gap-1">
+                              <Power className="h-3 w-3" />
+                              Ativo
+                            </label>
+                          </div>
+                          
+                          <div className="flex items-center gap-2">
+                            <Switch
+                              id={`list-featured-${property.id}`}
+                              checked={property.is_featured}
+                              onCheckedChange={() => handleToggleFeatured(property.id, property.is_featured)}
+                            />
+                            <label htmlFor={`list-featured-${property.id}`} className="text-xs font-medium cursor-pointer flex items-center gap-1">
+                              <Star className="h-3 w-3" />
+                              Destaque
+                            </label>
+                          </div>
+                        </div>
                       </div>
                       
                        <div className="flex items-center gap-2">

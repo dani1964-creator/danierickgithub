@@ -424,18 +424,27 @@ export type Database = {
           created_at: string
           description: string | null
           features: string[] | null
+          financing_enabled: boolean | null
+          financing_down_payment_percentage: number | null
+          financing_max_installments: number | null
+          financing_interest_rate: number | null
           id: string
           images: string[] | null
           is_active: boolean | null
           is_featured: boolean | null
           main_image_url: string | null
           neighborhood: string | null
+          opportunity_badge_text: string | null
           parking_spaces: number | null
+          payment_methods_banner_url: string | null
+          payment_methods_text: string[] | null
+          payment_methods_type: string | null
           property_type_id: string | null
           price: number
           property_code: string | null
           property_type: string
           realtor_id: string | null
+          show_opportunity_badge: boolean | null
           slug: string
           status: string | null
           title: string
@@ -454,18 +463,27 @@ export type Database = {
           created_at?: string
           description?: string | null
           features?: string[] | null
+          financing_enabled?: boolean | null
+          financing_down_payment_percentage?: number | null
+          financing_max_installments?: number | null
+          financing_interest_rate?: number | null
           id?: string
           images?: string[] | null
           is_active?: boolean | null
           is_featured?: boolean | null
           main_image_url?: string | null
           neighborhood?: string | null
+          opportunity_badge_text?: string | null
           parking_spaces?: number | null
+          payment_methods_banner_url?: string | null
+          payment_methods_text?: string[] | null
+          payment_methods_type?: string | null
           property_type_id?: string | null
           price: number
           property_code?: string | null
           property_type: string
           realtor_id?: string | null
+          show_opportunity_badge?: boolean | null
           slug: string
           status?: string | null
           title: string
@@ -484,18 +502,27 @@ export type Database = {
           created_at?: string
           description?: string | null
           features?: string[] | null
+          financing_enabled?: boolean | null
+          financing_down_payment_percentage?: number | null
+          financing_max_installments?: number | null
+          financing_interest_rate?: number | null
           id?: string
           images?: string[] | null
           is_active?: boolean | null
           is_featured?: boolean | null
           main_image_url?: string | null
           neighborhood?: string | null
+          opportunity_badge_text?: string | null
           parking_spaces?: number | null
+          payment_methods_banner_url?: string | null
+          payment_methods_text?: string[] | null
+          payment_methods_type?: string | null
           property_type_id?: string | null
           price?: number
           property_code?: string | null
           property_type?: string
           realtor_id?: string | null
+          show_opportunity_badge?: boolean | null
           slug?: string
           status?: string | null
           title?: string

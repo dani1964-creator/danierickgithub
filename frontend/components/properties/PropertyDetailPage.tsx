@@ -1383,8 +1383,7 @@ const PropertyDetailPage = () => {
               {/* Galeria de Imagens Mobile Premium */}
               {propertyImages.length > 0 ? (
                 <div className="lg:hidden mb-8 relative">
-                  {/* CAROUSEL DA GALERIA */}
-                  <div className="property-detail-gallery rounded-2xl overflow-hidden shadow-2xl">
+                  <div className="property-detail-gallery">
                     <Carousel 
                       className="property-detail-gallery__main" 
                       setApi={setCarouselApi}
@@ -1396,7 +1395,7 @@ const PropertyDetailPage = () => {
                       <CarouselContent>
                         {propertyImages.map((image, index) => (
                           <CarouselItem key={index}>
-                             <div className="relative h-80 sm:h-96 bg-gradient-to-br from-gray-100 to-gray-200 overflow-hidden">
+                             <div className="relative h-80 sm:h-96 bg-gradient-to-br from-gray-100 to-gray-200 overflow-hidden rounded-t-2xl">
                                <SafeImage
                                  src={image}
                                  alt={`${property.title} - Imagem ${index + 1}`}
@@ -1408,56 +1407,53 @@ const PropertyDetailPage = () => {
                                  fallbackColor={brokerProfile?.primary_color}
                                />
                                {/* Overlay gradiente */}
-                               <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent pointer-events-none" />
+                               <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
+                               
+                               {/* Contador de fotos premium - FIXO NO TOPO */}
+                               <div className="fixed top-20 right-4 bg-black/70 text-white px-3 py-1.5 rounded-full text-xs font-semibold z-50 backdrop-blur-md">
+                                 {currentImageIndex + 1} / {propertyImages.length}
+                               </div>
+                               
+                               {/* Visualizações - TOP LEFT */}
+                               <div className="absolute top-4 left-4 z-30">
+                                 <Badge className="bg-black/70 text-white hover:bg-black/80 px-3 py-1.5 text-xs font-medium rounded-full backdrop-blur-sm shadow-lg">
+                                   <Eye className="h-3.5 w-3.5 mr-1.5" />
+                                   {viewsCount}
+                                 </Badge>
+                               </div>
+                               
+                               {/* Botão expandir - FIXO NO TOPO */}
+                               <button
+                                 onClick={() => setIsImageModalOpen(true)}
+                                 className="fixed top-32 right-4 bg-black/30 text-white p-2.5 rounded-full hover:bg-black/50 transition-all duration-300 z-50 backdrop-blur-sm shadow-lg"
+                                 title="Ampliar imagem"
+                               >
+                                 <Maximize2 className="h-4 w-4" />
+                               </button>
                             </div>
                           </CarouselItem>
                         ))}
                       </CarouselContent>
                       
-                      {/* Botões de navegação */}
+                      {/* Botões de navegação premium */}
                       {propertyImages.length > 1 && (
                         <>
-                          <CarouselPrevious className="absolute left-3 top-1/2 -translate-y-1/2 bg-black/30 text-white border-0 hover:bg-black/50 z-20 backdrop-blur-sm rounded-full h-10 w-10 transition-all duration-300 shadow-lg hover:scale-110" />
-                          <CarouselNext className="absolute right-3 top-1/2 -translate-y-1/2 bg-black/30 text-white border-0 hover:bg-black/50 z-20 backdrop-blur-sm rounded-full h-10 w-10 transition-all duration-300 shadow-lg hover:scale-110" />
+                          <CarouselPrevious className="absolute left-3 top-1/2 -translate-y-1/2 bg-white/90 text-gray-800 border-0 hover:bg-white z-20 backdrop-blur-sm rounded-full h-10 w-10 transition-all duration-300 shadow-lg hover:scale-110" />
+                          <CarouselNext className="absolute right-3 top-1/2 -translate-y-1/2 bg-white/90 text-gray-800 border-0 hover:bg-white z-20 backdrop-blur-sm rounded-full h-10 w-10 transition-all duration-300 shadow-lg hover:scale-110" />
                         </>
                       )}
-                      
-                      {/* CONTROLES - NO CARD (mesmo estilo do desktop) */}
-                      {/* Contador - CANTO SUPERIOR DIREITO */}
-                      <div className="absolute top-3 right-3 bg-black/80 text-white px-3 py-2 rounded-full text-sm font-bold backdrop-blur-sm z-40 shadow-xl pointer-events-none">
-                        {currentImageIndex + 1} / {propertyImages.length}
-                      </div>
-                      
-                      {/* Badge Visualizações - CANTO SUPERIOR ESQUERDO */}
-                      <div className="absolute top-3 left-3 z-40 pointer-events-none">
-                        <Badge className="bg-black/70 text-white px-3 py-2 text-sm font-bold rounded-full backdrop-blur-sm shadow-xl border-0">
-                            <Eye className="h-5 w-5 mr-1.5" />
-                          {viewsCount}
-                        </Badge>
-                      </div>
-                      
-                      {/* Botão Ampliar - CANTO INFERIOR DIREITO */}
-                      <button
-                        onClick={() => setIsImageModalOpen(true)}
-                        className="absolute bottom-20 right-3 bg-black/30 hover:bg-black/50 text-white p-4 rounded-full transition-all duration-300 z-40 backdrop-blur-sm shadow-xl hover:scale-110"
-                        title="Ampliar imagem"
-                      >
-                        <Maximize2 className="h-6 w-6" />
-                      </button>
                     </Carousel>
                     
-                    {/* Thumbnails - SEM FUNDO, APENAS IMAGENS */}
+                    {/* Thumbnails Mobile - ABAIXO DA FOTO PRINCIPAL */}
                     {propertyImages.length > 1 && (
-                      <div className="py-2">
+                      <div className="p-3">
                         <div className="flex gap-2 overflow-x-auto scrollbar-hide">
                           {propertyImages.map((image, index) => (
                             <button
                               key={index}
                               onClick={() => handleThumbnailClick(index)}
-                              className={`relative flex-shrink-0 w-16 h-12 rounded-md overflow-hidden transition-all duration-200 ${
-                                index === currentImageIndex 
-                                  ? 'ring-2 ring-white scale-110' 
-                                  : 'opacity-70 hover:opacity-100 hover:scale-105'
+                              className={`property-detail-gallery__thumb flex-shrink-0 ${
+                                index === currentImageIndex ? 'is-active' : ''
                               }`}
                             >
                               <SafeImage

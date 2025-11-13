@@ -282,18 +282,6 @@ const Properties = () => {
       });
     }
   };
-        description: "O imóvel foi removido com sucesso."
-      });
-
-      refreshProperties();
-    } catch (error: unknown) {
-      toast({
-        title: "Erro ao excluir",
-        description: getErrorMessage(error),
-        variant: "destructive"
-      });
-    }
-  };
 
   const handleSearchChange = (value: string) => {
     // Limit search term length for security

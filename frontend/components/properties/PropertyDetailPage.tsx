@@ -22,6 +22,8 @@ import { FloatingFavoritesButton } from '@/components/FavoritesButton';
 import ContactCTA from '@/components/home/ContactCTA';
 import Footer from '@/components/home/Footer';
 import LeadModal from '@/components/leads/LeadModal';
+import { FinancingCard } from '@/components/properties/FinancingCard';
+import { PaymentMethods } from '@/components/properties/PaymentMethods';
 import { getErrorMessage } from '@/lib/utils';
 import { getPublicUrl } from '@/lib/seo';
 import { logger } from '@/lib/logger';
@@ -79,6 +81,18 @@ interface Property {
   accessibility?: boolean | null;
   heating_type?: string | null;
   notes?: string | null;
+  // Campos de financiamento
+  financing_enabled?: boolean | null;
+  financing_down_payment_percentage?: number | null;
+  financing_max_installments?: number | null;
+  financing_interest_rate?: number | null;
+  // Badge oportunidade
+  show_opportunity_badge?: boolean | null;
+  opportunity_badge_text?: string | null;
+  // Formas de pagamento
+  payment_methods_type?: string | null;
+  payment_methods_text?: string[] | null;
+  payment_methods_banner_url?: string | null;
 }
 
 import type { BrokerProfile, BrokerContact } from '@/shared/types/broker';
@@ -1441,6 +1455,15 @@ const PropertyDetailPage = () => {
                     {currentImageIndex + 1}/{propertyImages.length}
                   </div>
                   
+                  {/* Badge "Oportunidade!" - opcional */}
+                  {property.show_opportunity_badge && (
+                    <div className="absolute top-4 left-1/2 -translate-x-1/2 z-30">
+                      <Badge className="bg-gradient-to-r from-orange-500 to-red-500 text-white px-4 py-2 text-sm font-bold rounded-full shadow-xl border-0 animate-pulse">
+                        🔥 {property.opportunity_badge_text || 'Oportunidade!'}
+                      </Badge>
+                    </div>
+                  )}
+                  
                   {/* Thumbnails - mesma altura do botão ampliar, à esquerda */}
                   {propertyImages.length > 1 && (
                     <div className="absolute bottom-4 left-4 right-20 z-30">
@@ -1685,6 +1708,19 @@ const PropertyDetailPage = () => {
                         </span>
                       )}
                     </div>
+                    
+                    {/* Card de Financiamento - opcional */}
+                    {property.financing_enabled && property.transaction_type === 'sale' && (
+                      <div className="mt-4">
+                        <FinancingCard
+                          price={property.price}
+                          downPaymentPercentage={property.financing_down_payment_percentage || 20}
+                          maxInstallments={property.financing_max_installments || 360}
+                          interestRate={property.financing_interest_rate || 9.00}
+                          isDarkMode={isDarkMode}
+                        />
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -1723,6 +1759,17 @@ const PropertyDetailPage = () => {
                             )}
                           </div>
                         </div>
+                        
+                        {/* Formas de Pagamento - opcional */}
+                        {property.payment_methods_type && property.payment_methods_type !== 'none' && (
+                          <PaymentMethods
+                            type={property.payment_methods_type as 'text' | 'banner'}
+                            methods={property.payment_methods_text || []}
+                            bannerUrl={property.payment_methods_banner_url || undefined}
+                            isDarkMode={isDarkMode}
+                            primaryColor={brokerProfile?.primary_color}
+                          />
+                        )}
                       </div>
                     )}
 

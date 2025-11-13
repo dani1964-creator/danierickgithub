@@ -1,8 +1,8 @@
--- Add custom_domain field to brokers table
-ALTER TABLE public.brokers ADD COLUMN custom_domain TEXT;
+-- Add custom_domain field to brokers table (if not exists)
+ALTER TABLE public.brokers ADD COLUMN IF NOT EXISTS custom_domain TEXT;
 
--- Create index for faster domain lookups
-CREATE INDEX idx_brokers_custom_domain ON public.brokers(custom_domain) WHERE custom_domain IS NOT NULL;
+-- Create index for faster domain lookups (if not exists)
+CREATE INDEX IF NOT EXISTS idx_brokers_custom_domain ON public.brokers(custom_domain) WHERE custom_domain IS NOT NULL;
 
 -- Remove unique constraint from website_slug to allow multiple users with same slug
 ALTER TABLE public.brokers DROP CONSTRAINT IF EXISTS brokers_website_slug_key;

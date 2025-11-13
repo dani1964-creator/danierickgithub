@@ -1,5 +1,6 @@
 -- Create a secure policy for the get_public_broker_info function
 -- This policy allows access only through the secure RPC function while maintaining data protection
+DROP POLICY IF EXISTS "Allow secure function access to broker data" ON public.brokers;
 CREATE POLICY "Allow secure function access to broker data"
 ON public.brokers
 FOR SELECT 

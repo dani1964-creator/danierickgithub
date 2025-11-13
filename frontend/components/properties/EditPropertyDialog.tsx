@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import { logger } from '@/lib/logger';
-import { X, Upload } from 'lucide-react';
+import { X, Upload, Calculator, Flame, CreditCard } from 'lucide-react';
 import { useAuth } from '@/shared/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -70,6 +70,18 @@ interface Property {
   accessibility?: boolean | null;
   heating_type?: string | null;
   notes?: string | null;
+  // Campos de financiamento
+  financing_enabled?: boolean | null;
+  financing_down_payment_percentage?: number | null;
+  financing_max_installments?: number | null;
+  financing_interest_rate?: number | null;
+  // Campos de oportunidade
+  show_opportunity_badge?: boolean | null;
+  opportunity_badge_text?: string | null;
+  // Campos de métodos de pagamento
+  payment_methods_type?: string | null;
+  payment_methods_text?: string | null;
+  payment_methods_banner_url?: string | null;
 }
 
 interface EditPropertyDialogProps {
@@ -131,6 +143,18 @@ const EditPropertyDialog = ({ property, open, onOpenChange, onPropertyUpdated }:
     accessibility: Boolean(property.accessibility),
     heating_type: property.heating_type || '',
     notes: property.notes || '',
+    // Campos de financiamento
+    financing_enabled: Boolean(property.financing_enabled),
+    financing_down_payment_percentage: property.financing_down_payment_percentage?.toString() || '20',
+    financing_max_installments: property.financing_max_installments?.toString() || '360',
+    financing_interest_rate: property.financing_interest_rate?.toString() || '0.80',
+    // Campos de oportunidade
+    show_opportunity_badge: Boolean(property.show_opportunity_badge),
+    opportunity_badge_text: property.opportunity_badge_text || '',
+    // Campos de métodos de pagamento
+    payment_methods_type: property.payment_methods_type || 'none',
+    payment_methods_text: property.payment_methods_text || '',
+    payment_methods_banner_url: property.payment_methods_banner_url || '',
   });
 
   const fetchRealtors = useCallback(async () => {
@@ -360,6 +384,30 @@ const EditPropertyDialog = ({ property, open, onOpenChange, onPropertyUpdated }:
         accessibility: formData.accessibility,
         heating_type: formData.heating_type || null,
         notes: formData.notes || null,
+        // Campos de financiamento
+        financing_enabled: formData.financing_enabled && formData.transaction_type === 'sale',
+        financing_down_payment_percentage: formData.financing_enabled 
+          ? parseFloat(formData.financing_down_payment_percentage) 
+          : null,
+        financing_max_installments: formData.financing_enabled 
+          ? parseInt(formData.financing_max_installments) 
+          : null,
+        financing_interest_rate: formData.financing_enabled 
+          ? parseFloat(formData.financing_interest_rate) 
+          : null,
+        // Campos de badge de oportunidade
+        show_opportunity_badge: formData.show_opportunity_badge,
+        opportunity_badge_text: formData.show_opportunity_badge 
+          ? formData.opportunity_badge_text 
+          : null,
+        // Campos de formas de pagamento
+        payment_methods_type: formData.payment_methods_type,
+        payment_methods_text: formData.payment_methods_type === 'text' 
+          ? formData.payment_methods_text 
+          : null,
+        payment_methods_banner_url: formData.payment_methods_type === 'banner' 
+          ? formData.payment_methods_banner_url 
+          : null,
         updated_at: new Date().toISOString()
       };
 
@@ -870,6 +918,152 @@ const EditPropertyDialog = ({ property, open, onOpenChange, onPropertyUpdated }:
                 />
               </div>
             </div>
+          </div>
+
+          {/* Simulador de Financiamento */}
+          <div className="space-y-4 p-4 border rounded-lg">
+            <div className="flex items-center gap-2">
+              <Calculator className="h-5 w-5 text-blue-600" />
+              <h3 className="font-semibold">Simulador de Financiamento</h3>
+            </div>
+            
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="financing_enabled"
+                checked={formData.financing_enabled}
+                onCheckedChange={(checked) => handleInputChange('financing_enabled', checked)}
+                disabled={formData.transaction_type !== 'sale'}
+              />
+              <Label htmlFor="financing_enabled">
+                Habilitar simulador de financiamento
+                {formData.transaction_type !== 'sale' && (
+                  <span className="text-xs text-muted-foreground ml-2">(apenas para venda)</span>
+                )}
+              </Label>
+            </div>
+
+            {formData.financing_enabled && (
+              <div className="grid gap-4 md:grid-cols-3 pl-6">
+                <div className="space-y-2">
+                  <Label htmlFor="financing_down_payment_percentage">Entrada (%)</Label>
+                  <Input
+                    id="financing_down_payment_percentage"
+                    type="number"
+                    min="0"
+                    max="100"
+                    step="1"
+                    value={formData.financing_down_payment_percentage}
+                    onChange={(e) => handleInputChange('financing_down_payment_percentage', e.target.value)}
+                    placeholder="30"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="financing_max_installments">Parcelas (máx)</Label>
+                  <Input
+                    id="financing_max_installments"
+                    type="number"
+                    min="1"
+                    max="600"
+                    step="1"
+                    value={formData.financing_max_installments}
+                    onChange={(e) => handleInputChange('financing_max_installments', e.target.value)}
+                    placeholder="360"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="financing_interest_rate">Taxa (% a.m.)</Label>
+                  <Input
+                    id="financing_interest_rate"
+                    type="number"
+                    min="0"
+                    max="10"
+                    step="0.01"
+                    value={formData.financing_interest_rate}
+                    onChange={(e) => handleInputChange('financing_interest_rate', e.target.value)}
+                    placeholder="0.80"
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Badge de Oportunidade */}
+          <div className="space-y-4 p-4 border rounded-lg">
+            <div className="flex items-center gap-2">
+              <Flame className="h-5 w-5 text-orange-600" />
+              <h3 className="font-semibold">Badge de Oportunidade</h3>
+            </div>
+            
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="show_opportunity_badge"
+                checked={formData.show_opportunity_badge}
+                onCheckedChange={(checked) => handleInputChange('show_opportunity_badge', checked)}
+              />
+              <Label htmlFor="show_opportunity_badge">Exibir badge de oportunidade</Label>
+            </div>
+
+            {formData.show_opportunity_badge && (
+              <div className="space-y-2 pl-6">
+                <Label htmlFor="opportunity_badge_text">Texto do badge</Label>
+                <Input
+                  id="opportunity_badge_text"
+                  value={formData.opportunity_badge_text}
+                  onChange={(e) => handleInputChange('opportunity_badge_text', e.target.value)}
+                  placeholder="Ex: Oportunidade Única!"
+                />
+              </div>
+            )}
+          </div>
+
+          {/* Métodos de Pagamento */}
+          <div className="space-y-4 p-4 border rounded-lg">
+            <div className="flex items-center gap-2">
+              <CreditCard className="h-5 w-5 text-green-600" />
+              <h3 className="font-semibold">Métodos de Pagamento</h3>
+            </div>
+            
+            <div className="space-y-2">
+              <Label>Tipo de exibição</Label>
+              <Select
+                value={formData.payment_methods_type}
+                onValueChange={(value) => handleInputChange('payment_methods_type', value)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione como exibir" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Não exibir</SelectItem>
+                  <SelectItem value="text">Texto personalizado</SelectItem>
+                  <SelectItem value="banner">Banner personalizado</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {formData.payment_methods_type === 'text' && (
+              <div className="space-y-2 pl-6">
+                <Label htmlFor="payment_methods_text">Texto dos métodos</Label>
+                <Textarea
+                  id="payment_methods_text"
+                  value={formData.payment_methods_text}
+                  onChange={(e) => handleInputChange('payment_methods_text', e.target.value)}
+                  placeholder="Ex: Aceita PIX, Cartão, Financiamento..."
+                  rows={2}
+                />
+              </div>
+            )}
+
+            {formData.payment_methods_type === 'banner' && (
+              <div className="space-y-2 pl-6">
+                <Label htmlFor="payment_methods_banner_url">URL do Banner</Label>
+                <Input
+                  id="payment_methods_banner_url"
+                  value={formData.payment_methods_banner_url}
+                  onChange={(e) => handleInputChange('payment_methods_banner_url', e.target.value)}
+                  placeholder="https://exemplo.com/banner-pagamento.jpg"
+                />
+              </div>
+            )}
           </div>
 
           {/* Description */}

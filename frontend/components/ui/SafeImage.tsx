@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import Image from 'next/image';
 import { MapPin, Home } from 'lucide-react';
 
@@ -50,7 +50,7 @@ export function SafeImage({
     }
   };
 
-  const handleImageError = () => {
+  const handleImageError = useCallback(() => {
     if (retryCount < MAX_RETRIES) {
       // Retry automático com delay exponencial
       setTimeout(() => {
@@ -60,7 +60,7 @@ export function SafeImage({
       setImageError(true);
       onError?.();
     }
-  };
+  }, [retryCount, MAX_RETRIES, onError]);
 
   // Se URL inválida ou erro após retries, mostrar fallback
   if (!isValidUrl(src) || imageError) {
@@ -110,13 +110,14 @@ export function SafeImage({
       fill={fill}
       width={width}
       height={height}
-      className={className}
+      className={`${className} will-change-auto`}
       priority={priority}
       loading={loading}
       sizes={sizes}
       onClick={onClick}
       onError={handleImageError}
       unoptimized={retryCount > 0} // Desabilita otimização em retries para evitar cache
+      quality={85} // Otimiza qualidade vs performance
     />
   );
 }

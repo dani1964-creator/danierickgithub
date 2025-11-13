@@ -3,6 +3,7 @@ DROP POLICY IF EXISTS "Public can view limited broker profile info" ON public.br
 DROP POLICY IF EXISTS "Public can view non-sensitive broker info" ON public.brokers;
 
 -- Create a security definer function that returns only non-sensitive broker data
+DROP FUNCTION IF EXISTS public.get_public_broker_info(text);
 CREATE OR REPLACE FUNCTION public.get_public_broker_info(broker_website_slug text DEFAULT NULL)
 RETURNS TABLE (
   id uuid,

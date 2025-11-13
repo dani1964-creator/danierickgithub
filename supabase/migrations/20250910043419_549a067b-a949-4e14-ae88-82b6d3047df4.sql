@@ -143,6 +143,8 @@ END;
 $function$;
 
 -- Update get_public_broker_branding_secure to include logo_size  
+DROP FUNCTION IF EXISTS public.get_public_broker_branding_secure(text);
+
 CREATE OR REPLACE FUNCTION public.get_public_broker_branding_secure(broker_website_slug text DEFAULT NULL::text)
  RETURNS TABLE(id uuid, business_name text, display_name text, website_slug text, logo_url text, logo_size integer, primary_color text, secondary_color text, about_text text, footer_text text, whatsapp_button_color text, whatsapp_button_text text, background_image_url text, overlay_color text, overlay_opacity text, hero_title text, hero_subtitle text, is_active boolean, created_at timestamp with time zone, updated_at timestamp with time zone, tracking_scripts jsonb, about_us_content text, privacy_policy_content text, terms_of_use_content text, whatsapp_number text, site_title text, site_description text, site_favicon_url text, site_share_image_url text)
  LANGUAGE plpgsql

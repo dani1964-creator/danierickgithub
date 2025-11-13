@@ -146,7 +146,7 @@ const PropertyCard = ({
             src={propertyImages[0]}
             alt={property.title}
             fill
-            className="object-cover"
+            className="object-cover transition-transform duration-300 hover:scale-105 will-change-transform"
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
             loading="lazy"
             fallbackColor={brokerProfile?.primary_color}

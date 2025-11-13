@@ -1,8 +1,9 @@
 -- Drop the previous policy and create a more secure one
-DROP POLICY "Public can view basic business information" ON public.brokers;
+DROP POLICY IF EXISTS "Public can view basic business information" ON public.brokers;
 
 -- Create a secure view for public broker information instead of a policy
 -- This approach is more secure as it explicitly controls which fields are exposed
+DROP VIEW IF EXISTS public.public_broker_info;
 CREATE OR REPLACE VIEW public.public_broker_info AS
 SELECT 
   id,
@@ -35,8 +36,6 @@ WHERE is_active = true AND website_slug IS NOT NULL;
 -- Enable RLS on the view
 ALTER VIEW public.public_broker_info SET (security_barrier = true);
 
--- Create a policy for the view that allows public access
-CREATE POLICY "Anyone can view public broker information" 
-ON public.public_broker_info 
-FOR SELECT 
-USING (true);
+-- Grant access to the view (views don't use policies, just direct grants)
+GRANT SELECT ON public.public_broker_info TO anon;
+GRANT SELECT ON public.public_broker_info TO authenticated;

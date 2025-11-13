@@ -11,6 +11,7 @@ USING (auth.uid() = user_id);
 
 -- Update the get_public_broker_info function to use SECURITY DEFINER properly
 -- and ensure it can bypass RLS by running with elevated privileges
+DROP FUNCTION IF EXISTS public.get_public_broker_info(text);
 CREATE OR REPLACE FUNCTION public.get_public_broker_info(broker_website_slug text DEFAULT NULL::text)
 RETURNS TABLE(
   id uuid, 

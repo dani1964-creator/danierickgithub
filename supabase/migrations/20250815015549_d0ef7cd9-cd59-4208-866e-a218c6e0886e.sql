@@ -17,6 +17,7 @@ USING (
 );
 
 -- Create policy for authenticated brokers to view their own complete profile
+DROP POLICY IF EXISTS "Brokers can view own complete profile" ON public.brokers;
 CREATE POLICY "Brokers can view own complete profile" 
 ON public.brokers 
 FOR SELECT 
@@ -27,6 +28,7 @@ USING (
 );
 
 -- Update the get_public_broker_info function to only return safe information
+DROP FUNCTION IF EXISTS public.get_public_broker_info(text);
 CREATE OR REPLACE FUNCTION public.get_public_broker_info(broker_website_slug text DEFAULT NULL::text)
  RETURNS TABLE(
    id uuid, 

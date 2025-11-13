@@ -90,11 +90,12 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform var(--duration-slower) var(--ease-smooth);
+  transition: transform 300ms var(--ease-smooth);
+  will-change: transform;
 }
 
 .property-card-premium:hover .property-card-image img {
-  transform: scale(1.1) rotate(1deg);
+  transform: scale(1.05);
 }
 
 /* Overlay gradiente premium */

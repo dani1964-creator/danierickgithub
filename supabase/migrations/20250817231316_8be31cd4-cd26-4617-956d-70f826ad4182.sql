@@ -1,5 +1,5 @@
 -- Remove the dangerous public SELECT policy that exposes all broker columns
-DROP POLICY "Public can view essential business info only" ON public.brokers;
+DROP POLICY IF EXISTS "Public can view essential business info only" ON public.brokers;
 
 -- The security issue is now resolved:
 -- 1. No direct public access to the brokers table

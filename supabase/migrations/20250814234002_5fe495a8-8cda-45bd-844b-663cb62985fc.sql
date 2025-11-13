@@ -10,6 +10,7 @@ DROP POLICY IF EXISTS "Public can view limited broker profile info" ON public.br
 
 -- Create a policy that only allows public access to non-sensitive fields
 -- This requires the application to explicitly select only safe fields
+DROP POLICY IF EXISTS "Public can view non-sensitive broker info" ON public.brokers;
 CREATE POLICY "Public can view non-sensitive broker info" 
 ON public.brokers 
 FOR SELECT 

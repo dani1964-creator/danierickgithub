@@ -35,6 +35,8 @@ GRANT SELECT ON public.public_broker_info TO anon;
 GRANT SELECT ON public.public_broker_info TO authenticated;
 
 -- Atualizar a função para usar dados mais completos mas ainda seguros
+DROP FUNCTION IF EXISTS public.get_public_broker_info(text);
+DROP FUNCTION IF EXISTS public.get_public_broker_info(text);
 CREATE OR REPLACE FUNCTION public.get_public_broker_info(broker_website_slug text DEFAULT NULL::text)
  RETURNS TABLE(
    id uuid, 

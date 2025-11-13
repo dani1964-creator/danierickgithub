@@ -1,4 +1,6 @@
 -- Update the get_public_properties_with_realtor function to include new fields
+DROP FUNCTION IF EXISTS public.get_public_properties_with_realtor(integer, integer);
+
 CREATE OR REPLACE FUNCTION public.get_public_properties_with_realtor(property_limit integer DEFAULT 50, property_offset integer DEFAULT 0)
  RETURNS TABLE(id uuid, title text, description text, property_type text, transaction_type text, address text, neighborhood text, city text, uf text, main_image_url text, images text[], features text[], price numeric, bedrooms integer, bathrooms integer, parking_spaces integer, area_m2 numeric, views_count integer, is_featured boolean, status text, slug text, property_code text, created_at timestamp with time zone, updated_at timestamp with time zone, broker_business_name text, broker_website_slug text, broker_display_name text, realtor_name text, realtor_avatar_url text, realtor_creci text, realtor_bio text, realtor_whatsapp_button_text text)
  LANGUAGE plpgsql

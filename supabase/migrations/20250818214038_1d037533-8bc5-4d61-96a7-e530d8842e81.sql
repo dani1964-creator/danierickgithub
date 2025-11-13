@@ -7,6 +7,8 @@ DROP FUNCTION IF EXISTS public.get_public_broker_info(text);
 DROP FUNCTION IF EXISTS public.get_broker_contact_info(text);
 
 -- 2. Create a new secure PUBLIC branding function that ONLY exposes non-sensitive branding info
+DROP FUNCTION IF EXISTS public.get_public_broker_branding_secure(text);
+
 CREATE OR REPLACE FUNCTION public.get_public_broker_branding_secure(
   broker_website_slug TEXT DEFAULT NULL
 )

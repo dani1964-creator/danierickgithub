@@ -251,7 +251,7 @@ $function$;
 -- Create the audit trigger for leads
 DROP TRIGGER IF EXISTS audit_lead_access_trigger ON public.leads;
 CREATE TRIGGER audit_lead_access_trigger
-  AFTER SELECT OR INSERT OR UPDATE OR DELETE ON public.leads
+  AFTER INSERT OR UPDATE OR DELETE ON public.leads
   FOR EACH ROW EXECUTE FUNCTION public.audit_lead_access();
 
 -- Update lead validation triggers

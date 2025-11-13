@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste de Performance da Galeria</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .gallery {
+            position: relative;
+            width: 100%;
+            height: 600px;
+            background: #000;
+            border-radius: 16px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+        .gallery img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            position: absolute;
+            top: 0;
+            left: 0;
+            opacity: 0;
+            transition: opacity 300ms ease;
+            will-change: opacity;
+        }
+        .gallery img.active {
+            opacity: 1;
+        }
+        .controls {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px;
+        }
+        .btn {
+            padding: 10px 20px;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+        }
+        .btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        .counter {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin: 20px 0;
+        }
+        .performance-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        .stat {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #007bff;
+        }
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+        .image-list {
+            margin-top: 20px;
+        }
+        .image-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            margin: 5px 0;
+        }
+        .image-url {
+            font-family: monospace;
+            font-size: 12px;
+            color: #666;
+            flex: 1;
+            margin-right: 10px;
+            word-break: break-all;
+        }
+        .load-time {
+            font-weight: bold;
+            min-width: 80px;
+        }
+        .good { color: #28a745; }
+        .warning { color: #ffc107; }
+        .error { color: #dc3545; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Teste de Performance da Galeria de Imóveis</h1>
+        
+        <div class="test-section">
+            <h2>📊 Estatísticas de Performance</h2>
+            <div class="performance-stats">
+                <div class="stat">
+                    <div class="stat-value" id="avgLoadTime">0ms</div>
+                    <div class="stat-label">Tempo Médio de Carregamento</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value" id="maxLoadTime">0ms</div>
+                    <div class="stat-label">Maior Tempo de Carregamento</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value" id="transitionTime">300ms</div>
+                    <div class="stat-label">Tempo de Transição</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value" id="totalImages">0</div>
+                    <div class="stat-label">Total de Imagens</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>🖼️ Simulação da Galeria</h2>
+            <p>Esta galeria simula o comportamento real da galeria de imóveis com diferentes tipos de imagens para identificar possíveis problemas de performance.</p>
+            
+            <div class="gallery" id="gallery">
+                <div class="counter" id="counter">1 / 0</div>
+                <div class="controls">
+                    <button class="btn" onclick="previousImage()">← Anterior</button>
+                    <button class="btn" onclick="nextImage()">Próxima →</button>
+                    <button class="btn" onclick="autoSlide()">Auto</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>📝 Relatório de Carregamento das Imagens</h2>
+            <div class="image-list" id="imageList">
+                <p>Carregando imagens de teste...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // URLs de teste que simulam diferentes tipos de problemas
+        const testImages = [
+            // Imagens rápidas e pequenas
+            'https://picsum.photos/800/600?random=1',
+            'https://picsum.photos/800/600?random=2',
+            
+            // Imagens grandes que podem demorar
+            'https://picsum.photos/1920/1080?random=3',
+            'https://picsum.photos/1920/1080?random=4',
+            
+            // Imagens com delay simulado
+            'https://picsum.photos/800/600?random=5&delay=1000',
+            'https://picsum.photos/800/600?random=6&delay=500',
+            
+            // Possíveis URLs problemáticas (podem não carregar)
+            'https://example.com/nonexistent.jpg',
+            'https://picsum.photos/800/600?random=7',
+            
+            // Mais algumas imagens normais
+            'https://picsum.photos/800/600?random=8',
+            'https://picsum.photos/800/600?random=9'
+        ];
+
+        let currentIndex = 0;
+        let loadTimes = [];
+        let autoSlideInterval = null;
+
+        // Função para medir tempo de carregamento
+        function measureImageLoad(url) {
+            return new Promise((resolve) => {
+                const startTime = performance.now();
+                const img = new Image();
+                
+                img.onload = () => {
+                    const loadTime = performance.now() - startTime;
+                    resolve({ url, loadTime, success: true });
+                };
+                
+                img.onerror = () => {
+                    const loadTime = performance.now() - startTime;
+                    resolve({ url, loadTime, success: false });
+                };
+                
+                img.src = url;
+            });
+        }
+
+        // Função para criar galeria
+        function createGallery() {
+            const gallery = document.getElementById('gallery');
+            
+            testImages.forEach((url, index) => {
+                const img = document.createElement('img');
+                img.src = url;
+                img.alt = `Imagem ${index + 1}`;
+                img.classList.add('gallery-image');
+                if (index === 0) img.classList.add('active');
+                gallery.appendChild(img);
+            });
+            
+            updateCounter();
+        }
+
+        function updateCounter() {
+            document.getElementById('counter').textContent = `${currentIndex + 1} / ${testImages.length}`;
+            document.getElementById('totalImages').textContent = testImages.length;
+        }
+
+        function showImage(index) {
+            const images = document.querySelectorAll('.gallery-image');
+            images.forEach((img, i) => {
+                img.classList.toggle('active', i === index);
+            });
+            currentIndex = index;
+            updateCounter();
+        }
+
+        function nextImage() {
+            const nextIndex = (currentIndex + 1) % testImages.length;
+            showImage(nextIndex);
+        }
+
+        function previousImage() {
+            const prevIndex = currentIndex === 0 ? testImages.length - 1 : currentIndex - 1;
+            showImage(prevIndex);
+        }
+
+        function autoSlide() {
+            if (autoSlideInterval) {
+                clearInterval(autoSlideInterval);
+                autoSlideInterval = null;
+            } else {
+                autoSlideInterval = setInterval(nextImage, 2000);
+            }
+        }
+
+        // Medir performance de todas as imagens
+        async function measureAllImages() {
+            const results = [];
+            
+            for (const url of testImages) {
+                const result = await measureImageLoad(url);
+                results.push(result);
+                loadTimes.push(result.loadTime);
+            }
+            
+            updateStats(results);
+            updateImageList(results);
+        }
+
+        function updateStats(results) {
+            const validTimes = results.filter(r => r.success).map(r => r.loadTime);
+            const avgTime = validTimes.length > 0 ? validTimes.reduce((a, b) => a + b, 0) / validTimes.length : 0;
+            const maxTime = validTimes.length > 0 ? Math.max(...validTimes) : 0;
+            
+            document.getElementById('avgLoadTime').textContent = `${Math.round(avgTime)}ms`;
+            document.getElementById('maxLoadTime').textContent = `${Math.round(maxTime)}ms`;
+        }
+
+        function updateImageList(results) {
+            const listElement = document.getElementById('imageList');
+            listElement.innerHTML = '';
+            
+            results.forEach((result, index) => {
+                const item = document.createElement('div');
+                item.classList.add('image-item');
+                
+                const loadTimeClass = result.success 
+                    ? (result.loadTime < 500 ? 'good' : result.loadTime < 1000 ? 'warning' : 'error')
+                    : 'error';
+                
+                item.innerHTML = `
+                    <div class="image-url">Imagem ${index + 1}: ${result.url}</div>
+                    <div class="load-time ${loadTimeClass}">
+                        ${result.success ? `${Math.round(result.loadTime)}ms` : 'ERRO'}
+                    </div>
+                `;
+                
+                listElement.appendChild(item);
+            });
+        }
+
+        // Inicializar tudo
+        window.onload = function() {
+            createGallery();
+            measureAllImages();
+            
+            // Adicionar controles de teclado
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'ArrowLeft') previousImage();
+                if (e.key === 'ArrowRight') nextImage();
+                if (e.key === ' ') {
+                    e.preventDefault();
+                    autoSlide();
+                }
+            });
+        };
+    </script>
+</body>
+</html>

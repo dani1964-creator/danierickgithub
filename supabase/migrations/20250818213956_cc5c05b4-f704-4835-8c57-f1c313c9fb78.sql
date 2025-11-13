@@ -10,6 +10,8 @@ DROP FUNCTION IF EXISTS public.get_public_broker_info(text);
 DROP FUNCTION IF EXISTS public.get_broker_contact_info(text);
 
 -- Create a new secure PUBLIC branding function that ONLY exposes non-sensitive branding info
+DROP FUNCTION IF EXISTS public.get_public_broker_branding_secure(text);
+
 CREATE OR REPLACE FUNCTION public.get_public_broker_branding_secure(
   broker_website_slug TEXT DEFAULT NULL
 )
@@ -185,10 +187,11 @@ BEGIN
 END;
 $$;
 
--- Create the audit trigger
+-- Create the audit trigger (Note: PostgreSQL doesn't support AFTER SELECT triggers)
+-- Only audit modifications, not reads
 DROP TRIGGER IF EXISTS audit_broker_access_trigger ON public.brokers;
 CREATE TRIGGER audit_broker_access_trigger
-  AFTER SELECT OR UPDATE OR DELETE ON public.brokers
+  AFTER UPDATE OR DELETE ON public.brokers
   FOR EACH ROW EXECUTE FUNCTION public.audit_broker_access();
 
 -- 5. Ensure the brokers table has strict RLS that prevents public access

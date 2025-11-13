@@ -1,5 +1,6 @@
 
 -- Atualizar a função RPC para incluir os campos de contato que estão faltando
+DROP FUNCTION IF EXISTS public.get_public_broker_info(text);
 CREATE OR REPLACE FUNCTION public.get_public_broker_info(broker_website_slug text DEFAULT NULL::text)
  RETURNS TABLE(
    id uuid, 

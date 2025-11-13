@@ -128,6 +128,7 @@ const PropertyDetailPage = () => {
   const [thumbnailCarouselApi, setThumbnailCarouselApi] = useState<CarouselApi>();
   const [activeTab, setActiveTab] = useState<'Detalhes' | 'Características'>('Detalhes');
   const [imageErrors, setImageErrors] = useState<Set<number>>(new Set());
+  const [preloadedImages, setPreloadedImages] = useState<Set<string>>(new Set());
   const thumbnailsRef = useRef<HTMLDivElement>(null);
   const [isDarkMode, setIsDarkMode] = useState(() => {
     try {
@@ -660,6 +661,42 @@ const PropertyDetailPage = () => {
     : property?.main_image_url 
       ? [property.main_image_url] 
       : [];
+
+  // Preload próximas imagens para transições suaves
+  const preloadImages = useCallback((currentIndex: number) => {
+    if (propertyImages.length <= 1) return;
+    
+    const imagesToPreload: string[] = [];
+    
+    // Preload próxima imagem
+    const nextIndex = (currentIndex + 1) % propertyImages.length;
+    if (nextIndex !== currentIndex) {
+      imagesToPreload.push(propertyImages[nextIndex]);
+    }
+    
+    // Preload imagem anterior
+    const prevIndex = currentIndex === 0 ? propertyImages.length - 1 : currentIndex - 1;
+    if (prevIndex !== currentIndex && prevIndex !== nextIndex) {
+      imagesToPreload.push(propertyImages[prevIndex]);
+    }
+    
+    imagesToPreload.forEach(src => {
+      if (!preloadedImages.has(src)) {
+        const img = new Image();
+        img.src = src;
+        img.onload = () => {
+          setPreloadedImages(prev => new Set(prev).add(src));
+        };
+      }
+    });
+  }, [propertyImages, preloadedImages]);
+
+  // Preload imagens quando o índice atual mudar
+  useEffect(() => {
+    if (propertyImages.length > 1) {
+      preloadImages(currentImageIndex);
+    }
+  }, [currentImageIndex, preloadImages]);
 
   // Sync carousel with thumbnails
   const handleThumbnailClick = useCallback((index: number) => {
@@ -1429,7 +1466,7 @@ const PropertyDetailPage = () => {
                                src={image}
                                alt={`${property.title} - Imagem ${index + 1}`}
                                fill
-                               className="object-cover cursor-pointer transition-transform duration-500 hover:scale-110"
+                               className="object-cover cursor-pointer transition-transform duration-300 hover:scale-110 will-change-transform"
                                onClick={() => {setCurrentImageIndex(index); setIsImageModalOpen(true);}}
                                loading={index === 0 ? "eager" : "lazy"}
                                sizes="(max-width: 640px) 100vw, 640px"
@@ -1475,7 +1512,7 @@ const PropertyDetailPage = () => {
                           <button
                             key={index}
                             onClick={() => handleThumbnailClick(index)}
-                            className={`relative flex-shrink-0 w-14 h-10 rounded-md overflow-hidden transition-all duration-200 ${
+                            className={`relative flex-shrink-0 w-14 h-10 rounded-md overflow-hidden transition-all duration-150 will-change-transform ${
                               index === currentImageIndex 
                                 ? 'ring-2 ring-white scale-105' 
                                 : 'opacity-60 hover:opacity-100 hover:scale-105'
@@ -1534,7 +1571,7 @@ const PropertyDetailPage = () => {
                         src={propertyImages[currentImageIndex]}
                         alt={`${property.title} - Imagem ${currentImageIndex + 1}`}
                         fill
-                        className="object-cover transition-all duration-500"
+                        className="object-cover transition-opacity duration-300 will-change-auto"
                         loading="eager"
                         sizes="(max-width: 1024px) 100vw, 1024px"
                         priority
@@ -1593,7 +1630,7 @@ const PropertyDetailPage = () => {
                               <button
                                 key={index}
                                 onClick={() => handleThumbnailClick(index)}
-                                className={`relative flex-shrink-0 w-16 h-12 rounded-md overflow-hidden transition-all duration-200 ${
+                                className={`relative flex-shrink-0 w-16 h-12 rounded-md overflow-hidden transition-all duration-150 will-change-transform ${
                                   index === currentImageIndex 
                                     ? 'ring-2 ring-white scale-105' 
                                     : 'opacity-60 hover:opacity-100 hover:scale-105'

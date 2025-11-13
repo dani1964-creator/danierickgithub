@@ -1,4 +1,6 @@
 -- Update the get_public_broker_branding function to include address and cnpj fields
+DROP FUNCTION IF EXISTS public.get_public_broker_branding(text);
+
 CREATE OR REPLACE FUNCTION public.get_public_broker_branding(broker_website_slug text DEFAULT NULL::text)
  RETURNS TABLE(
    id uuid, 

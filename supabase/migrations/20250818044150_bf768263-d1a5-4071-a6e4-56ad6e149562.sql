@@ -1,7 +1,9 @@
 -- Fix security vulnerability: Restrict access to sensitive broker contact information
 -- The current get_public_broker_info function exposes too much sensitive data
 
--- Create a new function that only exposes essential business branding information
+-- Drop and recreate function that only exposes essential business branding information
+DROP FUNCTION IF EXISTS public.get_public_broker_branding(text);
+
 CREATE OR REPLACE FUNCTION public.get_public_broker_branding(broker_website_slug text DEFAULT NULL::text)
  RETURNS TABLE(
    id uuid, 

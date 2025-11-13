@@ -1425,6 +1425,35 @@ const PropertyDetailPage = () => {
                     {currentImageIndex + 1}/{propertyImages.length}
                   </div>
                   
+                  {/* Thumbnails - Faixa horizontal com scroll */}
+                  {propertyImages.length > 1 && (
+                    <div className="absolute bottom-16 left-4 right-4 z-30">
+                      <div className="flex gap-2 overflow-x-auto scrollbar-hide">
+                        {propertyImages.map((image, index) => (
+                          <button
+                            key={index}
+                            onClick={() => handleThumbnailClick(index)}
+                            className={`relative flex-shrink-0 w-14 h-10 rounded-md overflow-hidden transition-all duration-200 ${
+                              index === currentImageIndex 
+                                ? 'ring-2 ring-white scale-105' 
+                                : 'opacity-60 hover:opacity-100 hover:scale-105'
+                            }`}
+                          >
+                            <SafeImage
+                              src={image}
+                              alt={`Thumb ${index + 1}`}
+                              fill
+                              className="object-cover"
+                              loading="lazy"
+                              sizes="56px"
+                              fallbackColor={brokerProfile?.primary_color}
+                            />
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  
                   {/* Botão de expandir elegante */}
                   <button
                     onClick={() => setIsImageModalOpen(true)}

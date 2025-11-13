@@ -114,6 +114,7 @@ const PropertyDetailPage = () => {
   const [thumbnailCarouselApi, setThumbnailCarouselApi] = useState<CarouselApi>();
   const [activeTab, setActiveTab] = useState<'Detalhes' | 'Características'>('Detalhes');
   const [imageErrors, setImageErrors] = useState<Set<number>>(new Set());
+  const thumbnailsRef = useRef<HTMLDivElement>(null);
   const [isDarkMode, setIsDarkMode] = useState(() => {
     try {
       const saved = localStorage.getItem('property-detail-dark-mode');
@@ -720,6 +721,21 @@ const PropertyDetailPage = () => {
     const onSelect = () => {
       const newIndex = carouselApi.selectedScrollSnap();
       setCurrentImageIndex(newIndex);
+      
+      // Mobile: Scroll automático dos thumbnails
+      if (thumbnailsRef.current && propertyImages.length > 1) {
+        const thumbnailWidth = 56 + 8; // w-14 (56px) + gap-2 (8px)
+        const containerWidth = thumbnailsRef.current.offsetWidth;
+        const maxVisibleThumbs = Math.floor(containerWidth / thumbnailWidth);
+        
+        // Centralizar thumbnail ativo quando possível
+        const scrollPosition = Math.max(0, (newIndex - Math.floor(maxVisibleThumbs / 2)) * thumbnailWidth);
+        
+        thumbnailsRef.current.scrollTo({
+          left: scrollPosition,
+          behavior: 'smooth'
+        });
+      }
       
       // Sincronizar o carrossel de miniaturas no mobile apenas quando necessário
       if (thumbnailCarouselApi && propertyImages.length > 6) {
@@ -1425,10 +1441,13 @@ const PropertyDetailPage = () => {
                     {currentImageIndex + 1}/{propertyImages.length}
                   </div>
                   
-                  {/* Thumbnails - Faixa horizontal com scroll */}
+                  {/* Thumbnails - mesma altura do botão ampliar, à esquerda */}
                   {propertyImages.length > 1 && (
-                    <div className="absolute bottom-16 left-4 right-4 z-30">
-                      <div className="flex gap-2 overflow-x-auto scrollbar-hide">
+                    <div className="absolute bottom-4 left-4 right-20 z-30">
+                      <div 
+                        ref={thumbnailsRef}
+                        className="flex gap-2 overflow-x-auto scrollbar-hide max-w-[280px]"
+                      >
                         {propertyImages.map((image, index) => (
                           <button
                             key={index}

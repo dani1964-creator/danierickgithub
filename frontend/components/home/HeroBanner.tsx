@@ -244,7 +244,7 @@ const HeroBanner = ({ brokerProfile, onContactClick }: HeroBannerProps) => {
       </div>
 
       {/* Scroll Indicator */}
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 animate-bounce">
+      <div className="absolute bottom-8 left-1/2 -translate-x-[60%] z-10 animate-bounce">
         <button
           onClick={scrollToSearch}
           className="flex flex-col items-center gap-2 text-white/80 hover:text-white transition-colors duration-300"

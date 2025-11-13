@@ -1422,16 +1422,16 @@ const PropertyDetailPage = () => {
                         </>
                       )}
                       
-                      {/* CONTROLES - NO CARD */}
+                      {/* CONTROLES - NO CARD (mesmo estilo do desktop) */}
                       {/* Contador - CANTO SUPERIOR DIREITO */}
-                      <div className="absolute top-3 right-3 bg-black/80 text-white px-3 py-2 rounded-full text-xs font-bold backdrop-blur-sm z-50 shadow-xl pointer-events-none">
+                      <div className="absolute top-4 right-4 bg-black/80 text-white px-4 py-2.5 rounded-full text-sm font-bold backdrop-blur-sm z-40 shadow-xl pointer-events-none">
                         {currentImageIndex + 1} / {propertyImages.length}
                       </div>
                       
                       {/* Badge Visualizações - CANTO SUPERIOR ESQUERDO */}
-                      <div className="absolute top-3 left-3 z-50 pointer-events-none">
-                        <Badge className="bg-black/70 text-white px-3 py-2 text-xs font-bold rounded-full backdrop-blur-sm shadow-lg border-0">
-                          <Eye className="h-3.5 w-3.5 mr-1.5" />
+                      <div className="absolute top-4 left-4 z-40 pointer-events-none">
+                        <Badge className="bg-black/70 text-white px-4 py-2.5 text-sm font-bold rounded-full backdrop-blur-sm shadow-xl border-0">
+                          <Eye className="h-4 w-4 mr-1.5" />
                           {viewsCount}
                         </Badge>
                       </div>
@@ -1439,10 +1439,10 @@ const PropertyDetailPage = () => {
                       {/* Botão Ampliar - CANTO INFERIOR DIREITO */}
                       <button
                         onClick={() => setIsImageModalOpen(true)}
-                        className="absolute bottom-16 right-3 bg-black/30 hover:bg-black/50 text-white p-3 rounded-full transition-all duration-300 z-50 backdrop-blur-sm shadow-xl hover:scale-110"
+                        className="absolute bottom-16 right-4 bg-black/30 hover:bg-black/50 text-white p-3.5 rounded-full transition-all duration-300 z-40 backdrop-blur-sm shadow-xl hover:scale-110"
                         title="Ampliar imagem"
                       >
-                        <Maximize2 className="h-4 w-4" />
+                        <Maximize2 className="h-5 w-5" />
                       </button>
                     </Carousel>
                     
@@ -1510,12 +1510,12 @@ const PropertyDetailPage = () => {
                       
                       {/* CONTROLES - BASEADOS NO CARD DA FOTO */}
                       {/* Contador de fotos - CANTO SUPERIOR DIREITO DO CARD */}
-                      <div className="absolute top-4 right-4 bg-black/80 text-white px-6 py-3 rounded-full text-sm font-bold backdrop-blur-sm z-50 shadow-xl pointer-events-none">
+                      <div className="absolute top-4 right-4 bg-black/80 text-white px-6 py-3 rounded-full text-sm font-bold backdrop-blur-sm z-40 shadow-xl pointer-events-none">
                         {currentImageIndex + 1} / {propertyImages.length}
                       </div>
                       
                       {/* Badge Visualizações - CANTO SUPERIOR ESQUERDO DO CARD */}
-                      <div className="absolute top-4 left-4 z-50 pointer-events-none">
+                      <div className="absolute top-4 left-4 z-40 pointer-events-none">
                         <Badge className="bg-black/70 text-white px-6 py-3 text-sm font-bold rounded-full shadow-xl backdrop-blur-sm border-0">
                           <Eye className="h-5 w-5 mr-2" />
                           {viewsCount} visualizações
@@ -1525,7 +1525,7 @@ const PropertyDetailPage = () => {
                       {/* Botão Ampliar - CANTO INFERIOR DIREITO DO CARD */}
                       <button
                         onClick={() => setIsImageModalOpen(true)}
-                        className="absolute bottom-6 right-6 bg-black/30 hover:bg-black/50 text-white p-4 rounded-full transition-all duration-300 backdrop-blur-sm shadow-xl hover:scale-110 z-50"
+                        className="absolute bottom-6 right-6 bg-black/30 hover:bg-black/50 text-white p-4 rounded-full transition-all duration-300 backdrop-blur-sm shadow-xl hover:scale-110 z-40"
                         title="Ampliar imagem"
                       >
                         <Maximize2 className="h-6 w-6" />

@@ -232,6 +232,18 @@ const EditPropertyDialog = ({ property, open, onOpenChange, onPropertyUpdated }:
         accessibility: Boolean(property.accessibility),
         heating_type: property.heating_type || '',
         notes: property.notes || '',
+        // Campos de financiamento
+        financing_enabled: Boolean(property.financing_enabled),
+        financing_down_payment_percentage: property.financing_down_payment_percentage?.toString() || '20',
+        financing_max_installments: property.financing_max_installments?.toString() || '360',
+        financing_interest_rate: property.financing_interest_rate?.toString() || '0.80',
+        // Campos de oportunidade
+        show_opportunity_badge: Boolean(property.show_opportunity_badge),
+        opportunity_badge_text: property.opportunity_badge_text || '',
+        // Campos de métodos de pagamento
+        payment_methods_type: property.payment_methods_type || 'none',
+        payment_methods_text: property.payment_methods_text || '',
+        payment_methods_banner_url: property.payment_methods_banner_url || '',
       });
       setSelectedImages([]);
       setImageUrls([]);

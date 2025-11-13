@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 import { ChevronLeft, MapPin, Bed, Bath, Car, Square, Eye, Heart, Share2, MessageCircle, Phone, Mail, X, Play, Maximize2, ArrowLeft, Star, Calendar, Users, Zap, Moon, Sun } from 'lucide-react';
@@ -656,11 +656,13 @@ const PropertyDetailPage = () => {
     }
   };
 
-  const propertyImages = property?.images && property.images.length > 0 
-    ? property.images 
-    : property?.main_image_url 
-      ? [property.main_image_url] 
-      : [];
+  const propertyImages = useMemo(() => {
+    return property?.images && property.images.length > 0 
+      ? property.images 
+      : property?.main_image_url 
+        ? [property.main_image_url] 
+        : [];
+  }, [property?.images, property?.main_image_url]);
 
   // Preload próximas imagens para transições suaves
   const preloadImages = useCallback((currentIndex: number) => {
@@ -696,7 +698,7 @@ const PropertyDetailPage = () => {
     if (propertyImages.length > 1) {
       preloadImages(currentImageIndex);
     }
-  }, [currentImageIndex, preloadImages]);
+  }, [currentImageIndex, preloadImages, propertyImages.length]);
 
   // Sync carousel with thumbnails
   const handleThumbnailClick = useCallback((index: number) => {

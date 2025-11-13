@@ -1424,14 +1424,14 @@ const PropertyDetailPage = () => {
                       
                       {/* CONTROLES - NO CARD (mesmo estilo do desktop) */}
                       {/* Contador - CANTO SUPERIOR DIREITO */}
-                      <div className="absolute top-4 right-4 bg-black/80 text-white px-4 py-2.5 rounded-full text-sm font-bold backdrop-blur-sm z-40 shadow-xl pointer-events-none">
+                      <div className="absolute top-3 right-3 bg-black/80 text-white px-3 py-2 rounded-full text-sm font-bold backdrop-blur-sm z-40 shadow-xl pointer-events-none">
                         {currentImageIndex + 1} / {propertyImages.length}
                       </div>
                       
                       {/* Badge Visualizações - CANTO SUPERIOR ESQUERDO */}
-                      <div className="absolute top-4 left-4 z-40 pointer-events-none">
-                        <Badge className="bg-black/70 text-white px-4 py-2.5 text-sm font-bold rounded-full backdrop-blur-sm shadow-xl border-0">
-                          <Eye className="h-4 w-4 mr-1.5" />
+                      <div className="absolute top-3 left-3 z-40 pointer-events-none">
+                        <Badge className="bg-black/70 text-white px-3 py-2 text-sm font-bold rounded-full backdrop-blur-sm shadow-xl border-0">
+                            <Eye className="h-5 w-5 mr-1.5" />
                           {viewsCount}
                         </Badge>
                       </div>
@@ -1439,16 +1439,16 @@ const PropertyDetailPage = () => {
                       {/* Botão Ampliar - CANTO INFERIOR DIREITO */}
                       <button
                         onClick={() => setIsImageModalOpen(true)}
-                        className="absolute bottom-16 right-4 bg-black/30 hover:bg-black/50 text-white p-3.5 rounded-full transition-all duration-300 z-40 backdrop-blur-sm shadow-xl hover:scale-110"
+                        className="absolute bottom-20 right-3 bg-black/30 hover:bg-black/50 text-white p-4 rounded-full transition-all duration-300 z-40 backdrop-blur-sm shadow-xl hover:scale-110"
                         title="Ampliar imagem"
                       >
-                        <Maximize2 className="h-5 w-5" />
+                        <Maximize2 className="h-6 w-6" />
                       </button>
                     </Carousel>
                     
                     {/* Thumbnails - SEM FUNDO, APENAS IMAGENS */}
                     {propertyImages.length > 1 && (
-                      <div className="p-3 bg-gray-900/5">
+                      <div className="py-2">
                         <div className="flex gap-2 overflow-x-auto scrollbar-hide">
                           {propertyImages.map((image, index) => (
                             <button

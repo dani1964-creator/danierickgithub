@@ -104,7 +104,7 @@ const AppSidebar = () => {
                     tooltip={isCollapsed ? item.title : undefined}
                     className={`group transition-all duration-200 hover:bg-sidebar-accent/80 data-[state=open]:bg-sidebar-accent ${
                       item.highlight 
-                        ? 'relative after:absolute after:right-2 after:top-1/2 after:-translate-y-1/2 after:w-2 after:h-2 after:bg-primary after:rounded-full after:animate-pulse' 
+                        ? 'relative border-2 border-primary/60 rounded-md bg-primary/5 shadow-sm shadow-primary/20 after:absolute after:right-2 after:top-1/2 after:-translate-y-1/2 after:w-2 after:h-2 after:bg-primary after:rounded-full after:animate-pulse' 
                         : ''
                     }`}
                   >

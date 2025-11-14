@@ -942,6 +942,9 @@ const EditPropertyDialog = ({ property, open, onOpenChange, onPropertyUpdated }:
               <Calculator className="h-5 w-5 text-blue-600" />
               <h3 className="font-semibold">Simulador de Financiamento</h3>
             </div>
+            <p className="text-sm text-muted-foreground">
+              💡 Exibe uma calculadora no site público mostrando entrada e parcelas estimadas. Ideal para imóveis à venda.
+            </p>
             
             <div className="flex items-center space-x-2">
               <Switch
@@ -998,6 +1001,9 @@ const EditPropertyDialog = ({ property, open, onOpenChange, onPropertyUpdated }:
                     onChange={(e) => handleInputChange('financing_interest_rate', e.target.value)}
                     placeholder="0.80"
                   />
+                  <p className="text-xs text-muted-foreground">
+                    💡 Use 0 para parcelamento sem juros
+                  </p>
                 </div>
               </div>
             )}
@@ -1009,6 +1015,9 @@ const EditPropertyDialog = ({ property, open, onOpenChange, onPropertyUpdated }:
               <Flame className="h-5 w-5 text-orange-600" />
               <h3 className="font-semibold">Badge de Oportunidade</h3>
             </div>
+            <p className="text-sm text-muted-foreground">
+              🏷️ Destaque este imóvel com um badge chamativo no site público. Ótimo para promoções e ofertas especiais.
+            </p>
             
             <div className="flex items-center space-x-2">
               <Switch
@@ -1027,7 +1036,13 @@ const EditPropertyDialog = ({ property, open, onOpenChange, onPropertyUpdated }:
                   value={formData.opportunity_badge_text}
                   onChange={(e) => handleInputChange('opportunity_badge_text', e.target.value)}
                   placeholder="Ex: Oportunidade Única!"
+                  maxLength={30}
                 />
+                <p className="text-xs text-muted-foreground">
+                  Prévia: <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-gradient-to-r from-orange-500 to-red-500 text-white animate-pulse">
+                    {formData.opportunity_badge_text || 'Oportunidade!'}
+                  </span>
+                </p>
               </div>
             )}
           </div>
@@ -1038,6 +1053,9 @@ const EditPropertyDialog = ({ property, open, onOpenChange, onPropertyUpdated }:
               <CreditCard className="h-5 w-5 text-green-600" />
               <h3 className="font-semibold">Métodos de Pagamento</h3>
             </div>
+            <p className="text-sm text-muted-foreground">
+              💳 Mostre aos interessados as opções de pagamento aceitas. Escolha entre lista de texto ou banner personalizado.
+            </p>
             
             <div className="space-y-2">
               <Label>Tipo de exibição</Label>

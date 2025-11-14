@@ -22,10 +22,12 @@ export const FinancingCard = ({
   // Calcular valor financiado
   const financedAmount = price - downPayment;
   
-  // Calcular parcela usando Tabela Price
-  // PMT = PV * [i * (1 + i)^n] / [(1 + i)^n - 1]
+  // Calcular parcela usando Tabela Price ou sem juros
+  // Se taxa de juros for 0, divide direto
   const monthlyRate = interestRate / 100 / 12; // Taxa mensal
-  const installmentValue = financedAmount * (monthlyRate * Math.pow(1 + monthlyRate, maxInstallments)) / (Math.pow(1 + monthlyRate, maxInstallments) - 1);
+  const installmentValue = interestRate === 0 
+    ? financedAmount / maxInstallments 
+    : financedAmount * (monthlyRate * Math.pow(1 + monthlyRate, maxInstallments)) / (Math.pow(1 + monthlyRate, maxInstallments) - 1);
   
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
@@ -74,11 +76,21 @@ export const FinancingCard = ({
         </div>
         
         {/* Nota */}
-        <p className={`text-xs ${isDarkMode ? 'text-gray-500' : 'text-gray-500'} italic pt-2 border-t ${
-          isDarkMode ? 'border-gray-700' : 'border-gray-200'
-        }`}>
-          *Valores aproximados. Taxa de {interestRate}% a.a. Consulte condições com o corretor.
-        </p>
+        {interestRate > 0 && (
+          <p className={`text-xs ${isDarkMode ? 'text-gray-500' : 'text-gray-500'} italic pt-2 border-t ${
+            isDarkMode ? 'border-gray-700' : 'border-gray-200'
+          }`}>
+            *Valores aproximados. Taxa de {interestRate}% a.a. Consulte condições com o corretor.
+          </p>
+        )}
+        
+        {interestRate === 0 && (
+          <p className={`text-xs ${isDarkMode ? 'text-gray-500' : 'text-gray-500'} italic pt-2 border-t ${
+            isDarkMode ? 'border-gray-700' : 'border-gray-200'
+          }`}>
+            *Valores aproximados sem juros. Consulte condições com o corretor.
+          </p>
+        )}
       </div>
     </div>
   );

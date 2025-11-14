@@ -12,7 +12,7 @@ export const FinancingCard = ({
   price,
   downPaymentPercentage = 20,
   maxInstallments = 360,
-  interestRate = 9.00,
+  interestRate = 0,
   isDarkMode = false
 }: FinancingCardProps) => {
   
@@ -24,8 +24,9 @@ export const FinancingCard = ({
   
   // Calcular parcela usando Tabela Price ou sem juros
   // Se taxa de juros for 0, divide direto
-  const monthlyRate = interestRate / 100 / 12; // Taxa mensal
-  const installmentValue = interestRate === 0 
+  // A taxa vem em % anual, converter para mensal
+  const monthlyRate = interestRate / 100 / 12; // Taxa mensal (de anual para mensal)
+  const installmentValue = interestRate === 0 || monthlyRate === 0
     ? financedAmount / maxInstallments 
     : financedAmount * (monthlyRate * Math.pow(1 + monthlyRate, maxInstallments)) / (Math.pow(1 + monthlyRate, maxInstallments) - 1);
   
@@ -80,7 +81,7 @@ export const FinancingCard = ({
           <p className={`text-xs ${isDarkMode ? 'text-gray-500' : 'text-gray-500'} italic pt-2 border-t ${
             isDarkMode ? 'border-gray-700' : 'border-gray-200'
           }`}>
-            *Valores aproximados. Taxa de {interestRate}% a.a. Consulte condições com o corretor.
+            *Simulação aproximada com taxa de {interestRate}% a.a. Consulte condições reais com o corretor.
           </p>
         )}
         
@@ -88,7 +89,7 @@ export const FinancingCard = ({
           <p className={`text-xs ${isDarkMode ? 'text-gray-500' : 'text-gray-500'} italic pt-2 border-t ${
             isDarkMode ? 'border-gray-700' : 'border-gray-200'
           }`}>
-            *Valores aproximados sem juros. Consulte condições com o corretor.
+            *Simulação aproximada. Consulte taxas e condições com o corretor.
           </p>
         )}
       </div>

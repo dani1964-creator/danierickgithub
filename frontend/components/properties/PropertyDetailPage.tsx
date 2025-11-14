@@ -1755,7 +1755,7 @@ const PropertyDetailPage = () => {
                           price={property.price}
                           downPaymentPercentage={property.financing_down_payment_percentage || 20}
                           maxInstallments={property.financing_max_installments || 360}
-                          interestRate={property.financing_interest_rate || 9.00}
+                          interestRate={property.financing_interest_rate || 0}
                           isDarkMode={isDarkMode}
                         />
                       </div>

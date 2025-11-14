@@ -716,11 +716,13 @@ const AddPropertyDialog = ({ onPropertyAdded }: AddPropertyDialogProps) => {
         <TabsContent value="vendas" className="space-y-6 mt-4">
           {/* Simulador de Financiamento */}
           <div className="space-y-4 p-4 border rounded-lg">
-            <div className="flex items-center gap-2">
-              <Calculator className="h-5 w-5 text-blue-600" />
-              <h3 className="font-semibold">Simulador de Financiamento</h3>
+            <div className="flex items-start gap-2">
+              <Calculator className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
+              <div className="flex-1 min-w-0">
+                <h3 className="font-semibold text-sm sm:text-base leading-tight">Simulador de Financiamento</h3>
+              </div>
             </div>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-xs sm:text-sm text-muted-foreground">
               💡 Exibe uma calculadora no site público mostrando entrada e parcelas estimadas. Ideal para imóveis à venda.
             </p>
             
@@ -789,11 +791,13 @@ const AddPropertyDialog = ({ onPropertyAdded }: AddPropertyDialogProps) => {
 
           {/* Badge de Oportunidade */}
           <div className="space-y-4 p-4 border rounded-lg">
-            <div className="flex items-center gap-2">
-              <Flame className="h-5 w-5 text-orange-600" />
-              <h3 className="font-semibold">Badge de Oportunidade</h3>
+            <div className="flex items-start gap-2">
+              <Flame className="h-5 w-5 text-orange-600 flex-shrink-0 mt-0.5" />
+              <div className="flex-1 min-w-0">
+                <h3 className="font-semibold text-sm sm:text-base leading-tight">Badge de Oportunidade</h3>
+              </div>
             </div>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-xs sm:text-sm text-muted-foreground">
               🏷️ Destaque este imóvel com um badge chamativo no site público. Ótimo para promoções e ofertas especiais.
             </p>
             
@@ -827,11 +831,13 @@ const AddPropertyDialog = ({ onPropertyAdded }: AddPropertyDialogProps) => {
 
           {/* Formas de Pagamento */}
           <div className="space-y-4 p-4 border rounded-lg">
-            <div className="flex items-center gap-2">
-              <CreditCard className="h-5 w-5 text-green-600" />
-              <h3 className="font-semibold">Formas de Pagamento</h3>
+            <div className="flex items-start gap-2">
+              <CreditCard className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
+              <div className="flex-1 min-w-0">
+                <h3 className="font-semibold text-sm sm:text-base leading-tight">Formas de Pagamento</h3>
+              </div>
             </div>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-xs sm:text-sm text-muted-foreground">
               💳 Mostre aos interessados as opções de pagamento aceitas. Escolha entre lista de texto ou banner personalizado.
             </p>
             

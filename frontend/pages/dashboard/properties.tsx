@@ -368,29 +368,32 @@ const Properties = () => {
       <div className="min-h-screen bg-gradient-to-br from-background via-background/95 to-muted/20">
         <div className="w-full max-w-none px-4 sm:px-6 lg:px-8 py-6 space-y-8 animate-fade-in">
           {/* Header */}
-          <div className="flex justify-between items-center bg-card/50 backdrop-blur-sm rounded-xl p-6 shadow-lg border border-border/50">
-            <div>
-              <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 bg-card/50 backdrop-blur-sm rounded-xl p-4 sm:p-6 shadow-lg border border-border/50">
+            <div className="flex-1 min-w-0">
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
                 Imóveis
               </h1>
-              <p className="text-muted-foreground mt-1 text-lg">
-                Gerencie seus imóveis cadastrados ({totalCount || properties.length} imóveis - Página {currentPage} de {totalPages})
+              <p className="text-muted-foreground mt-1 text-sm sm:text-base lg:text-lg break-words">
+                Gerencie seus imóveis cadastrados
+                <span className="block sm:inline sm:ml-1">({totalCount || properties.length} imóveis - Página {currentPage} de {totalPages})</span>
               </p>
             </div>
-            <AddPropertyDialog onPropertyAdded={refreshProperties} />
+            <div className="flex-shrink-0">
+              <AddPropertyDialog onPropertyAdded={refreshProperties} />
+            </div>
           </div>
 
         {/* Search, Filters and View Toggle */}
-        <div className="bg-card/50 backdrop-blur-sm rounded-xl p-6 shadow-lg border border-border/50">
-          <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-            <div className="flex flex-col sm:flex-row sm:items-center gap-2 flex-1 min-w-0">
-              <div className="relative flex-1">
+        <div className="bg-card/50 backdrop-blur-sm rounded-xl p-4 sm:p-6 shadow-lg border border-border/50">
+          <div className="flex flex-col gap-3 sm:gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 flex-1 min-w-0">
+              <div className="relative flex-1 min-w-0">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
                 <Input
                   placeholder="Buscar por título, endereço, bairro, cidade ou código..."
                   value={searchTerm}
                   onChange={(e) => handleSearchChange(e.target.value)}
-                  className="pl-10 text-sm bg-background/80 backdrop-blur-sm border-border/50"
+                  className="pl-10 text-sm bg-background/80 backdrop-blur-sm border-border/50 w-full"
                   maxLength={100}
                 />
               </div>
@@ -398,8 +401,9 @@ const Properties = () => {
               <div className="flex items-center gap-2 flex-shrink-0">
                 <Filter className="h-4 w-4 text-muted-foreground" />
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="w-28 sm:w-32 bg-background/80 backdrop-blur-sm border-border/50">
+                  <SelectTrigger className="w-full sm:w-32 bg-background/80 backdrop-blur-sm border-border/50">
                     <SelectValue placeholder="Status" />
+                  </SelectTrigger>
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Todos</SelectItem>
@@ -419,35 +423,35 @@ const Properties = () => {
         </div>
 
         {/* Properties Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
           <Card className="bg-card/50 backdrop-blur-sm border-border/50 shadow-lg hover:shadow-xl transition-all duration-300">
-            <CardContent className="p-6">
-              <div className="text-3xl font-bold text-primary">{properties.length}</div>
-              <p className="text-sm text-muted-foreground mt-1">Total de Imóveis</p>
+            <CardContent className="p-4 sm:p-6">
+              <div className="text-2xl sm:text-3xl font-bold text-primary">{properties.length}</div>
+              <p className="text-xs sm:text-sm text-muted-foreground mt-1">Total de Imóveis</p>
             </CardContent>
           </Card>
           <Card className="bg-card/50 backdrop-blur-sm border-border/50 shadow-lg hover:shadow-xl transition-all duration-300">
-            <CardContent className="p-6">
-              <div className="text-3xl font-bold text-emerald-500">
+            <CardContent className="p-4 sm:p-6">
+              <div className="text-2xl sm:text-3xl font-bold text-emerald-500">
                 {properties.filter(p => p.is_active).length}
               </div>
-              <p className="text-sm text-muted-foreground mt-1">Ativos</p>
+              <p className="text-xs sm:text-sm text-muted-foreground mt-1">Ativos</p>
             </CardContent>
           </Card>
           <Card className="bg-card/50 backdrop-blur-sm border-border/50 shadow-lg hover:shadow-xl transition-all duration-300">
-            <CardContent className="p-6">
-              <div className="text-3xl font-bold text-amber-500">
+            <CardContent className="p-4 sm:p-6">
+              <div className="text-2xl sm:text-3xl font-bold text-amber-500">
                 {properties.filter(p => p.is_featured).length}
               </div>
-              <p className="text-sm text-muted-foreground mt-1">Em Destaque</p>
+              <p className="text-xs sm:text-sm text-muted-foreground mt-1">Em Destaque</p>
             </CardContent>
           </Card>
           <Card className="bg-card/50 backdrop-blur-sm border-border/50 shadow-lg hover:shadow-xl transition-all duration-300">
-            <CardContent className="p-6">
-              <div className="text-3xl font-bold text-blue-500">
+            <CardContent className="p-4 sm:p-6">
+              <div className="text-2xl sm:text-3xl font-bold text-blue-500">
                 {properties.reduce((acc, p) => acc + p.views_count, 0)}
               </div>
-              <p className="text-sm text-muted-foreground mt-1">Visualizações</p>
+              <p className="text-xs sm:text-sm text-muted-foreground mt-1">Visualizações</p>
             </CardContent>
           </Card>
         </div>

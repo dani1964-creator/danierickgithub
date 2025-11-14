@@ -213,14 +213,9 @@ const AdminUpdatesPage = () => {
       }
     }
 
+    // Apenas aviso se não encontrou user_id (mas continua mesmo assim)
     if (!createdBy) {
-      logger.error('❌ Não foi possível encontrar user_id');
-      toast({
-        title: 'Erro de Configuração',
-        description: 'Nenhum broker encontrado no sistema. Execute o SQL FIX_SUPER_ADMIN.sql',
-        variant: 'destructive'
-      });
-      return;
+      logger.warn('⚠️ Criando atualização sem created_by (campo é opcional)');
     }
     
     if (!updateForm.title.trim() || !updateForm.content.trim()) {
@@ -263,23 +258,32 @@ const AdminUpdatesPage = () => {
           description: 'A atualização foi editada com sucesso'
         });
       } else {
-        // Criar nova
+        // Criar nova - preparar dados
+        const insertData: any = {
+          title: updateForm.title.trim(),
+          content: updateForm.content.trim(),
+          update_type: updateForm.update_type,
+          is_published: updateForm.is_published
+        };
+
+        // Adicionar created_by apenas se existir
+        if (createdBy) {
+          insertData.created_by = createdBy;
+          logger.info('📝 Incluindo created_by:', createdBy);
+        } else {
+          logger.warn('📝 Criando sem created_by (campo é nullable)');
+        }
+
         const { error, data } = await (supabase as any)
           .from('app_updates')
-          .insert({
-            title: updateForm.title.trim(),
-            content: updateForm.content.trim(),
-            update_type: updateForm.update_type,
-            is_published: updateForm.is_published,
-            created_by: createdBy
-          })
+          .insert(insertData)
           .select();
 
         if (error) {
           logger.error('❌ Erro ao criar atualização:', error);
           toast({
             title: 'Erro ao criar',
-            description: `Detalhes: ${error.message || 'Erro desconhecido'}`,
+            description: `${error.message || 'Erro desconhecido'}`,
             variant: 'destructive'
           });
           throw error;

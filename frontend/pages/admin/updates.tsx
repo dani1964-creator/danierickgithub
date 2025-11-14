@@ -560,15 +560,14 @@ const AdminUpdatesPage = () => {
                 <CardHeader className="pb-4">
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1">
-                      <Badge variant="outline" className="capitalize mb-2 w-fit">
-                        {update.update_type === 'feature' ? 'Novidade' : 
-                         update.update_type === 'improvement' ? 'Melhoria' : 
-                         update.update_type === 'bugfix' ? 'Correção' : 
-                         update.update_type === 'announcement' ? 'Anúncio' : 
-                         update.update_type}
-                      </Badge>
                       <div className="flex items-center gap-2 mb-2">
-                        <CardTitle className="text-xl">{update.title}</CardTitle>
+                        <Badge variant="outline" className="capitalize">
+                          {update.update_type === 'feature' ? 'Novidade' : 
+                           update.update_type === 'improvement' ? 'Melhoria' : 
+                           update.update_type === 'bugfix' ? 'Correção' : 
+                           update.update_type === 'announcement' ? 'Anúncio' : 
+                           update.update_type}
+                        </Badge>
                         {update.is_published ? (
                           <Badge className="gap-1">
                             <Eye className="h-3 w-3" />
@@ -581,6 +580,7 @@ const AdminUpdatesPage = () => {
                           </Badge>
                         )}
                       </div>
+                      <CardTitle className="text-xl mb-2">{update.title}</CardTitle>
                       <CardDescription>
                         {new Date(update.created_at).toLocaleDateString('pt-BR', {
                           day: '2-digit',

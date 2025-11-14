@@ -178,22 +178,46 @@ const AdminUpdatesPage = () => {
     // Buscar created_by (pode ser user.id ou primeiro super admin)
     let createdBy = user?.id;
     
+    logger.info('🔍 Verificando created_by...', { userId: user?.id });
+    
     if (!createdBy) {
-      // Se não tem user, buscar primeiro super admin
-      const { data: superAdminBroker } = await (supabase as any)
+      // Se não tem user, buscar primeiro super admin da tabela brokers
+      logger.info('⚠️ Sem user.id, buscando super admin...');
+      const { data: superAdminBroker, error: brokerError } = await (supabase as any)
         .from('brokers')
-        .select('user_id')
+        .select('user_id, business_name, email')
         .eq('is_super_admin', true)
         .limit(1)
         .single();
       
-      createdBy = superAdminBroker?.user_id;
+      logger.info('📊 Resultado busca super admin:', { data: superAdminBroker, error: brokerError });
+      
+      if (!brokerError && superAdminBroker?.user_id) {
+        createdBy = superAdminBroker.user_id;
+        logger.info('✅ Super admin encontrado:', superAdminBroker);
+      } else {
+        // Se ainda não encontrou, buscar qualquer broker
+        logger.warn('⚠️ Super admin não encontrado, buscando qualquer broker...');
+        const { data: anyBroker, error: anyError } = await (supabase as any)
+          .from('brokers')
+          .select('user_id, business_name, email')
+          .limit(1)
+          .single();
+        
+        logger.info('📊 Resultado busca qualquer broker:', { data: anyBroker, error: anyError });
+        
+        if (anyBroker?.user_id) {
+          createdBy = anyBroker.user_id;
+          logger.info('✅ Broker encontrado:', anyBroker);
+        }
+      }
     }
 
     if (!createdBy) {
+      logger.error('❌ Não foi possível encontrar user_id');
       toast({
-        title: 'Erro',
-        description: 'Não foi possível identificar o usuário',
+        title: 'Erro de Configuração',
+        description: 'Nenhum broker encontrado no sistema. Execute o SQL FIX_SUPER_ADMIN.sql',
         variant: 'destructive'
       });
       return;
@@ -210,6 +234,12 @@ const AdminUpdatesPage = () => {
 
     try {
       setSubmitting(true);
+      
+      logger.info('💾 Salvando atualização...', { 
+        createdBy, 
+        isEdit: !!editingUpdate,
+        title: updateForm.title 
+      });
 
       if (editingUpdate) {
         // Atualizar
@@ -223,7 +253,10 @@ const AdminUpdatesPage = () => {
           })
           .eq('id', editingUpdate.id);
 
-        if (error) throw error;
+        if (error) {
+          logger.error('❌ Erro ao atualizar:', error);
+          throw error;
+        }
 
         toast({
           title: 'Atualização editada!',
@@ -231,7 +264,7 @@ const AdminUpdatesPage = () => {
         });
       } else {
         // Criar nova
-        const { error } = await (supabase as any)
+        const { error, data } = await (supabase as any)
           .from('app_updates')
           .insert({
             title: updateForm.title.trim(),
@@ -239,9 +272,20 @@ const AdminUpdatesPage = () => {
             update_type: updateForm.update_type,
             is_published: updateForm.is_published,
             created_by: createdBy
-          });
+          })
+          .select();
 
-        if (error) throw error;
+        if (error) {
+          logger.error('❌ Erro ao criar atualização:', error);
+          toast({
+            title: 'Erro ao criar',
+            description: `Detalhes: ${error.message || 'Erro desconhecido'}`,
+            variant: 'destructive'
+          });
+          throw error;
+        }
+
+        logger.info('✅ Atualização criada:', data);
 
         toast({
           title: 'Atualização criada!',

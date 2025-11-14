@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { logger } from '@/lib/logger';
@@ -115,9 +115,34 @@ const AdminUpdatesPage = () => {
     };
     checkAdmin();
     checkAdmin();
-  }, [user]);
+  }, [user, router]);
 
-  const loadData = async () => {
+  const loadUpdates = useCallback(async () => {
+    const { data, error } = await (supabase as any)
+      .from('app_updates')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      logger.error('Erro ao carregar atualizações:', error);
+      return;
+    }
+
+    setUpdates(data || []);
+  }, []);
+
+  const loadSuggestions = useCallback(async () => {
+    const { data, error } = await (supabase as any).rpc('get_suggestions_with_user_votes');
+
+    if (error) {
+      logger.error('Erro ao carregar sugestões:', error);
+      return;
+    }
+
+    setSuggestions(data || []);
+  }, []);
+
+  const loadData = useCallback(async () => {
     try {
       setLoading(true);
       await Promise.all([loadUpdates(), loadSuggestions()]);
@@ -131,32 +156,7 @@ const AdminUpdatesPage = () => {
     } finally {
       setLoading(false);
     }
-  };
-
-  const loadUpdates = async () => {
-    const { data, error } = await (supabase as any)
-      .from('app_updates')
-      .select('*')
-      .order('created_at', { ascending: false });
-
-    if (error) {
-      logger.error('Erro ao carregar atualizações:', error);
-      return;
-    }
-
-    setUpdates(data || []);
-  };
-
-  const loadSuggestions = async () => {
-    const { data, error } = await (supabase as any).rpc('get_suggestions_with_user_votes');
-
-    if (error) {
-      logger.error('Erro ao carregar sugestões:', error);
-      return;
-    }
-
-    setSuggestions(data || []);
-  };
+  }, [loadUpdates, loadSuggestions, toast]);
 
   const handleSubmitUpdate = async () => {
     if (!user?.id) return;

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { logger } from '@/lib/logger';
@@ -95,23 +95,7 @@ const UpdatesPage = () => {
     loadBrokerAndData();
   }, [user]);
 
-  const loadData = async () => {
-    try {
-      setLoading(true);
-      await Promise.all([loadUpdates(), loadSuggestions()]);
-    } catch (error) {
-      logger.error('Erro ao carregar dados:', error);
-      toast({
-        title: 'Erro',
-        description: 'Erro ao carregar atualizações e sugestões',
-        variant: 'destructive'
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const loadUpdates = async () => {
+  const loadUpdates = useCallback(async () => {
     const { data, error } = await (supabase as any)
       .from('app_updates')
       .select('*')
@@ -125,9 +109,9 @@ const UpdatesPage = () => {
     }
 
     setUpdates(data || []);
-  };
+  }, []);
 
-  const loadSuggestions = async () => {
+  const loadSuggestions = useCallback(async () => {
     const { data, error } = await (supabase as any).rpc('get_suggestions_with_user_votes');
 
     if (error) {
@@ -136,7 +120,23 @@ const UpdatesPage = () => {
     }
 
     setSuggestions(data || []);
-  };
+  }, []);
+
+  const loadData = useCallback(async () => {
+    try {
+      setLoading(true);
+      await Promise.all([loadUpdates(), loadSuggestions()]);
+    } catch (error) {
+      logger.error('Erro ao carregar dados:', error);
+      toast({
+        title: 'Erro',
+        description: 'Erro ao carregar atualizações e sugestões',
+        variant: 'destructive'
+      });
+    } finally {
+      setLoading(false);
+    }
+  }, [loadUpdates, loadSuggestions, toast]);
 
   const handleSubmitSuggestion = async () => {
     if (!brokerId) return;

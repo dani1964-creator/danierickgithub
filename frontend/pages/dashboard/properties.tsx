@@ -404,7 +404,6 @@ const Properties = () => {
                   <SelectTrigger className="w-full sm:w-32 bg-background/80 backdrop-blur-sm border-border/50">
                     <SelectValue placeholder="Status" />
                   </SelectTrigger>
-                  </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Todos</SelectItem>
                     <SelectItem value="active">Ativo</SelectItem>

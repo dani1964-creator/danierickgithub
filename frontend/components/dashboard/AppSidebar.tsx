@@ -49,6 +49,7 @@ const AppSidebar = () => {
       title: 'Atualizações',
       url: '/dashboard/updates',
       icon: Sparkles,
+      highlight: true, // Destaque especial
     },
     {
       title: 'Site',
@@ -101,11 +102,19 @@ const AppSidebar = () => {
                     onClick={() => router.push(item.url)}
                     isActive={router.pathname === item.url}
                     tooltip={isCollapsed ? item.title : undefined}
-                    className="group transition-all duration-200 hover:bg-sidebar-accent/80 data-[state=open]:bg-sidebar-accent"
+                    className={`group transition-all duration-200 hover:bg-sidebar-accent/80 data-[state=open]:bg-sidebar-accent ${
+                      item.highlight 
+                        ? 'relative after:absolute after:right-2 after:top-1/2 after:-translate-y-1/2 after:w-2 after:h-2 after:bg-primary after:rounded-full after:animate-pulse' 
+                        : ''
+                    }`}
                   >
-                    <item.icon className="h-4 w-4 group-hover:scale-110 transition-transform duration-200" />
+                    <item.icon className={`h-4 w-4 group-hover:scale-110 transition-transform duration-200 ${
+                      item.highlight ? 'text-primary' : ''
+                    }`} />
                     {!isCollapsed && (
-                      <span className="font-medium group-hover:translate-x-0.5 transition-transform duration-200">
+                      <span className={`font-medium group-hover:translate-x-0.5 transition-transform duration-200 ${
+                        item.highlight ? 'text-primary font-semibold' : ''
+                      }`}>
                         {item.title}
                       </span>
                     )}

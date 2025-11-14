@@ -9,12 +9,13 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Building2, Users, Globe, Trash2, Plus, Eye, EyeOff, ExternalLink, RefreshCw, LogOut } from "lucide-react";
+import { Building2, Users, Globe, Trash2, Plus, Eye, EyeOff, ExternalLink, RefreshCw, LogOut, Sparkles } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import Head from 'next/head';
 import { logger } from '@/lib/logger';
 import dynamic from 'next/dynamic';
+import { useRouter } from 'next/router';
 
 interface BrokerData {
   id: string;
@@ -28,6 +29,7 @@ interface BrokerData {
 }
 
 function SuperAdminPage() {
+  const router = useRouter();
   const SUPER_ADMIN_EMAIL = (process.env.NEXT_PUBLIC_SA_EMAIL as string) || "";
   const SUPER_ADMIN_PASSWORD = (process.env.NEXT_PUBLIC_SA_PASSWORD as string) || "";
   const SUPER_ADMIN_TOKEN_KEY = "sa_auth";
@@ -343,6 +345,47 @@ function SuperAdminPage() {
                 Todos os imóveis cadastrados
               </p>
             </CardContent>
+          </Card>
+        </div>
+
+        {/* Quick Actions - Navigation Cards */}
+        <div className="grid gap-3 sm:gap-4 grid-cols-1 md:grid-cols-2 mb-6 sm:mb-8">
+          <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' })}>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-primary/10 rounded-lg">
+                    <Building2 className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-base">Gerenciar Imobiliárias</CardTitle>
+                    <CardDescription className="text-xs">
+                      Ativar/desativar contas e visualizar sites
+                    </CardDescription>
+                  </div>
+                </div>
+                <ExternalLink className="h-4 w-4 text-muted-foreground" />
+              </div>
+            </CardHeader>
+          </Card>
+
+          <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => router.push('/admin/updates')}>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-purple-500/10 rounded-lg">
+                    <Sparkles className="h-5 w-5 text-purple-500" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-base">Gerenciar Atualizações</CardTitle>
+                    <CardDescription className="text-xs">
+                      Publicar updates e revisar sugestões
+                    </CardDescription>
+                  </div>
+                </div>
+                <ExternalLink className="h-4 w-4 text-muted-foreground" />
+              </div>
+            </CardHeader>
           </Card>
         </div>
 

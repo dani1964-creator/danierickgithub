@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Sidebar, SidebarContent, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import AppSidebar from "./AppSidebar";
+import { NotificationBell } from "./NotificationBell";
 import { LogOut, Menu } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -45,15 +46,18 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                   <h1 className="font-bold text-lg tracking-tight truncate">Painel Administrativo</h1>
                 </div>
               </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleSignOut}
-                className="flex items-center gap-2 flex-shrink-0 hover:bg-destructive/10 hover:text-destructive transition-all duration-200"
-              >
-                <LogOut className="h-4 w-4" />
-                <span className="hidden sm:inline font-medium">Sair</span>
-              </Button>
+              <div className="flex items-center gap-2">
+                <NotificationBell />
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleSignOut}
+                  className="flex items-center gap-2 flex-shrink-0 hover:bg-destructive/10 hover:text-destructive transition-all duration-200"
+                >
+                  <LogOut className="h-4 w-4" />
+                  <span className="hidden sm:inline font-medium">Sair</span>
+                </Button>
+              </div>
             </div>
           </header>
           <div className="flex-1 overflow-auto w-full bg-muted/20 min-h-0">

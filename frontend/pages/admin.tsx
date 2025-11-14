@@ -140,9 +140,23 @@ function SuperAdminPage() {
       const validEmail = SUPER_ADMIN_EMAIL || "erickjq123@gmail.com";
       const validPassword = SUPER_ADMIN_PASSWORD || "Danis0133.";
       
-  logger.debug('🔑 [Frontend] Tentativa de login:', { loginEmail, validEmail });
+      logger.debug('🔑 [Frontend] Tentativa de login:', { loginEmail, validEmail });
       
       if (loginEmail === validEmail && loginPassword === validPassword) {
+        // Fazer login REAL no Supabase Auth
+        logger.info('🔐 [Frontend] Fazendo login no Supabase Auth...');
+        const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+          email: loginEmail,
+          password: loginPassword
+        });
+
+        if (authError) {
+          logger.error('❌ [Frontend] Erro no login Supabase:', authError);
+          throw new Error('Erro ao autenticar no Supabase: ' + authError.message);
+        }
+
+        logger.info('✅ [Frontend] Login Supabase bem-sucedido:', authData.user?.id);
+        
         localStorage.setItem(SUPER_ADMIN_TOKEN_KEY, "1");
         setIsAuthorized(true);
         setShowLoginDialog(false);
@@ -169,13 +183,26 @@ function SuperAdminPage() {
   };
 
   // Logout
-  const handleLogout = () => {
-    localStorage.removeItem(SUPER_ADMIN_TOKEN_KEY);
-    toast({
-      title: "Logout realizado",
-      description: "Você foi desconectado do painel Super Admin.",
-    });
-    window.location.reload();
+  const handleLogout = async () => {
+    try {
+      // Logout do Supabase Auth
+      await supabase.auth.signOut();
+      
+      // Remover token localStorage
+      localStorage.removeItem(SUPER_ADMIN_TOKEN_KEY);
+      
+      toast({
+        title: "Logout realizado",
+        description: "Você foi desconectado do painel Super Admin.",
+      });
+      
+      window.location.reload();
+    } catch (error) {
+      logger.error('Erro no logout:', error);
+      // Mesmo com erro, limpar e recarregar
+      localStorage.removeItem(SUPER_ADMIN_TOKEN_KEY);
+      window.location.reload();
+    }
   };
 
   // Verificar auth no mount

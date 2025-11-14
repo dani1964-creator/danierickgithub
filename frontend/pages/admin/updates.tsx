@@ -141,81 +141,60 @@ const AdminUpdatesPage = () => {
   useEffect(() => {
     // Verificar se é super admin
     const checkAdmin = async () => {
-      // Verificar se tem token de super admin (vindo do /admin)
+      // OPÇÃO 1: Token localStorage (super admin puro, não é broker)
       const superAdminToken = typeof window !== 'undefined' 
         ? localStorage.getItem('sa_auth') 
         : null;
 
       if (superAdminToken === '1') {
+        logger.info('✅ [AUTH] Super admin via localStorage token');
         setIsSuperAdmin(true);
         loadData();
         return;
       }
 
-      // Se não tem token, verificar via user_id
-      if (!user?.id) {
-        router.push('/admin');
-        return;
+      // OPÇÃO 2: Usuário autenticado via Supabase Auth que também é broker super admin
+      if (user?.id) {
+        logger.info('🔍 [AUTH] Verificando user.id na tabela brokers...');
+        const { data, error } = await (supabase as any)
+          .from('brokers')
+          .select('is_super_admin')
+          .eq('user_id', user.id)
+          .single();
+        
+        if (!error && data?.is_super_admin) {
+          logger.info('✅ [AUTH] Broker super admin encontrado');
+          setIsSuperAdmin(true);
+          loadData();
+          return;
+        }
       }
 
-      const { data } = await (supabase as any)
-        .from('brokers')
-        .select('is_super_admin')
-        .eq('user_id', user.id)
-        .single();
-      
-      if (data?.is_super_admin) {
-        setIsSuperAdmin(true);
-        loadData();
-      } else {
-        router.push('/admin');
-      }
+      // Se chegou aqui, não é super admin
+      logger.warn('❌ [AUTH] Não autorizado, redirecionando...');
+      router.push('/admin');
     };
     checkAdmin();
   }, [user, router, loadData]);
 
   const handleSubmitUpdate = async () => {
-    // Buscar created_by (pode ser user.id ou primeiro super admin)
-    let createdBy = user?.id;
+    // Usar user.id direto (agora temos sessão Auth real)
+    const createdBy = user?.id;
     
-    logger.info('🔍 Verificando created_by...', { userId: user?.id });
+    logger.info('🔍 [UPDATE] Iniciando criação/edição...', { 
+      hasUserId: !!user?.id,
+      userId: user?.id
+    });
     
     if (!createdBy) {
-      // Se não tem user, buscar primeiro super admin da tabela brokers
-      logger.info('⚠️ Sem user.id, buscando super admin...');
-      const { data: superAdminBroker, error: brokerError } = await (supabase as any)
-        .from('brokers')
-        .select('user_id, business_name, email')
-        .eq('is_super_admin', true)
-        .limit(1)
-        .single();
-      
-      logger.info('📊 Resultado busca super admin:', { data: superAdminBroker, error: brokerError });
-      
-      if (!brokerError && superAdminBroker?.user_id) {
-        createdBy = superAdminBroker.user_id;
-        logger.info('✅ Super admin encontrado:', superAdminBroker);
-      } else {
-        // Se ainda não encontrou, buscar qualquer broker
-        logger.warn('⚠️ Super admin não encontrado, buscando qualquer broker...');
-        const { data: anyBroker, error: anyError } = await (supabase as any)
-          .from('brokers')
-          .select('user_id, business_name, email')
-          .limit(1)
-          .single();
-        
-        logger.info('📊 Resultado busca qualquer broker:', { data: anyBroker, error: anyError });
-        
-        if (anyBroker?.user_id) {
-          createdBy = anyBroker.user_id;
-          logger.info('✅ Broker encontrado:', anyBroker);
-        }
-      }
-    }
-
-    // Apenas aviso se não encontrou user_id (mas continua mesmo assim)
-    if (!createdBy) {
-      logger.warn('⚠️ Criando atualização sem created_by (campo é opcional)');
+      logger.error('❌ [UPDATE] Sem user.id - faça login novamente');
+      toast({
+        title: 'Sessão expirada',
+        description: 'Faça login novamente em /admin',
+        variant: 'destructive'
+      });
+      router.push('/admin');
+      return;
     }
     
     if (!updateForm.title.trim() || !updateForm.content.trim()) {

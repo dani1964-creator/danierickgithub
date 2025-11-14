@@ -96,27 +96,7 @@ const AdminUpdatesPage = () => {
     admin_notes: ''
   });
 
-  useEffect(() => {
-    // Verificar se é super admin
-    const checkAdmin = async () => {
-      if (!user?.id) return;
-      const { data } = await (supabase as any)
-        .from('brokers')
-        .select('is_super_admin')
-        .eq('user_id', user.id)
-        .single();
-      
-      if (data?.is_super_admin) {
-        setIsSuperAdmin(true);
-        loadData();
-      } else {
-        router.push('/dashboard');
-      }
-    };
-    checkAdmin();
-    checkAdmin();
-  }, [user, router]);
-
+  // Funções de carregamento
   const loadUpdates = useCallback(async () => {
     const { data, error } = await (supabase as any)
       .from('app_updates')
@@ -157,6 +137,26 @@ const AdminUpdatesPage = () => {
       setLoading(false);
     }
   }, [loadUpdates, loadSuggestions, toast]);
+
+  useEffect(() => {
+    // Verificar se é super admin
+    const checkAdmin = async () => {
+      if (!user?.id) return;
+      const { data } = await (supabase as any)
+        .from('brokers')
+        .select('is_super_admin')
+        .eq('user_id', user.id)
+        .single();
+      
+      if (data?.is_super_admin) {
+        setIsSuperAdmin(true);
+        loadData();
+      } else {
+        router.push('/dashboard');
+      }
+    };
+    checkAdmin();
+  }, [user, router, loadData]);
 
   const handleSubmitUpdate = async () => {
     if (!user?.id) return;

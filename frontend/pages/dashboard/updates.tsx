@@ -78,23 +78,7 @@ const UpdatesPage = () => {
     category: 'feature' as SuggestionCategory
   });
 
-  useEffect(() => {
-    const loadBrokerAndData = async () => {
-      if (!user?.id) return;
-      const { data } = await (supabase as any)
-        .from('brokers')
-        .select('id')
-        .eq('user_id', user.id)
-        .single();
-      
-      if (data?.id) {
-        setBrokerId(data.id);
-        loadData();
-      }
-    };
-    loadBrokerAndData();
-  }, [user]);
-
+  // Funções de carregamento
   const loadUpdates = useCallback(async () => {
     const { data, error } = await (supabase as any)
       .from('app_updates')
@@ -137,6 +121,23 @@ const UpdatesPage = () => {
       setLoading(false);
     }
   }, [loadUpdates, loadSuggestions, toast]);
+
+  useEffect(() => {
+    const loadBrokerAndData = async () => {
+      if (!user?.id) return;
+      const { data } = await (supabase as any)
+        .from('brokers')
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
+      
+      if (data?.id) {
+        setBrokerId(data.id);
+        loadData();
+      }
+    };
+    loadBrokerAndData();
+  }, [user, loadData]);
 
   const handleSubmitSuggestion = async () => {
     if (!brokerId) return;

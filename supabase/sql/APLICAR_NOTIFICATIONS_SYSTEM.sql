@@ -4,213 +4,214 @@
 -- 1. Criar tabela de notificações
 CREATE TABLE IF NOT EXISTS broker_notifications (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  broker_id UUID NOT NULL REFERENCES brokers(id) ON DELETE CASCADE,
-  suggestion_id UUID REFERENCES improvement_suggestions(id) ON DELETE CASCADE,
-  update_id UUID REFERENCES app_updates(id) ON DELETE CASCADE,
-  title TEXT NOT NULL,
-  message TEXT NOT NULL,
-  type TEXT NOT NULL CHECK (type IN ('suggestion_update', 'new_system_update', 'suggestion_completed')),
-  is_read BOOLEAN DEFAULT false,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
-  read_at TIMESTAMP WITH TIME ZONE
-);
+    broker_id UUID NOT NULL REFERENCES brokers(id) ON DELETE CASCADE,
+      suggestion_id UUID REFERENCES improvement_suggestions(id) ON DELETE CASCADE,
+        update_id UUID REFERENCES app_updates(id) ON DELETE CASCADE,
+          title TEXT NOT NULL,
+            message TEXT NOT NULL,
+              type TEXT NOT NULL CHECK (type IN ('suggestion_update', 'new_system_update', 'suggestion_completed')),
+                is_read BOOLEAN DEFAULT false,
+                  created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+                    read_at TIMESTAMP WITH TIME ZONE
+                    );
 
--- 2. Índices para performance
-CREATE INDEX IF NOT EXISTS idx_broker_notifications_broker_id ON broker_notifications(broker_id);
-CREATE INDEX IF NOT EXISTS idx_broker_notifications_is_read ON broker_notifications(is_read);
-CREATE INDEX IF NOT EXISTS idx_broker_notifications_created_at ON broker_notifications(created_at DESC);
+                    -- 2. Índices para performance
+                    CREATE INDEX IF NOT EXISTS idx_broker_notifications_broker_id ON broker_notifications(broker_id);
+                    CREATE INDEX IF NOT EXISTS idx_broker_notifications_is_read ON broker_notifications(is_read);
+                    CREATE INDEX IF NOT EXISTS idx_broker_notifications_created_at ON broker_notifications(created_at DESC);
 
--- 3. RLS Policies
-ALTER TABLE broker_notifications ENABLE ROW LEVEL SECURITY;
+                    -- 3. RLS Policies
+                    ALTER TABLE broker_notifications ENABLE ROW LEVEL SECURITY;
 
--- Policy: Brokers podem ver apenas suas próprias notificações
-CREATE POLICY "Brokers can view own notifications"
-  ON broker_notifications
-  FOR SELECT
-  USING (
-    broker_id IN (
-      SELECT id FROM brokers WHERE user_id = auth.uid()
-    )
-  );
+                    -- Policy: Brokers podem ver apenas suas próprias notificações
+                    CREATE POLICY "Brokers can view own notifications"
+                      ON broker_notifications
+                        FOR SELECT
+                          USING (
+                              broker_id IN (
+                                    SELECT id FROM brokers WHERE user_id = auth.uid()
+                                        )
+                                          );
 
--- Policy: Brokers podem marcar suas notificações como lidas
-CREATE POLICY "Brokers can update own notifications"
-  ON broker_notifications
-  FOR UPDATE
-  USING (
-    broker_id IN (
-      SELECT id FROM brokers WHERE user_id = auth.uid()
-    )
-  );
+                                          -- Policy: Brokers podem marcar suas notificações como lidas
+                                          CREATE POLICY "Brokers can update own notifications"
+                                            ON broker_notifications
+                                              FOR UPDATE
+                                                USING (
+                                                    broker_id IN (
+                                                          SELECT id FROM brokers WHERE user_id = auth.uid()
+                                                              )
+                                                                );
 
--- Policy: Super admin pode criar notificações para todos
-CREATE POLICY "Super admin can insert notifications"
-  ON broker_notifications
-  FOR INSERT
-  WITH CHECK (
-    EXISTS (
-      SELECT 1 FROM brokers 
-      WHERE user_id = auth.uid() 
-      AND is_super_admin = true
-    )
-  );
+                                                                -- Policy: Super admin pode criar notificações para todos
+                                                                CREATE POLICY "Super admin can insert notifications"
+                                                                  ON broker_notifications
+                                                                    FOR INSERT
+                                                                      WITH CHECK (
+                                                                          EXISTS (
+                                                                                SELECT 1 FROM brokers 
+                                                                                      WHERE user_id = auth.uid() 
+                                                                                            AND is_super_admin = true
+                                                                                                )
+                                                                                                  );
 
--- 4. Função para marcar notificação como lida
-CREATE OR REPLACE FUNCTION mark_notification_as_read(notification_id UUID)
-RETURNS void
-LANGUAGE plpgsql
-SECURITY DEFINER
-AS $$
-BEGIN
-  UPDATE broker_notifications
-  SET is_read = true,
-      read_at = now()
-  WHERE id = notification_id
-  AND broker_id IN (
-    SELECT id FROM brokers WHERE user_id = auth.uid()
-  );
-END;
-$$;
+                                                                                                  -- 4. Função para marcar notificação como lida
+                                                                                                  CREATE OR REPLACE FUNCTION mark_notification_as_read(notification_id UUID)
+                                                                                                  RETURNS void
+                                                                                                  LANGUAGE plpgsql
+                                                                                                  SECURITY DEFINER
+                                                                                                  AS $$
+                                                                                                  BEGIN
+                                                                                                    UPDATE broker_notifications
+                                                                                                      SET is_read = true,
+                                                                                                            read_at = now()
+                                                                                                              WHERE id = notification_id
+                                                                                                                AND broker_id IN (
+                                                                                                                    SELECT id FROM brokers WHERE user_id = auth.uid()
+                                                                                                                      );
+                                                                                                                      END;
+                                                                                                                      $$;
 
--- 5. Função para marcar todas como lidas
-CREATE OR REPLACE FUNCTION mark_all_notifications_as_read()
-RETURNS void
-LANGUAGE plpgsql
-SECURITY DEFINER
-AS $$
-BEGIN
-  UPDATE broker_notifications
-  SET is_read = true,
-      read_at = now()
-  WHERE broker_id IN (
-    SELECT id FROM brokers WHERE user_id = auth.uid()
-  )
-  AND is_read = false;
-END;
-$$;
+                                                                                                                      -- 5. Função para marcar todas como lidas
+                                                                                                                      CREATE OR REPLACE FUNCTION mark_all_notifications_as_read()
+                                                                                                                      RETURNS void
+                                                                                                                      LANGUAGE plpgsql
+                                                                                                                      SECURITY DEFINER
+                                                                                                                      AS $$
+                                                                                                                      BEGIN
+                                                                                                                        UPDATE broker_notifications
+                                                                                                                          SET is_read = true,
+                                                                                                                                read_at = now()
+                                                                                                                                  WHERE broker_id IN (
+                                                                                                                                      SELECT id FROM brokers WHERE user_id = auth.uid()
+                                                                                                                                        )
+                                                                                                                                          AND is_read = false;
+                                                                                                                                          END;
+                                                                                                                                          $$;
 
--- 6. Função trigger: Criar notificação quando admin atualizar sugestão
-CREATE OR REPLACE FUNCTION notify_broker_on_suggestion_update()
-RETURNS TRIGGER
-LANGUAGE plpgsql
-SECURITY DEFINER
-AS $$
-DECLARE
-  status_label TEXT;
-  notification_title TEXT;
-  notification_message TEXT;
-BEGIN
-  -- Apenas notificar se o status mudou
-  IF OLD.status IS DISTINCT FROM NEW.status THEN
-    -- Traduzir status para português
-    status_label := CASE NEW.status
-      WHEN 'under_review' THEN 'Em Análise'
-      WHEN 'planned' THEN 'Planejado'
-      WHEN 'in_progress' THEN 'Em Desenvolvimento'
-      WHEN 'completed' THEN 'Concluído'
-      WHEN 'rejected' THEN 'Rejeitado'
-      ELSE 'Atualizado'
-    END;
+                                                                                                                                          -- 6. Função trigger: Criar notificação quando admin atualizar sugestão
+                                                                                                                                          CREATE OR REPLACE FUNCTION notify_broker_on_suggestion_update()
+                                                                                                                                          RETURNS TRIGGER
+                                                                                                                                          LANGUAGE plpgsql
+                                                                                                                                          SECURITY DEFINER
+                                                                                                                                          AS $$
+                                                                                                                                          DECLARE
+                                                                                                                                            status_label TEXT;
+                                                                                                                                              notification_title TEXT;
+                                                                                                                                                notification_message TEXT;
+                                                                                                                                                BEGIN
+                                                                                                                                                  -- Apenas notificar se o status mudou
+                                                                                                                                                    IF OLD.status IS DISTINCT FROM NEW.status THEN
+                                                                                                                                                        -- Traduzir status para português
+                                                                                                                                                            status_label := CASE NEW.status
+                                                                                                                                                                  WHEN 'under_review' THEN 'Em Análise'
+                                                                                                                                                                        WHEN 'planned' THEN 'Planejado'
+                                                                                                                                                                              WHEN 'in_progress' THEN 'Em Desenvolvimento'
+                                                                                                                                                                                    WHEN 'completed' THEN 'Concluído'
+                                                                                                                                                                                          WHEN 'rejected' THEN 'Rejeitado'
+                                                                                                                                                                                                ELSE 'Atualizado'
+                                                                                                                                                                                                    END;
 
-    -- Criar título e mensagem
-    notification_title := 'Sua sugestão foi atualizada';
-    notification_message := 'A sugestão "' || NEW.title || '" está agora: ' || status_label;
+                                                                                                                                                                                                        -- Criar título e mensagem
+                                                                                                                                                                                                            notification_title := 'Sua sugestão foi atualizada';
+                                                                                                                                                                                                                notification_message := 'A sugestão "' || NEW.title || '" está agora: ' || status_label;
 
-    -- Inserir notificação
-    INSERT INTO broker_notifications (
-      broker_id,
-      suggestion_id,
-      title,
-      message,
-      type
-    ) VALUES (
-      NEW.broker_id,
-      NEW.id,
-      notification_title,
-      notification_message,
-      CASE 
-        WHEN NEW.status = 'completed' THEN 'suggestion_completed'
-        ELSE 'suggestion_update'
-      END
-    );
-  END IF;
+                                                                                                                                                                                                                    -- Inserir notificação
+                                                                                                                                                                                                                        INSERT INTO broker_notifications (
+                                                                                                                                                                                                                              broker_id,
+                                                                                                                                                                                                                                    suggestion_id,
+                                                                                                                                                                                                                                          title,
+                                                                                                                                                                                                                                                message,
+                                                                                                                                                                                                                                                      type
+                                                                                                                                                                                                                                                          ) VALUES (
+                                                                                                                                                                                                                                                                NEW.broker_id,
+                                                                                                                                                                                                                                                                      NEW.id,
+                                                                                                                                                                                                                                                                            notification_title,
+                                                                                                                                                                                                                                                                                  notification_message,
+                                                                                                                                                                                                                                                                                        CASE 
+                                                                                                                                                                                                                                                                                                WHEN NEW.status = 'completed' THEN 'suggestion_completed'
+                                                                                                                                                                                                                                                                                                        ELSE 'suggestion_update'
+                                                                                                                                                                                                                                                                                                              END
+                                                                                                                                                                                                                                                                                                                  );
+                                                                                                                                                                                                                                                                                                                    END IF;
 
-  RETURN NEW;
-END;
-$$;
+                                                                                                                                                                                                                                                                                                                      RETURN NEW;
+                                                                                                                                                                                                                                                                                                                      END;
+                                                                                                                                                                                                                                                                                                                      $$;
 
--- 7. Criar trigger para notificações automáticas
-DROP TRIGGER IF EXISTS trigger_notify_on_suggestion_update ON improvement_suggestions;
-CREATE TRIGGER trigger_notify_on_suggestion_update
-  AFTER UPDATE ON improvement_suggestions
-  FOR EACH ROW
-  WHEN (OLD.status IS DISTINCT FROM NEW.status)
-  EXECUTE FUNCTION notify_broker_on_suggestion_update();
+                                                                                                                                                                                                                                                                                                                      -- 7. Criar trigger para notificações automáticas
+                                                                                                                                                                                                                                                                                                                      DROP TRIGGER IF EXISTS trigger_notify_on_suggestion_update ON improvement_suggestions;
+                                                                                                                                                                                                                                                                                                                      CREATE TRIGGER trigger_notify_on_suggestion_update
+                                                                                                                                                                                                                                                                                                                        AFTER UPDATE ON improvement_suggestions
+                                                                                                                                                                                                                                                                                                                          FOR EACH ROW
+                                                                                                                                                                                                                                                                                                                            WHEN (OLD.status IS DISTINCT FROM NEW.status)
+                                                                                                                                                                                                                                                                                                                              EXECUTE FUNCTION notify_broker_on_suggestion_update();
 
--- 8. Função trigger: Notificar sobre novas atualizações do sistema
-CREATE OR REPLACE FUNCTION notify_brokers_on_new_update()
-RETURNS TRIGGER
-LANGUAGE plpgsql
-SECURITY DEFINER
-AS $$
-BEGIN
-  -- Apenas notificar se foi publicado
-  IF NEW.is_published = true AND (OLD.is_published IS NULL OR OLD.is_published = false) THEN
-    -- Criar notificação para todos os brokers ativos
-    INSERT INTO broker_notifications (
-      broker_id,
-      update_id,
-      title,
-      message,
-      type
-    )
-    SELECT 
-      id,
-      NEW.id,
-      'Nova atualização disponível',
-      NEW.title,
-      'new_system_update'
-    FROM brokers
-    WHERE is_active = true;
-  END IF;
+                                                                                                                                                                                                                                                                                                                              -- 8. Função trigger: Notificar sobre novas atualizações do sistema
+                                                                                                                                                                                                                                                                                                                              CREATE OR REPLACE FUNCTION notify_brokers_on_new_update()
+                                                                                                                                                                                                                                                                                                                              RETURNS TRIGGER
+                                                                                                                                                                                                                                                                                                                              LANGUAGE plpgsql
+                                                                                                                                                                                                                                                                                                                              SECURITY DEFINER
+                                                                                                                                                                                                                                                                                                                              AS $$
+                                                                                                                                                                                                                                                                                                                              BEGIN
+                                                                                                                                                                                                                                                                                                                                -- Apenas notificar se foi publicado
+                                                                                                                                                                                                                                                                                                                                  IF NEW.is_published = true AND (OLD.is_published IS NULL OR OLD.is_published = false) THEN
+                                                                                                                                                                                                                                                                                                                                      -- Criar notificação para todos os brokers ativos
+                                                                                                                                                                                                                                                                                                                                          INSERT INTO broker_notifications (
+                                                                                                                                                                                                                                                                                                                                                broker_id,
+                                                                                                                                                                                                                                                                                                                                                      update_id,
+                                                                                                                                                                                                                                                                                                                                                            title,
+                                                                                                                                                                                                                                                                                                                                                                  message,
+                                                                                                                                                                                                                                                                                                                                                                        type
+                                                                                                                                                                                                                                                                                                                                                                            )
+                                                                                                                                                                                                                                                                                                                                                                                SELECT 
+                                                                                                                                                                                                                                                                                                                                                                                      id,
+                                                                                                                                                                                                                                                                                                                                                                                            NEW.id,
+                                                                                                                                                                                                                                                                                                                                                                                                  'Nova atualização disponível',
+                                                                                                                                                                                                                                                                                                                                                                                                        NEW.title,
+                                                                                                                                                                                                                                                                                                                                                                                                              'new_system_update'
+                                                                                                                                                                                                                                                                                                                                                                                                                  FROM brokers
+                                                                                                                                                                                                                                                                                                                                                                                                                      WHERE is_active = true;
+                                                                                                                                                                                                                                                                                                                                                                                                                        END IF;
 
-  RETURN NEW;
-END;
-$$;
+                                                                                                                                                                                                                                                                                                                                                                                                                          RETURN NEW;
+                                                                                                                                                                                                                                                                                                                                                                                                                          END;
+                                                                                                                                                                                                                                                                                                                                                                                                                          $$;
 
--- 9. Criar trigger para notificações de novas atualizações
-DROP TRIGGER IF EXISTS trigger_notify_on_new_update ON app_updates;
-CREATE TRIGGER trigger_notify_on_new_update
-  AFTER INSERT OR UPDATE ON app_updates
-  FOR EACH ROW
-  WHEN (NEW.is_published = true)
-  EXECUTE FUNCTION notify_brokers_on_new_update();
+                                                                                                                                                                                                                                                                                                                                                                                                                          -- 9. Criar trigger para notificações de novas atualizações
+                                                                                                                                                                                                                                                                                                                                                                                                                          DROP TRIGGER IF EXISTS trigger_notify_on_new_update ON app_updates;
+                                                                                                                                                                                                                                                                                                                                                                                                                          CREATE TRIGGER trigger_notify_on_new_update
+                                                                                                                                                                                                                                                                                                                                                                                                                            AFTER INSERT OR UPDATE ON app_updates
+                                                                                                                                                                                                                                                                                                                                                                                                                              FOR EACH ROW
+                                                                                                                                                                                                                                                                                                                                                                                                                                WHEN (NEW.is_published = true)
+                                                                                                                                                                                                                                                                                                                                                                                                                                  EXECUTE FUNCTION notify_brokers_on_new_update();
 
--- 10. Função para obter contagem de notificações não lidas
-CREATE OR REPLACE FUNCTION get_unread_notifications_count()
-RETURNS INTEGER
-LANGUAGE plpgsql
-SECURITY DEFINER
-AS $$
-DECLARE
-  count_result INTEGER;
-BEGIN
-  SELECT COUNT(*)::INTEGER INTO count_result
-  FROM broker_notifications
-  WHERE broker_id IN (
-    SELECT id FROM brokers WHERE user_id = auth.uid()
-  )
-  AND is_read = false;
+                                                                                                                                                                                                                                                                                                                                                                                                                                  -- 10. Função para obter contagem de notificações não lidas
+                                                                                                                                                                                                                                                                                                                                                                                                                                  CREATE OR REPLACE FUNCTION get_unread_notifications_count()
+                                                                                                                                                                                                                                                                                                                                                                                                                                  RETURNS INTEGER
+                                                                                                                                                                                                                                                                                                                                                                                                                                  LANGUAGE plpgsql
+                                                                                                                                                                                                                                                                                                                                                                                                                                  SECURITY DEFINER
+                                                                                                                                                                                                                                                                                                                                                                                                                                  AS $$
+                                                                                                                                                                                                                                                                                                                                                                                                                                  DECLARE
+                                                                                                                                                                                                                                                                                                                                                                                                                                    count_result INTEGER;
+                                                                                                                                                                                                                                                                                                                                                                                                                                    BEGIN
+                                                                                                                                                                                                                                                                                                                                                                                                                                      SELECT COUNT(*)::INTEGER INTO count_result
+                                                                                                                                                                                                                                                                                                                                                                                                                                        FROM broker_notifications
+                                                                                                                                                                                                                                                                                                                                                                                                                                          WHERE broker_id IN (
+                                                                                                                                                                                                                                                                                                                                                                                                                                              SELECT id FROM brokers WHERE user_id = auth.uid()
+                                                                                                                                                                                                                                                                                                                                                                                                                                                )
+                                                                                                                                                                                                                                                                                                                                                                                                                                                  AND is_read = false;
 
-  RETURN count_result;
-END;
-$$;
+                                                                                                                                                                                                                                                                                                                                                                                                                                                    RETURN count_result;
+                                                                                                                                                                                                                                                                                                                                                                                                                                                    END;
+                                                                                                                                                                                                                                                                                                                                                                                                                                                    $$;
 
--- Mensagem de sucesso
-DO $$
-BEGIN
-  RAISE NOTICE '✅ Sistema de notificações criado com sucesso!';
-  RAISE NOTICE '📋 Tabela: broker_notifications';
-  RAISE NOTICE '🔔 Triggers: Auto-notificação em mudanças de status';
-  RAISE NOTICE '🔐 RLS Policies: Configuradas';
-END $$;
+                                                                                                                                                                                                                                                                                                                                                                                                                                                    -- Mensagem de sucesso
+                                                                                                                                                                                                                                                                                                                                                                                                                                                    DO $$
+                                                                                                                                                                                                                                                                                                                                                                                                                                                    BEGIN
+                                                                                                                                                                                                                                                                                                                                                                                                                                                      RAISE NOTICE '✅ Sistema de notificações criado com sucesso!';
+                                                                                                                                                                                                                                                                                                                                                                                                                                                        RAISE NOTICE '📋 Tabela: broker_notifications';
+                                                                                                                                                                                                                                                                                                                                                                                                                                                          RAISE NOTICE '🔔 Triggers: Auto-notificação em mudanças de status';
+                                                                                                                                                                                                                                                                                                                                                                                                                                                            RAISE NOTICE '🔐 RLS Policies: Configuradas';
+                                                                                                                                                                                                                                                                                                                                                                                                                                                            END $$;
+                                                                                                                                                                                                                                                                                                                                                                                                                                                            

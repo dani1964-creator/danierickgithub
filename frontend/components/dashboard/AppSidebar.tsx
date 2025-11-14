@@ -46,12 +46,6 @@ const AppSidebar = () => {
       icon: UserCheck,
     },
     {
-      title: 'Atualizações',
-      url: '/dashboard/updates',
-      icon: Sparkles,
-      highlight: true, // Destaque especial
-    },
-    {
       title: 'Site',
       url: '/dashboard/website',
       icon: Globe,
@@ -102,19 +96,11 @@ const AppSidebar = () => {
                     onClick={() => router.push(item.url)}
                     isActive={router.pathname === item.url}
                     tooltip={isCollapsed ? item.title : undefined}
-                    className={`group transition-all duration-200 hover:bg-sidebar-accent/80 data-[state=open]:bg-sidebar-accent ${
-                      item.highlight 
-                        ? 'relative border-2 border-primary/60 rounded-md bg-primary/5 shadow-sm shadow-primary/20 after:absolute after:right-2 after:top-1/2 after:-translate-y-1/2 after:w-2 after:h-2 after:bg-primary after:rounded-full after:animate-pulse' 
-                        : ''
-                    }`}
+                    className="group transition-all duration-200 hover:bg-sidebar-accent/80 data-[state=open]:bg-sidebar-accent"
                   >
-                    <item.icon className={`h-4 w-4 group-hover:scale-110 transition-transform duration-200 ${
-                      item.highlight ? 'text-primary' : ''
-                    }`} />
+                    <item.icon className="h-4 w-4 group-hover:scale-110 transition-transform duration-200" />
                     {!isCollapsed && (
-                      <span className={`font-medium group-hover:translate-x-0.5 transition-transform duration-200 ${
-                        item.highlight ? 'text-primary font-semibold' : ''
-                      }`}>
+                      <span className="font-medium group-hover:translate-x-0.5 transition-transform duration-200">
                         {item.title}
                       </span>
                     )}
@@ -128,7 +114,21 @@ const AppSidebar = () => {
       
       <SidebarFooter>
         {!isCollapsed && (
-          <div className="p-4 border-t">
+          <div className="p-4 border-t space-y-3">
+            {/* Botão de Atualizações em Destaque */}
+            <div className="relative">
+              <div className="absolute inset-0 bg-gradient-to-r from-amber-500 via-orange-500 to-red-500 rounded-lg blur-sm opacity-75 animate-pulse"></div>
+              <Button
+                onClick={() => router.push('/dashboard/updates')}
+                className="relative w-full bg-gradient-to-r from-amber-500 via-orange-500 to-red-500 hover:from-amber-600 hover:via-orange-600 hover:to-red-600 text-white font-black text-xs tracking-wider shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 py-6 border-2 border-yellow-300"
+              >
+                <Sparkles className="h-5 w-5 mr-2 animate-pulse" />
+                <span className="drop-shadow-lg">ATUALIZAÇÕES IMOBIDEPS</span>
+                <Sparkles className="h-5 w-5 ml-2 animate-pulse" />
+              </Button>
+            </div>
+            
+            {/* Botão de Sair */}
             <Button 
               variant="outline" 
               className="w-full group hover:bg-destructive hover:text-destructive-foreground hover:border-destructive transition-all duration-200"

@@ -558,36 +558,26 @@ const AdminUpdatesPage = () => {
             updates.map((update) => (
               <Card key={update.id} className={`overflow-hidden ${!update.is_published ? 'opacity-60' : ''}`}>
                 <CardHeader className="pb-4">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Badge variant="outline" className="capitalize">
-                          {update.update_type === 'feature' ? 'Novidade' : 
-                           update.update_type === 'improvement' ? 'Melhoria' : 
-                           update.update_type === 'bugfix' ? 'Correção' : 
-                           update.update_type === 'announcement' ? 'Anúncio' : 
-                           update.update_type}
+                  <div className="flex items-start justify-between gap-4 mb-3">
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline" className="capitalize">
+                        {update.update_type === 'feature' ? 'Novidade' : 
+                         update.update_type === 'improvement' ? 'Melhoria' : 
+                         update.update_type === 'bugfix' ? 'Correção' : 
+                         update.update_type === 'announcement' ? 'Anúncio' : 
+                         update.update_type}
+                      </Badge>
+                      {update.is_published ? (
+                        <Badge className="gap-1">
+                          <Eye className="h-3 w-3" />
+                          Publicado
                         </Badge>
-                        {update.is_published ? (
-                          <Badge className="gap-1">
-                            <Eye className="h-3 w-3" />
-                            Publicado
-                          </Badge>
-                        ) : (
-                          <Badge variant="secondary" className="gap-1">
-                            <EyeOff className="h-3 w-3" />
-                            Rascunho
-                          </Badge>
-                        )}
-                      </div>
-                      <CardTitle className="text-xl mb-2">{update.title}</CardTitle>
-                      <CardDescription>
-                        {new Date(update.created_at).toLocaleDateString('pt-BR', {
-                          day: '2-digit',
-                          month: 'long',
-                          year: 'numeric'
-                        })}
-                      </CardDescription>
+                      ) : (
+                        <Badge variant="secondary" className="gap-1">
+                          <EyeOff className="h-3 w-3" />
+                          Rascunho
+                        </Badge>
+                      )}
                     </div>
                     <div className="flex gap-2">
                       <Button
@@ -614,6 +604,14 @@ const AdminUpdatesPage = () => {
                       </Button>
                     </div>
                   </div>
+                  <CardTitle className="text-xl mb-2">{update.title}</CardTitle>
+                  <CardDescription>
+                    {new Date(update.created_at).toLocaleDateString('pt-BR', {
+                      day: '2-digit',
+                      month: 'long',
+                      year: 'numeric'
+                    })}
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <p className="whitespace-pre-wrap text-sm">{update.content}</p>

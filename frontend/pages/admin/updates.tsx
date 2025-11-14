@@ -141,7 +141,23 @@ const AdminUpdatesPage = () => {
   useEffect(() => {
     // Verificar se é super admin
     const checkAdmin = async () => {
-      if (!user?.id) return;
+      // Verificar se tem token de super admin (vindo do /admin)
+      const superAdminToken = typeof window !== 'undefined' 
+        ? localStorage.getItem('sa_auth') 
+        : null;
+
+      if (superAdminToken === '1') {
+        setIsSuperAdmin(true);
+        loadData();
+        return;
+      }
+
+      // Se não tem token, verificar via user_id
+      if (!user?.id) {
+        router.push('/admin');
+        return;
+      }
+
       const { data } = await (supabase as any)
         .from('brokers')
         .select('is_super_admin')
@@ -152,14 +168,36 @@ const AdminUpdatesPage = () => {
         setIsSuperAdmin(true);
         loadData();
       } else {
-        router.push('/dashboard');
+        router.push('/admin');
       }
     };
     checkAdmin();
   }, [user, router, loadData]);
 
   const handleSubmitUpdate = async () => {
-    if (!user?.id) return;
+    // Buscar created_by (pode ser user.id ou primeiro super admin)
+    let createdBy = user?.id;
+    
+    if (!createdBy) {
+      // Se não tem user, buscar primeiro super admin
+      const { data: superAdminBroker } = await (supabase as any)
+        .from('brokers')
+        .select('user_id')
+        .eq('is_super_admin', true)
+        .limit(1)
+        .single();
+      
+      createdBy = superAdminBroker?.user_id;
+    }
+
+    if (!createdBy) {
+      toast({
+        title: 'Erro',
+        description: 'Não foi possível identificar o usuário',
+        variant: 'destructive'
+      });
+      return;
+    }
     
     if (!updateForm.title.trim() || !updateForm.content.trim()) {
       toast({
@@ -200,7 +238,7 @@ const AdminUpdatesPage = () => {
             content: updateForm.content.trim(),
             update_type: updateForm.update_type,
             is_published: updateForm.is_published,
-            created_by: user.id
+            created_by: createdBy
           });
 
         if (error) throw error;
@@ -282,7 +320,21 @@ const AdminUpdatesPage = () => {
   };
 
   const handleReviewSuggestion = async () => {
-    if (!editingSuggestion || !user?.id) return;
+    if (!editingSuggestion) return;
+
+    // Buscar reviewed_by (pode ser user.id ou primeiro super admin)
+    let reviewedBy = user?.id;
+    
+    if (!reviewedBy) {
+      const { data: superAdminBroker } = await (supabase as any)
+        .from('brokers')
+        .select('user_id')
+        .eq('is_super_admin', true)
+        .limit(1)
+        .single();
+      
+      reviewedBy = superAdminBroker?.user_id;
+    }
 
     try {
       setSubmitting(true);
@@ -294,7 +346,7 @@ const AdminUpdatesPage = () => {
           priority: suggestionReview.priority,
           admin_notes: suggestionReview.admin_notes.trim() || null,
           reviewed_at: new Date().toISOString(),
-          reviewed_by: user.id
+          reviewed_by: reviewedBy
         })
         .eq('id', editingSuggestion.id);
 

@@ -610,15 +610,15 @@ const Properties = () => {
 
                   {/* Botões de Ação */}
                   <div className="flex items-center gap-2 pt-2">
-                    <EditPropertyButton property={property} onPropertyUpdated={refreshProperties} />
                     <Button 
                       size="sm" 
                       variant="outline"
                       onClick={() => handleDeleteProperty(property.id)}
-                      className="flex-1 hover:bg-destructive/10 hover:text-destructive hover:border-destructive/20"
+                      className="w-12 sm:flex-1 hover:bg-destructive/10 hover:text-destructive hover:border-destructive/20"
                     >
                       <Trash2 className="h-3 w-3" />
                     </Button>
+                    <EditPropertyButton property={property} onPropertyUpdated={refreshProperties} />
                   </div>
                 </CardContent>
               </Card>

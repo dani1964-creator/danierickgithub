@@ -2,19 +2,41 @@ import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Sidebar, SidebarContent, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { Sidebar, SidebarContent, SidebarProvider, SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import AppSidebar from "./AppSidebar";
 import { NotificationBell } from "./NotificationBell";
 import { LogOut, Menu } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useSwipeGesture } from "@/hooks/useSwipeGesture";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
 }
 
-const DashboardLayout = ({ children }: DashboardLayoutProps) => {
+const DashboardLayoutContent = ({ children }: DashboardLayoutProps) => {
   const { signOut } = useAuth();
   const { toast } = useToast();
+  const { openMobile, setOpenMobile, isMobile } = useSidebar();
+  
+  // Swipe gesture apenas em mobile
+  useSwipeGesture({
+    onSwipeRight: () => {
+      if (isMobile && !openMobile) {
+        setOpenMobile(true);
+      }
+    },
+    onSwipeLeft: () => {
+      if (isMobile && openMobile) {
+        setOpenMobile(false);
+      }
+    },
+    enabled: isMobile,
+    edgeZoneStart: 50, // Zona segura: não ativa < 50px da borda
+    edgeZoneEnd: 200, // Zona ideal: 50-200px da borda
+    minDistance: 100, // Precisa arrastar pelo menos 100px
+    minVelocity: 0.3, // Swipe rápido (evita ativar em scroll lento)
+  });
 
   const handleSignOut = async () => {
     try {
@@ -67,6 +89,14 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
           </div>
         </main>
       </div>
+    </SidebarProvider>
+  );
+};
+
+const DashboardLayout = ({ children }: DashboardLayoutProps) => {
+  return (
+    <SidebarProvider>
+      <DashboardLayoutContent>{children}</DashboardLayoutContent>
     </SidebarProvider>
   );
 };

@@ -88,15 +88,14 @@ const FeaturedProperties = ({
           {/* Grid responsivo - Desktop usa grid, Mobile usa carousel com peek */}
           
           {/* Mobile: Carousel com peek (mostra laterais) */}
-          <div className="block sm:hidden overflow-x-auto scrollbar-hide">
-            <div className="flex gap-4 px-6" style={{ scrollSnapType: 'x mandatory' }}>
+          <div className="block sm:hidden overflow-x-auto scrollbar-hide snap-x snap-mandatory">
+            <div className="flex gap-4 px-6">
               {featuredProperties.map((property) => (
                 <div 
                   key={property.id}
-                  className="flex-shrink-0"
+                  className="flex-shrink-0 snap-center"
                   style={{ 
-                    width: 'calc(100vw - 80px)',
-                    scrollSnapAlign: 'center'
+                    width: 'calc(100vw - 80px)'
                   }}
                 >
                   <PropertyCard 

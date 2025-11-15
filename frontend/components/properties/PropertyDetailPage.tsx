@@ -18,6 +18,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { useDomainAware } from '@/hooks/useDomainAware';
 import { useFavorites } from '@/hooks/useFavorites';
 import { useNotifications } from '@/hooks/useNotifications';
+import { usePropertyViews } from '@/hooks/usePropertyViews';
 import { FloatingFavoritesButton } from '@/components/FavoritesButton';
 import ContactCTA from '@/components/home/ContactCTA';
 import Footer from '@/components/home/Footer';
@@ -113,6 +114,7 @@ const PropertyDetailPage = () => {
   }, [toast]);
   const { trackPropertyView, trackPropertyInterest, trackWhatsAppClick } = useTracking();
   const isMobile = useIsMobile();
+  const { registerView } = usePropertyViews();
   const [property, setProperty] = useState<Property | null>(null);
   const [brokerProfile, setBrokerProfile] = useState<BrokerProfile | null>(null);
   const [brokerContact, setBrokerContact] = useState<BrokerContact | null>(null);
@@ -352,18 +354,18 @@ const PropertyDetailPage = () => {
       setSocialLinks(socialData || []);
       setViewsCount(propertyData.views_count || 0);
 
-      // Atualiza contador de views sem bloquear a UI
-      const updatedViews = (propertyData.views_count || 0) + 1;
-      setViewsCount(updatedViews);
+      // Registra visualização única por IP usando o hook
       (async () => {
-        try {
-          const { error: updateError } = await supabase
-            .from('properties')
-            .update({ views_count: updatedViews })
-            .eq('id', propertyData.id);
-          if (updateError) logger.warn('views_count update error:', updateError.message || updateError);
-        } catch (e) {
-          logger.warn('views_count update failed:', e);
+        const viewResult = await registerView(propertyData.id);
+        if (viewResult?.is_new_view) {
+          // Atualiza contador apenas se foi uma nova visualização
+          setViewsCount(viewResult.views_count);
+          logger.info('✅ Nova visualização registrada:', {
+            propertyId: propertyData.id,
+            newCount: viewResult.views_count
+          });
+        } else if (viewResult) {
+          logger.debug('IP já visualizou este imóvel, contador mantido em:', viewResult.views_count);
         }
       })();
 

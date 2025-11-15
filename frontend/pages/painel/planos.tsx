@@ -21,7 +21,7 @@ import {
   XCircle,
   Send
 } from 'lucide-react';
-import { supabaseAuth } from '@/integrations/supabase/client';
+import { supabase } from '@/integrations/supabase/client';
 
 interface SubscriptionData {
   id: string;
@@ -68,7 +68,7 @@ export default function PlanosPage() {
 
   const loadSubscriptionData = async () => {
     try {
-      const { data: { session } } = await supabaseAuth.getSession();
+      const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
         router.push('/auth');
         return;

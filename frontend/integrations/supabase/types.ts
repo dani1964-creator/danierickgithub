@@ -1148,6 +1148,18 @@ export type Database = {
         Args: { p_domain: string; p_user_id: string }
         Returns: boolean
       }
+      register_property_view: {
+        Args: { 
+          p_property_id: string
+          p_ip_address: string
+          p_user_agent?: string
+        }
+        Returns: Json
+      }
+      get_property_view_stats: {
+        Args: { p_property_id: string }
+        Returns: Json
+      }
     }
     Enums: {
       [_ in never]: never

@@ -44,7 +44,7 @@ export const usePropertyViews = () => {
       }
       
       logger.debug('Property view registered:', data);
-      return data as ViewResult;
+      return data as unknown as ViewResult;
     } catch (error) {
       logger.error('Failed to register property view:', error);
       return null;
@@ -67,7 +67,7 @@ export const usePropertyViews = () => {
         return null;
       }
       
-      return data as ViewStats;
+      return data as unknown as ViewStats;
     } catch (error) {
       logger.error('Failed to get property view stats:', error);
       return null;

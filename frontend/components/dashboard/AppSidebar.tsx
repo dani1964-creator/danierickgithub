@@ -1,7 +1,7 @@
 
 import { useRouter } from 'next/router';
 import { logger } from '@/lib/logger';
-import { Home, Building2, Users, Settings, BarChart3, Globe, UserCheck, Sparkles } from 'lucide-react';
+import { Home, Building2, Users, Settings, BarChart3, Globe, UserCheck, Sparkles, CreditCard } from 'lucide-react';
 import { useSidebar } from '@/components/ui/sidebar-context';
 import {
   Sidebar,
@@ -49,6 +49,11 @@ const AppSidebar = () => {
       title: 'Site',
       url: '/dashboard/website',
       icon: Globe,
+    },
+    {
+      title: 'Planos',
+      url: '/painel/planos',
+      icon: CreditCard,
     },
     {
       title: 'Configurações',

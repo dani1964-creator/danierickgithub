@@ -8,8 +8,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Building2, Users, Globe, Trash2, Plus, Eye, EyeOff, ExternalLink, RefreshCw, LogOut, Sparkles } from "lucide-react";
+import { Building2, Users, Globe, Trash2, Plus, Eye, EyeOff, ExternalLink, RefreshCw, LogOut, Sparkles, CreditCard, CheckCircle, MessageSquare, XCircle } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import Head from 'next/head';
@@ -48,6 +49,7 @@ function SuperAdminPage() {
   const [showLoginDialog, setShowLoginDialog] = useState(false);
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
+  const [activeTab, setActiveTab] = useState<'brokers' | 'subscriptions'>('brokers');
   const [loginLoading, setLoginLoading] = useState(false);
 
   // Debug: Log sempre que brokers mudar
@@ -375,151 +377,72 @@ function SuperAdminPage() {
           </Card>
         </div>
 
-        {/* Quick Actions - Navigation Cards */}
-        <div className="grid gap-3 sm:gap-4 grid-cols-1 md:grid-cols-2 mb-6 sm:mb-8">
-          <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' })}>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-primary/10 rounded-lg">
-                    <Building2 className="h-5 w-5 text-primary" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-base">Gerenciar Imobiliárias</CardTitle>
-                    <CardDescription className="text-xs">
-                      Ativar/desativar contas e visualizar sites
-                    </CardDescription>
-                  </div>
-                </div>
-                <ExternalLink className="h-4 w-4 text-muted-foreground" />
-              </div>
-            </CardHeader>
-          </Card>
-
-          <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => router.push('/admin/updates')}>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-purple-500/10 rounded-lg">
-                    <Sparkles className="h-5 w-5 text-purple-500" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-base">Gerenciar Atualizações</CardTitle>
-                    <CardDescription className="text-xs">
-                      Publicar updates e revisar sugestões
-                    </CardDescription>
-                  </div>
-                </div>
-                <ExternalLink className="h-4 w-4 text-muted-foreground" />
-              </div>
-            </CardHeader>
-          </Card>
-        </div>
-
-        {/* Actions */}
-        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
-          <div className="flex items-center gap-4">
-            <h2 className="text-lg sm:text-xl font-semibold">Gerenciar Imobiliárias</h2>
+        {/* Quick Actions - Navigation Tabs */}
+        <div className="mb-6">
+          <div className="flex border-b">
+            <button
+              onClick={() => setActiveTab('brokers')}
+              className={`px-4 py-2 font-medium text-sm border-b-2 transition-colors ${
+                activeTab === 'brokers'
+                  ? 'border-primary text-primary'
+                  : 'border-transparent text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              <Building2 className="h-4 w-4 inline mr-2" />
+              Imobiliárias
+            </button>
+            <button
+              onClick={() => setActiveTab('subscriptions')}
+              className={`px-4 py-2 font-medium text-sm border-b-2 transition-colors ${
+                activeTab === 'subscriptions'
+                  ? 'border-primary text-primary'
+                  : 'border-transparent text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              <CreditCard className="h-4 w-4 inline mr-2" />
+              Assinaturas
+            </button>
           </div>
-          
-          <Button onClick={fetchBrokers} variant="outline">
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Recarregar
-          </Button>
         </div>
 
-        {/* Brokers Table - Desktop */}
-        <Card className="hidden md:block">
-          <CardContent className="p-0">
-            {brokers.length === 0 ? (
-              <div className="p-8 text-center">
-                <p className="text-muted-foreground">Nenhuma imobiliária encontrada.</p>
-                <Button
-                  variant="outline"
-                  onClick={fetchBrokers}
-                  className="mt-4"
-                >
-                  <RefreshCw className="h-4 w-4 mr-2" />
-                  Recarregar
-                </Button>
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="min-w-[150px]">Empresa</TableHead>
-                      <TableHead className="min-w-[200px]">Email</TableHead>
-                      <TableHead className="min-w-[80px]">Status</TableHead>
-                      <TableHead className="min-w-[80px]">Plano</TableHead>
-                      <TableHead className="min-w-[80px]">Imóveis</TableHead>
-                      <TableHead className="min-w-[60px]">Site</TableHead>
-                      <TableHead className="min-w-[100px]">Criado em</TableHead>
-                      <TableHead className="text-right min-w-[100px]">Ações</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {brokers.map((broker) => (
-                      <TableRow key={broker.id}>
-                        <TableCell className="min-w-[150px]">
-                          <div className="font-medium text-sm">{broker.business_name}</div>
-                        </TableCell>
-                        <TableCell className="min-w-[200px] text-sm">{broker.email}</TableCell>
-                        <TableCell className="min-w-[80px]">
-                          <Badge variant={broker.is_active ? "default" : "secondary"} className="text-xs">
-                            {broker.is_active ? "Ativa" : "Inativa"}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="min-w-[80px]">
-                          <Badge variant="outline" className="text-xs">{broker.plan_type}</Badge>
-                        </TableCell>
-                        <TableCell className="min-w-[80px] text-sm">
-                          {broker.properties_count || 0}
-                        </TableCell>
-                        <TableCell className="min-w-[60px]">
-                          {broker.website_slug && (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => window.open(`https://${broker.website_slug}.${baseDomain}`, '_blank')}
-                                className="h-8 w-8 p-0"
-                              >
-                                <ExternalLink className="h-3 w-3" />
-                              </Button>
-                            )}
-                        </TableCell>
-                        <TableCell className="min-w-[100px] text-sm">
-                          {format(new Date(broker.created_at), "dd/MM/yyyy", { locale: ptBR })}
-                        </TableCell>
-                        <TableCell className="text-right min-w-[100px]">
-                          <div className="flex gap-1 justify-end">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => toggleBrokerStatus(broker.id, broker.is_active)}
-                              className="h-8 w-8 p-0"
-                            >
-                              {broker.is_active ? (
-                                <EyeOff className="h-3 w-3" />
-                              ) : (
-                                <Eye className="h-3 w-3" />
-                              )}
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        {/* Content based on active tab */}
+        {activeTab === 'brokers' ? (
+          <BrokersTab 
+            brokers={brokers}
+            loading={loading}
+            fetchBrokers={fetchBrokers}
+            toggleBrokerStatus={toggleBrokerStatus}
+            baseDomain={baseDomain}
+          />
+        ) : (
+          <SubscriptionsTab />
+        )}
+      </div>
+    </div>
+  );
+}
 
-        {/* Brokers Cards - Mobile */}
-        <div className="md:hidden space-y-4">
+// Component for Brokers tab
+function BrokersTab({ brokers, loading, fetchBrokers, toggleBrokerStatus, baseDomain }: any) {
+  return (
+    <>
+      {/* Actions */}
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
+        <div className="flex items-center gap-4">
+          <h2 className="text-lg sm:text-xl font-semibold">Gerenciar Imobiliárias</h2>
+        </div>
+        
+        <Button onClick={fetchBrokers} variant="outline">
+          <RefreshCw className="h-4 w-4 mr-2" />
+          Recarregar
+        </Button>
+      </div>
+
+      {/* Brokers Table - Desktop */}
+      <Card className="hidden md:block">
+        <CardContent className="p-0">
           {brokers.length === 0 ? (
-            <Card className="p-8 text-center">
+            <div className="p-8 text-center">
               <p className="text-muted-foreground">Nenhuma imobiliária encontrada.</p>
               <Button
                 variant="outline"
@@ -529,61 +452,670 @@ function SuperAdminPage() {
                 <RefreshCw className="h-4 w-4 mr-2" />
                 Recarregar
               </Button>
-            </Card>
+            </div>
           ) : (
-            brokers.map((broker) => (
-              <Card key={broker.id} className="p-4">
-                <div className="space-y-3">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-medium text-sm truncate">{broker.business_name}</h3>
-                      <p className="text-xs text-muted-foreground truncate">{broker.email}</p>
-                    </div>
-                    <Badge variant={broker.is_active ? "default" : "secondary"} className="text-xs ml-2">
-                      {broker.is_active ? "Ativa" : "Inativa"}
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="min-w-[150px]">Empresa</TableHead>
+                    <TableHead className="min-w-[200px]">Email</TableHead>
+                    <TableHead className="min-w-[80px]">Status</TableHead>
+                    <TableHead className="min-w-[80px]">Plano</TableHead>
+                    <TableHead className="min-w-[80px]">Imóveis</TableHead>
+                    <TableHead className="min-w-[60px]">Site</TableHead>
+                    <TableHead className="min-w-[100px]">Criado em</TableHead>
+                    <TableHead className="text-right min-w-[100px]">Ações</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {brokers.map((broker: any) => (
+                    <TableRow key={broker.id}>
+                      <TableCell className="min-w-[150px]">
+                        <div className="font-medium text-sm">{broker.business_name}</div>
+                      </TableCell>
+                      <TableCell className="min-w-[200px] text-sm">{broker.email}</TableCell>
+                      <TableCell className="min-w-[80px]">
+                        <Badge variant={broker.is_active ? "default" : "secondary"} className="text-xs">
+                          {broker.is_active ? "Ativa" : "Inativa"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="min-w-[80px]">
+                        <Badge variant="outline" className="text-xs">{broker.plan_type}</Badge>
+                      </TableCell>
+                      <TableCell className="min-w-[80px] text-sm">
+                        {broker.properties_count || 0}
+                      </TableCell>
+                      <TableCell className="min-w-[60px]">
+                        {broker.website_slug && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => window.open(`https://${broker.website_slug}.${baseDomain}`, '_blank')}
+                              className="h-8 w-8 p-0"
+                            >
+                              <ExternalLink className="h-3 w-3" />
+                            </Button>
+                          )}
+                      </TableCell>
+                      <TableCell className="min-w-[100px] text-sm">
+                        {format(new Date(broker.created_at), "dd/MM/yyyy", { locale: ptBR })}
+                      </TableCell>
+                      <TableCell className="text-right min-w-[100px]">
+                        <div className="flex gap-1 justify-end">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => toggleBrokerStatus(broker.id, broker.is_active)}
+                            className="h-8 w-8 p-0"
+                          >
+                            {broker.is_active ? (
+                              <EyeOff className="h-3 w-3" />
+                            ) : (
+                              <Eye className="h-3 w-3" />
+                            )}
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Brokers Cards - Mobile */}
+      <div className="md:hidden space-y-4">
+        {brokers.length === 0 ? (
+          <Card className="p-8 text-center">
+            <p className="text-muted-foreground">Nenhuma imobiliária encontrada.</p>
+            <Button
+              variant="outline"
+              onClick={fetchBrokers}
+              className="mt-4"
+            >
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Recarregar
+            </Button>
+          </Card>
+        ) : (
+          brokers.map((broker: any) => (
+            <Card key={broker.id} className="p-4">
+              <div className="space-y-3">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-medium text-sm truncate">{broker.business_name}</h3>
+                    <p className="text-xs text-muted-foreground truncate">{broker.email}</p>
+                  </div>
+                  <Badge variant={broker.is_active ? "default" : "secondary"} className="text-xs ml-2">
+                    {broker.is_active ? "Ativa" : "Inativa"}
+                  </Badge>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3 pt-1">
+                  <div>
+                    <p className="text-xs text-muted-foreground">Plano</p>
+                    <Badge variant="outline" className="text-xs mt-1">
+                      {broker.plan_type}
                     </Badge>
                   </div>
-
-                  <div className="grid grid-cols-2 gap-3 pt-1">
-                    <div>
-                      <p className="text-xs text-muted-foreground">Plano</p>
-                      <Badge variant="outline" className="text-xs mt-1">
-                        {broker.plan_type}
-                      </Badge>
-                    </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground">Imóveis</p>
-                      <p className="text-sm font-medium">{broker.properties_count || 0}</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-end gap-2 pt-2 border-t">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="h-8 px-3 text-xs"
-                      onClick={() => toggleBrokerStatus(broker.id, broker.is_active)}
-                    >
-                      {broker.is_active ? (
-                        <>
-                          <EyeOff className="h-3 w-3 mr-1" />
-                          Desativar
-                        </>
-                      ) : (
-                        <>
-                          <Eye className="h-3 w-3 mr-1" />
-                          Ativar
-                        </>
-                      )}
-                    </Button>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Imóveis</p>
+                    <p className="text-sm font-medium">{broker.properties_count || 0}</p>
                   </div>
                 </div>
-              </Card>
-            ))
-          )}
+
+                <div className="flex items-center justify-end gap-2 pt-2 border-t">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-8 px-3 text-xs"
+                    onClick={() => toggleBrokerStatus(broker.id, broker.is_active)}
+                  >
+                    {broker.is_active ? (
+                      <>
+                        <EyeOff className="h-3 w-3 mr-1" />
+                        Desativar
+                      </>
+                    ) : (
+                      <>
+                        <Eye className="h-3 w-3 mr-1" />
+                        Ativar
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
+            </Card>
+          ))
+        )}
+      </div>
+    </>
+  );
+}
+
+// Component for Subscriptions tab
+function SubscriptionsTab() {
+  const [subscriptions, setSubscriptions] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [communications, setCommunications] = useState<any[]>([]);
+  const [selectedSubscription, setSelectedSubscription] = useState<any>(null);
+  const [showRenewDialog, setShowRenewDialog] = useState(false);
+  const [showCancelDialog, setShowCancelDialog] = useState(false);
+  const [showCommunicationDialog, setShowCommunicationDialog] = useState(false);
+  const [pixKey, setPixKey] = useState('');
+  const [qrCodeUrl, setQrCodeUrl] = useState('');
+  const [notes, setNotes] = useState('');
+  const [newMessage, setNewMessage] = useState('');
+  const { toast } = useToast();
+
+  useEffect(() => {
+    loadSubscriptions();
+  }, []);
+
+  const loadSubscriptions = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('/api/admin/subscriptions');
+      const data = await response.json();
+      
+      if (response.ok) {
+        setSubscriptions(data.subscriptions || []);
+      } else {
+        toast({
+          title: 'Erro',
+          description: 'Não foi possível carregar assinaturas.',
+          variant: 'destructive',
+        });
+      }
+    } catch (error) {
+      console.error('Error loading subscriptions:', error);
+      toast({
+        title: 'Erro',
+        description: 'Erro ao carregar assinaturas.',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const renewSubscription = async (brokerId: string, days = 30) => {
+    try {
+      const response = await fetch('/api/admin/subscriptions/renew', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ brokerId, days }),
+      });
+
+      if (response.ok) {
+        toast({
+          title: 'Sucesso',
+          description: `Assinatura renovada por ${days} dias.`,
+        });
+        loadSubscriptions();
+        setShowRenewDialog(false);
+      } else {
+        throw new Error('Erro ao renovar assinatura');
+      }
+    } catch (error) {
+      toast({
+        title: 'Erro',
+        description: 'Não foi possível renovar a assinatura.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const cancelSubscription = async (brokerId: string) => {
+    try {
+      const response = await fetch('/api/admin/subscriptions/cancel', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ brokerId }),
+      });
+
+      if (response.ok) {
+        toast({
+          title: 'Sucesso',
+          description: 'Assinatura cancelada. Site desativado.',
+        });
+        loadSubscriptions();
+        setShowCancelDialog(false);
+      } else {
+        throw new Error('Erro ao cancelar assinatura');
+      }
+    } catch (error) {
+      toast({
+        title: 'Erro',
+        description: 'Não foi possível cancelar a assinatura.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const updatePaymentInfo = async (subscriptionId: string) => {
+    try {
+      const response = await fetch('/api/admin/subscriptions/payment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          subscriptionId,
+          pixKey: pixKey.trim(),
+          qrCodeUrl: qrCodeUrl.trim(),
+          notes: notes.trim(),
+        }),
+      });
+
+      if (response.ok) {
+        toast({
+          title: 'Sucesso',
+          description: 'Informações de pagamento atualizadas.',
+        });
+        loadSubscriptions();
+        setSelectedSubscription(null);
+        setPixKey('');
+        setQrCodeUrl('');
+        setNotes('');
+      } else {
+        throw new Error('Erro ao atualizar informações');
+      }
+    } catch (error) {
+      toast({
+        title: 'Erro',
+        description: 'Não foi possível atualizar as informações.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const sendAdminMessage = async () => {
+    if (!selectedSubscription || !newMessage.trim()) return;
+
+    try {
+      const response = await fetch('/api/admin/subscriptions/message', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          brokerId: selectedSubscription.broker_id,
+          message: newMessage.trim(),
+        }),
+      });
+
+      if (response.ok) {
+        toast({
+          title: 'Sucesso',
+          description: 'Mensagem enviada ao cliente.',
+        });
+        setNewMessage('');
+        setShowCommunicationDialog(false);
+      } else {
+        throw new Error('Erro ao enviar mensagem');
+      }
+    } catch (error) {
+      toast({
+        title: 'Erro',
+        description: 'Não foi possível enviar a mensagem.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const getStatusBadgeVariant = (status: string) => {
+    switch (status) {
+      case 'trial': return 'default';
+      case 'active': return 'default';
+      case 'expired': return 'destructive';
+      case 'cancelled': return 'destructive';
+      default: return 'secondary';
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-4 text-muted-foreground">Carregando assinaturas...</p>
         </div>
       </div>
-    </div>
+    );
+  }
+
+  return (
+    <>
+      {/* Actions */}
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
+        <div className="flex items-center gap-4">
+          <h2 className="text-lg sm:text-xl font-semibold">Gestão de Assinaturas</h2>
+        </div>
+        
+        <Button onClick={loadSubscriptions} variant="outline">
+          <RefreshCw className="h-4 w-4 mr-2" />
+          Recarregar
+        </Button>
+      </div>
+
+      {/* Subscriptions Table - Desktop */}
+      <Card className="hidden md:block">
+        <CardContent className="p-0">
+          {subscriptions.length === 0 ? (
+            <div className="p-8 text-center">
+              <p className="text-muted-foreground">Nenhuma assinatura encontrada.</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Empresa</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Dias Restantes</TableHead>
+                    <TableHead>Plano</TableHead>
+                    <TableHead>Vencimento</TableHead>
+                    <TableHead>Valor</TableHead>
+                    <TableHead className="text-right">Ações</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {subscriptions.map((sub: any) => (
+                    <TableRow key={sub.id}>
+                      <TableCell>
+                        <div className="font-medium">{sub.business_name}</div>
+                        <div className="text-sm text-muted-foreground">{sub.email}</div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={getStatusBadgeVariant(sub.status)}>
+                          {sub.status_label}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <span className={`font-bold ${
+                          sub.days_remaining <= 3 ? 'text-red-500' : 
+                          sub.days_remaining <= 7 ? 'text-orange-500' : 'text-green-500'
+                        }`}>
+                          {sub.days_remaining} dias
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline">
+                          {sub.plan_type === 'trial' ? 'Teste' : 'Mensal'}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        {sub.current_period_end ? 
+                          new Date(sub.current_period_end).toLocaleDateString('pt-BR') : '-'
+                        }
+                      </TableCell>
+                      <TableCell>
+                        R$ {(sub.monthly_price_cents / 100).toFixed(2)}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex gap-1 justify-end">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setSelectedSubscription(sub);
+                              setPixKey(sub.pix_key || '');
+                              setQrCodeUrl(sub.pix_qr_code_image_url || '');
+                              setNotes(sub.notes || '');
+                            }}
+                          >
+                            <CreditCard className="h-3 w-3" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setSelectedSubscription(sub);
+                              setShowRenewDialog(true);
+                            }}
+                          >
+                            <CheckCircle className="h-3 w-3" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setSelectedSubscription(sub);
+                              setShowCommunicationDialog(true);
+                            }}
+                          >
+                            <MessageSquare className="h-3 w-3" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setSelectedSubscription(sub);
+                              setShowCancelDialog(true);
+                            }}
+                          >
+                            <XCircle className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Subscriptions Cards - Mobile */}
+      <div className="md:hidden space-y-4">
+        {subscriptions.length === 0 ? (
+          <Card className="p-8 text-center">
+            <p className="text-muted-foreground">Nenhuma assinatura encontrada.</p>
+          </Card>
+        ) : (
+          subscriptions.map((sub: any) => (
+            <Card key={sub.id} className="p-4">
+              <div className="space-y-3">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-medium text-sm truncate">{sub.business_name}</h3>
+                    <p className="text-xs text-muted-foreground truncate">{sub.email}</p>
+                  </div>
+                  <Badge variant={getStatusBadgeVariant(sub.status)} className="text-xs ml-2">
+                    {sub.status_label}
+                  </Badge>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3 pt-1">
+                  <div>
+                    <p className="text-xs text-muted-foreground">Dias restantes</p>
+                    <p className={`text-sm font-bold ${
+                      sub.days_remaining <= 3 ? 'text-red-500' : 
+                      sub.days_remaining <= 7 ? 'text-orange-500' : 'text-green-500'
+                    }`}>
+                      {sub.days_remaining} dias
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Valor</p>
+                    <p className="text-sm font-medium">R$ {(sub.monthly_price_cents / 100).toFixed(2)}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-end gap-2 pt-2 border-t">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-8 px-3 text-xs"
+                    onClick={() => {
+                      setSelectedSubscription(sub);
+                      setShowRenewDialog(true);
+                    }}
+                  >
+                    Renovar
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-8 px-3 text-xs"
+                    onClick={() => {
+                      setSelectedSubscription(sub);
+                      setShowCommunicationDialog(true);
+                    }}
+                  >
+                    Mensagem
+                  </Button>
+                </div>
+              </div>
+            </Card>
+          ))
+        )}
+      </div>
+
+      {/* Payment Info Dialog */}
+      {selectedSubscription && !showRenewDialog && !showCancelDialog && !showCommunicationDialog && (
+        <Dialog open={true} onOpenChange={() => setSelectedSubscription(null)}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Configurar Pagamento PIX</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="pix-key">Chave PIX</Label>
+                <Input
+                  id="pix-key"
+                  placeholder="CPF, email, telefone..."
+                  value={pixKey}
+                  onChange={(e) => setPixKey(e.target.value)}
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="qr-code">URL da Imagem QR Code</Label>
+                <Input
+                  id="qr-code"
+                  placeholder="https://..."
+                  value={qrCodeUrl}
+                  onChange={(e) => setQrCodeUrl(e.target.value)}
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="notes">Observações</Label>
+                <Textarea
+                  id="notes"
+                  placeholder="Notas internas..."
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  rows={3}
+                />
+              </div>
+              
+              <Button 
+                onClick={() => updatePaymentInfo(selectedSubscription.id)}
+                className="w-full"
+              >
+                Salvar Informações
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* Renew Subscription Dialog */}
+      {showRenewDialog && selectedSubscription && (
+        <AlertDialog open={true} onOpenChange={setShowRenewDialog}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Renovar Assinatura</AlertDialogTitle>
+              <AlertDialogDescription>
+                Renovar assinatura de {selectedSubscription.business_name} por mais 30 dias?
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel onClick={() => setShowRenewDialog(false)}>
+                Cancelar
+              </AlertDialogCancel>
+              <AlertDialogAction 
+                onClick={() => renewSubscription(selectedSubscription.broker_id)}
+              >
+                Renovar
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
+
+      {/* Cancel Subscription Dialog */}
+      {showCancelDialog && selectedSubscription && (
+        <AlertDialog open={true} onOpenChange={setShowCancelDialog}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Cancelar Assinatura</AlertDialogTitle>
+              <AlertDialogDescription>
+                Cancelar assinatura de {selectedSubscription.business_name}? 
+                Esta ação desativará o site público da imobiliária.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel onClick={() => setShowCancelDialog(false)}>
+                Cancelar
+              </AlertDialogCancel>
+              <AlertDialogAction 
+                onClick={() => cancelSubscription(selectedSubscription.broker_id)}
+              >
+                Confirmar Cancelamento
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
+
+      {/* Communication Dialog */}
+      {showCommunicationDialog && selectedSubscription && (
+        <Dialog open={true} onOpenChange={setShowCommunicationDialog}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Enviar Mensagem</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                Para: {selectedSubscription.business_name}
+              </p>
+              
+              <div>
+                <Label htmlFor="admin-message">Mensagem</Label>
+                <Textarea
+                  id="admin-message"
+                  placeholder="Digite sua mensagem..."
+                  value={newMessage}
+                  onChange={(e) => setNewMessage(e.target.value)}
+                  rows={4}
+                />
+              </div>
+              
+              <div className="flex gap-2">
+                <Button 
+                  variant="outline"
+                  onClick={() => setShowCommunicationDialog(false)}
+                  className="flex-1"
+                >
+                  Cancelar
+                </Button>
+                <Button 
+                  onClick={sendAdminMessage}
+                  className="flex-1"
+                  disabled={!newMessage.trim()}
+                >
+                  Enviar
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
+    </>
   );
 }
 

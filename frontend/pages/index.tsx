@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { Button } from '@/components/ui/button';
-import { Building2, Users, Globe, TrendingUp, ArrowRight } from 'lucide-react';
+import { Building2, Users, Globe, TrendingUp, ArrowRight, CheckCircle, Server, Code, HeadphonesIcon } from 'lucide-react';
 import Link from 'next/link';
 
 /**
@@ -128,6 +128,97 @@ const Index = () => {
         </div>
       </section>
 
+      {/* Pricing Section */}
+      <section className="container mx-auto px-4 py-20">
+        <div className="max-w-4xl mx-auto text-center mb-12">
+          <h2 className="text-3xl sm:text-4xl font-bold mb-4">
+            Plano Simples e Transparente
+          </h2>
+          <p className="text-lg text-muted-foreground">
+            Um único plano com tudo que você precisa para gerenciar sua imobiliária online.
+          </p>
+        </div>
+
+        <div className="max-w-md mx-auto">
+          <div className="p-8 rounded-2xl border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-background shadow-lg">
+            <div className="text-center mb-6">
+              <h3 className="text-2xl font-bold mb-2">Plano Mensal</h3>
+              <div className="flex items-center justify-center gap-1">
+                <span className="text-4xl font-bold text-primary">R$ 67</span>
+                <span className="text-muted-foreground">/mês</span>
+              </div>
+            </div>
+
+            <div className="space-y-4 mb-8">
+              <div className="flex items-center gap-3">
+                <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0" />
+                <span className="text-sm">30 dias de teste gratuito</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0" />
+                <span className="text-sm">Site personalizado com domínio</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0" />
+                <span className="text-sm">Gestão completa de imóveis</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0" />
+                <span className="text-sm">Captação e gestão de leads</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0" />
+                <span className="text-sm">Analytics e relatórios</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0" />
+                <span className="text-sm">Suporte técnico incluso</span>
+              </div>
+            </div>
+
+            <div className="text-center">
+              <a href="https://painel.adminimobiliaria.site" target="_blank" rel="noopener noreferrer">
+                <Button size="lg" className="w-full">
+                  Começar Teste Gratuito
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </Button>
+              </a>
+              <p className="text-xs text-muted-foreground mt-3">
+                Sem compromisso • Cancele quando quiser
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Informações sobre custos */}
+        <div className="max-w-2xl mx-auto mt-16 text-center">
+          <h3 className="text-xl font-semibold mb-6">Por que R$ 67/mês?</h3>
+          <div className="grid md:grid-cols-3 gap-6 text-sm">
+            <div className="p-4 rounded-lg bg-muted/50">
+              <Server className="h-8 w-8 mx-auto mb-3 text-blue-500" />
+              <h4 className="font-medium mb-2">Infraestrutura</h4>
+              <p className="text-muted-foreground">
+                Servidores dedicados, banco de dados e CDN para garantir performance e disponibilidade 24/7.
+              </p>
+            </div>
+            <div className="p-4 rounded-lg bg-muted/50">
+              <Code className="h-8 w-8 mx-auto mb-3 text-green-500" />
+              <h4 className="font-medium mb-2">Desenvolvimento</h4>
+              <p className="text-muted-foreground">
+                Desenvolvimento contínuo, atualizações de segurança e novas funcionalidades regulares.
+              </p>
+            </div>
+            <div className="p-4 rounded-lg bg-muted/50">
+              <HeadphonesIcon className="h-8 w-8 mx-auto mb-3 text-purple-500" />
+              <h4 className="font-medium mb-2">Suporte</h4>
+              <p className="text-muted-foreground">
+                Suporte técnico especializado para ajudar você a aproveitar ao máximo o sistema.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* CTA */}
       <section className="container mx-auto px-4 py-20">
         <div className="max-w-4xl mx-auto text-center p-12 rounded-2xl bg-gradient-to-r from-primary/10 to-primary/5 border">
@@ -135,11 +226,11 @@ const Index = () => {
             Pronto para começar?
           </h2>
           <p className="text-lg text-muted-foreground mb-8">
-            Acesse o painel e comece a gerenciar seus imóveis agora mesmo.
+            Comece seu teste gratuito de 30 dias agora mesmo. Sem compromisso, sem taxas ocultas.
           </p>
           <a href="https://painel.adminimobiliaria.site" target="_blank" rel="noopener noreferrer">
             <Button size="lg">
-              Acessar Painel
+              Iniciar Teste Gratuito
               <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
           </a>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
-import Layout from '@/components/layout/Layout';
+import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -203,7 +203,7 @@ export default function PlanosPage() {
 
   if (loading) {
     return (
-      <Layout>
+      <DashboardLayout>
         <div className="container mx-auto p-6">
           <div className="flex items-center justify-center h-64">
             <div className="text-center">
@@ -212,12 +212,12 @@ export default function PlanosPage() {
             </div>
           </div>
         </div>
-      </Layout>
+      </DashboardLayout>
     );
   }
 
   return (
-    <Layout>
+    <DashboardLayout>
       <div className="container mx-auto p-6 max-w-4xl">
         <div className="mb-6">
           <h1 className="text-3xl font-bold tracking-tight">Meu Plano</h1>
@@ -440,6 +440,6 @@ export default function PlanosPage() {
           </Card>
         </div>
       </div>
-    </Layout>
+    </DashboardLayout>
   );
 }

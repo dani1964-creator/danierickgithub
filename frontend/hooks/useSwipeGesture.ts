@@ -44,18 +44,22 @@ export const useSwipeGesture = ({
       const touch = e.touches[0];
       const startX = touch.clientX;
       const startY = touch.clientY;
-
-      // Verificar se está na zona segura (não muito na borda)
       const screenWidth = window.innerWidth;
-      const isInSafeZone =
-        (startX >= edgeZoneStart && startX <= edgeZoneEnd) || // Zona esquerda
-        startX >= screenWidth - edgeZoneEnd; // Zona direita (para fechar)
 
-      if (!isInSafeZone && onSwipeRight) {
-        // Se tem onSwipeRight e não está na zona, não inicia
+      console.log('👆 Touch Start:', { startX, startY, screenWidth, enabled });
+
+      // Para swipe RIGHT (abrir menu): verificar se está na zona esquerda
+      const isInLeftZone = startX >= edgeZoneStart && startX <= edgeZoneEnd;
+      
+      // Para swipe LEFT (fechar menu): permitir de qualquer lugar
+      const canSwipe = onSwipeLeft || isInLeftZone;
+
+      if (!canSwipe) {
+        console.log('❌ Touch fora da zona segura');
         return;
       }
 
+      console.log('✅ Touch válido - iniciando tracking');
       touchState.current = {
         startX,
         startY,
@@ -63,7 +67,7 @@ export const useSwipeGesture = ({
         isDragging: true,
       };
     },
-    [enabled, edgeZoneStart, edgeZoneEnd, onSwipeRight]
+    [enabled, edgeZoneStart, edgeZoneEnd, onSwipeLeft]
   );
 
   const handleTouchMove = useCallback(
@@ -98,18 +102,31 @@ export const useSwipeGesture = ({
       const deltaTime = Date.now() - touchState.current.startTime;
       const velocity = Math.abs(deltaX) / deltaTime;
 
+      console.log('🖐️ Touch End:', {
+        deltaX,
+        deltaY,
+        deltaTime,
+        velocity,
+        minDistance,
+        minVelocity,
+      });
+
       // Verificar se é swipe válido
       const isValidSwipe =
         Math.abs(deltaX) >= minDistance && // Distância mínima
         Math.abs(deltaX) > Math.abs(deltaY) && // Mais horizontal que vertical
         velocity >= minVelocity; // Velocidade mínima
 
+      console.log('🎯 Swipe válido?', isValidSwipe);
+
       if (isValidSwipe) {
         if (deltaX > 0 && onSwipeRight) {
           // Swipe para direita (abrir menu)
+          console.log('➡️ Swipe RIGHT detectado - abrindo menu');
           onSwipeRight();
         } else if (deltaX < 0 && onSwipeLeft) {
           // Swipe para esquerda (fechar menu)
+          console.log('⬅️ Swipe LEFT detectado - fechando menu');
           onSwipeLeft();
         }
       }

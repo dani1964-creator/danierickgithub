@@ -19,15 +19,21 @@ const DashboardLayoutContent = ({ children }: DashboardLayoutProps) => {
   const { toast } = useToast();
   const { openMobile, setOpenMobile, isMobile } = useSidebar();
   
+  console.log('📱 DashboardLayout:', { isMobile, openMobile });
+  
   // Swipe gesture apenas em mobile
   useSwipeGesture({
     onSwipeRight: () => {
+      console.log('🎯 onSwipeRight callback chamado!');
       if (isMobile && !openMobile) {
+        console.log('✅ Abrindo menu mobile');
         setOpenMobile(true);
       }
     },
     onSwipeLeft: () => {
+      console.log('🎯 onSwipeLeft callback chamado!');
       if (isMobile && openMobile) {
+        console.log('✅ Fechando menu mobile');
         setOpenMobile(false);
       }
     },
@@ -55,41 +61,39 @@ const DashboardLayoutContent = ({ children }: DashboardLayoutProps) => {
   };
 
   return (
-    <SidebarProvider>
-      <div className="min-h-screen flex w-full">
-        <AppSidebar />
-        <main className="flex-1 flex flex-col min-w-0 w-full">
-          <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 w-full sticky top-0 z-10">
-            <div className="flex h-16 items-center justify-between px-6 w-full">
-              <div className="flex items-center gap-4 min-w-0">
-                <SidebarTrigger className="hover:bg-accent/80 transition-colors duration-200" />
-                <div className="flex items-center gap-2">
-                  <div className="w-1 h-6 bg-primary rounded-full"></div>
-                  <h1 className="font-bold text-lg tracking-tight truncate">Painel Administrativo</h1>
-                </div>
-              </div>
+    <div className="min-h-screen flex w-full">
+      <AppSidebar />
+      <main className="flex-1 flex flex-col min-w-0 w-full">
+        <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 w-full sticky top-0 z-10">
+          <div className="flex h-16 items-center justify-between px-6 w-full">
+            <div className="flex items-center gap-4 min-w-0">
+              <SidebarTrigger className="hover:bg-accent/80 transition-colors duration-200" />
               <div className="flex items-center gap-2">
-                <NotificationBell />
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleSignOut}
-                  className="flex items-center gap-2 flex-shrink-0 hover:bg-destructive/10 hover:text-destructive transition-all duration-200"
-                >
-                  <LogOut className="h-4 w-4" />
-                  <span className="hidden sm:inline font-medium">Sair</span>
-                </Button>
+                <div className="w-1 h-6 bg-primary rounded-full"></div>
+                <h1 className="font-bold text-lg tracking-tight truncate">Painel Administrativo</h1>
               </div>
             </div>
-          </header>
-          <div className="flex-1 overflow-auto w-full bg-muted/20 min-h-0">
-            <div className="animate-fade-in p-6">
-              {children}
+            <div className="flex items-center gap-2">
+              <NotificationBell />
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleSignOut}
+                className="flex items-center gap-2 flex-shrink-0 hover:bg-destructive/10 hover:text-destructive transition-all duration-200"
+              >
+                <LogOut className="h-4 w-4" />
+                <span className="hidden sm:inline font-medium">Sair</span>
+              </Button>
             </div>
           </div>
-        </main>
-      </div>
-    </SidebarProvider>
+        </header>
+        <div className="flex-1 overflow-auto w-full bg-muted/20 min-h-0">
+          <div className="animate-fade-in p-6">
+            {children}
+          </div>
+        </div>
+      </main>
+    </div>
   );
 };
 

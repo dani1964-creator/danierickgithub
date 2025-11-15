@@ -98,9 +98,21 @@ interface Property {
 
 import type { BrokerProfile, BrokerContact } from '@/shared/types/broker';
 
-const PropertyDetailPage = () => {
+interface PropertyDetailPageProps {
+  initialQuery?: {
+    slug?: string;
+    propertySlug?: string;
+    customDomain?: string;
+  };
+}
+
+const PropertyDetailPage = ({ initialQuery }: PropertyDetailPageProps = {}) => {
   const router = useRouter();
-  const { slug, propertySlug: propertySlugParam } = router.query as { slug?: string; propertySlug?: string };
+  // Use initialQuery se disponível (SSR), senão use router.query (CSR)
+  const routerQuery = router.query as { slug?: string; propertySlug?: string };
+  const slug = initialQuery?.slug || routerQuery.slug;
+  const propertySlugParam = initialQuery?.propertySlug || routerQuery.propertySlug;
+  
   const { toast } = useToast();
   const { showSuccess, showError } = useNotifications();
   const { favorites, toggleFavorite, isFavorited } = useFavorites();

@@ -16,6 +16,7 @@ interface PropertiesGridProps {
   onFavorite: (propertyId: string) => void;
   isFavorited: (propertyId: string) => boolean;
   onImageClick: (images: string[], index: number, title: string) => void;
+  isDarkMode?: boolean;
 }
 
 declare global {
@@ -31,7 +32,8 @@ const PropertiesGrid = ({
   onShare,
   onFavorite,
   isFavorited,
-  onImageClick
+  onImageClick,
+  isDarkMode = false
 }: PropertiesGridProps) => {
   const regularProperties = properties.filter(p => !p.is_featured);
   const [visibleCount, setVisibleCount] = useState(12); // Mostrar apenas 12 inicialmente

@@ -494,3 +494,105 @@
     -webkit-overflow-scrolling: touch;
   }
 }
+
+/* ========================================
+   DARK MODE VARIANTS
+   Variantes para modo escuro
+   ======================================== */
+
+.dark .property-card-premium {
+  background: hsl(var(--card));
+  border-color: hsl(var(--border));
+  box-shadow: var(--shadow-md);
+}
+
+.dark .property-card-premium:hover {
+  border-color: var(--primary-500);
+  box-shadow: var(--shadow-2xl);
+}
+
+.dark .property-card-image {
+  background: linear-gradient(135deg, var(--neutral-800) 0%, var(--neutral-900) 100%);
+}
+
+.dark .property-card-title {
+  color: hsl(var(--card-foreground));
+}
+
+.dark .property-card-premium:hover .property-card-title {
+  color: var(--primary-400);
+}
+
+.dark .property-card-location {
+  color: hsl(var(--muted-foreground));
+}
+
+.dark .property-card-price {
+  color: var(--primary-400);
+  background: linear-gradient(135deg, var(--primary-400) 0%, var(--primary-600) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.dark .property-card-feature {
+  color: hsl(var(--muted-foreground));
+}
+
+.dark .property-card-feature svg {
+  color: var(--primary-400);
+}
+
+.dark .property-card-action {
+  background: hsl(var(--card));
+  border-color: hsl(var(--border));
+  color: hsl(var(--card-foreground));
+}
+
+.dark .property-card-action:hover {
+  background: hsl(var(--muted));
+  border-color: var(--primary-500);
+}
+
+.dark .property-card-action--favorite:hover {
+  color: #f472b6;
+  background: #831843;
+  border-color: #be185d;
+}
+
+.dark .property-card-action--favorite.is-favorited {
+  color: #f472b6;
+  background: #831843;
+  border-color: #be185d;
+}
+
+.dark .property-card-action--share:hover {
+  color: var(--primary-400);
+  background: var(--primary-950);
+  border-color: var(--primary-700);
+}
+
+.dark .property-card-badge {
+  background: linear-gradient(135deg, var(--accent-600) 0%, var(--accent-700) 100%);
+  color: var(--neutral-900);
+}
+
+.dark .property-card-type {
+  background: hsl(var(--muted));
+  color: hsl(var(--muted-foreground));
+}
+
+.dark .property-card-cta {
+  background: linear-gradient(135deg, var(--primary-600) 0%, var(--primary-800) 100%);
+  color: white;
+}
+
+.dark .property-card-cta:hover {
+  background: linear-gradient(135deg, var(--primary-500) 0%, var(--primary-700) 100%);
+}
+
+.dark .property-card-no-image {
+  background: linear-gradient(135deg, var(--neutral-800) 0%, var(--neutral-900) 100%);
+  color: var(--neutral-500);
+}
+

@@ -2,13 +2,17 @@ import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
 import { FavoritesButton } from '@/components/FavoritesButton';
+import { Button } from '@/components/ui/button';
+import { Moon, Sun } from 'lucide-react';
 import type { BrokerProfile } from '@/shared/types/broker';
 
 interface FixedHeaderProps {
   brokerProfile: BrokerProfile;
+  isDarkMode?: boolean;
+  toggleDarkMode?: () => void;
 }
 
-const FixedHeader = ({ brokerProfile }: FixedHeaderProps) => {
+const FixedHeader = ({ brokerProfile, isDarkMode = false, toggleDarkMode }: FixedHeaderProps) => {
   const [isScrolled, setIsScrolled] = useState(false);
   const router = useRouter();
 
@@ -112,6 +116,23 @@ const FixedHeader = ({ brokerProfile }: FixedHeaderProps) => {
 
           {/* Favorites Button */}
           <div className="flex items-center gap-2">
+            {/* Dark Mode Toggle */}
+            {toggleDarkMode && (
+              <Button 
+                variant="ghost"
+                size="sm"
+                onClick={toggleDarkMode}
+                className={`p-2 rounded-lg transition-colors duration-300 ${
+                  isDarkMode 
+                    ? 'hover:bg-gray-700 text-yellow-400' 
+                    : 'hover:bg-gray-100 text-gray-600'
+                }`}
+                title={isDarkMode ? "Modo claro" : "Modo escuro"}
+              >
+                {isDarkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+              </Button>
+            )}
+            
             {/* Desktop version */}
             <div className="hidden sm:block">
               <FavoritesButton variant="minimal" />

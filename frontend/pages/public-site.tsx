@@ -23,6 +23,8 @@ import { FloatingFavoritesButton } from '@/components/FavoritesButton';
 import { usePropertyTypes } from '@/hooks/usePropertyTypes';
 import { getErrorMessage } from '@/lib/utils';
 import { logger } from '@/lib/logger';
+import { Moon, Sun } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 // Lazy loading de componentes pesados para melhor performance
 const FeaturedProperties = dynamic(() => import('@/components/home/FeaturedProperties'), {
@@ -65,10 +67,37 @@ const PublicSite = () => {
   const [lightboxTitle, setLightboxTitle] = useState('');
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
 
+  // Estado de dark mode sincronizado com PropertyDetailPage
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('dark-mode-enabled');
+      return saved ? JSON.parse(saved) : false;
+    }
+    return false;
+  });
+
   // Colocar slug/toast cedo para serem capturados nos callbacks abaixo
   const router = useRouter(); const { slug, propertySlug  } = router.query;
   const { toast } = useToast();
   const { getBrokerByDomainOrSlug, getPropertiesByDomainOrSlug, isCustomDomain } = useDomainAware();
+
+  // Aplicar classe dark ao documento quando isDarkMode mudar
+  useEffect(() => {
+    if (isDarkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [isDarkMode]);
+
+  // Toggle dark mode
+  const toggleDarkMode = useCallback(() => {
+    setIsDarkMode(prev => {
+      const newMode = !prev;
+      localStorage.setItem('dark-mode-enabled', JSON.stringify(newMode));
+      return newMode;
+    });
+  }, []);
 
   const fetchContactInfo = useCallback(async () => {
     try {
@@ -524,8 +553,8 @@ const PublicSite = () => {
       
       <div className="public-site-layout min-h-screen bg-background">
       <TrackingScripts trackingScripts={brokerProfile?.tracking_scripts} />
-      <FixedHeader brokerProfile={brokerProfile} />
-      <HeroBanner brokerProfile={brokerProfile} />
+      <FixedHeader brokerProfile={brokerProfile} isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} />
+      <HeroBanner brokerProfile={brokerProfile} isDarkMode={isDarkMode} />
       
       <div id="search" className="w-full py-8">
         <div className="content-container">
@@ -540,6 +569,7 @@ const PublicSite = () => {
             brokerProfile={brokerProfile}
             propertyTypeOptions={propertyTypeOptions}
             propertyTypeGroups={sortedTypeGroups.map(g => ({ label: g.label, options: g.options.map(o => ({ value: o.value, label: o.label })) }))}
+            isDarkMode={isDarkMode}
           />
         </div>
       </div>
@@ -553,6 +583,7 @@ const PublicSite = () => {
           onFavorite={handleFavorite}
           isFavorited={isFavorited}
           onImageClick={handleImageClick}
+          isDarkMode={isDarkMode}
         />
       )}
 
@@ -571,6 +602,7 @@ const PublicSite = () => {
           onFavorite={handleFavorite}
           isFavorited={isFavorited}
           onImageClick={handleImageClick}
+          isDarkMode={isDarkMode}
         />
       )}
 
@@ -582,7 +614,7 @@ const PublicSite = () => {
 
     {/* Contact CTA Section - Fora do container principal para ocupar toda a largura */}
     {properties.length > 0 && (
-      <ContactCTA brokerProfile={brokerProfile} />
+      <ContactCTA brokerProfile={brokerProfile} isDarkMode={isDarkMode} />
     )}
 
     {/* Footer - Fora do container principal para ocupar toda a largura */}
@@ -590,6 +622,7 @@ const PublicSite = () => {
       brokerProfile={brokerProfile} 
       socialLinks={socialLinks} 
       onContactRequest={fetchContactInfo}
+      isDarkMode={isDarkMode}
     />
 
     {/* Floating Favorites Button */}

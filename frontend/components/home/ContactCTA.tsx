@@ -7,9 +7,11 @@ import LeadModal from '@/components/leads/LeadModal';
 import type { BrokerProfile, BrokerContact } from '@/shared/types/broker';
 interface ContactCTAProps {
   brokerProfile: BrokerProfile;
+  isDarkMode?: boolean;
 }
 const ContactCTA = ({
-  brokerProfile
+  brokerProfile,
+  isDarkMode = false
 }: ContactCTAProps) => {
   const [contactInfo, setContactInfo] = useState<BrokerContact | null>(null);
   const [showLeadModal, setShowLeadModal] = useState(false);
@@ -96,7 +98,7 @@ const ContactCTA = ({
   return (
     <div className="w-screen relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw]">
       <div 
-        className="py-16 md:py-20 px-6 text-center relative overflow-hidden"
+        className={`py-16 md:py-20 px-6 text-center relative overflow-hidden transition-colors duration-300`}
         style={{
           backgroundColor: brokerProfile.primary_color || '#2563eb',
           backgroundImage: brokerProfile.background_image_url ? `url(${brokerProfile.background_image_url})` : undefined,
@@ -106,7 +108,9 @@ const ContactCTA = ({
       >
         {/* Background overlay with gradient */}
         <div 
-          className="absolute inset-0 bg-black/20"
+          className={`absolute inset-0 transition-opacity duration-300 ${
+            isDarkMode ? 'bg-black/50' : 'bg-black/20'
+          }`}
           style={{
             backgroundColor: brokerProfile.background_image_url 
               ? `${brokerProfile.overlay_color || '#000000'}${Math.round((parseInt(brokerProfile.overlay_opacity || '50') / 100) * 255).toString(16).padStart(2, '0')}`
@@ -116,10 +120,14 @@ const ContactCTA = ({
         
         <div className="relative z-10 max-w-3xl mx-auto space-y-6">
           <div className="space-y-3">
-            <h2 className="text-2xl md:text-3xl font-semibold text-white leading-tight">
+            <h2 className={`text-2xl md:text-3xl font-semibold leading-tight transition-colors duration-300 ${
+              isDarkMode ? 'text-white' : 'text-white'
+            }`}>
               Interessado em nossos imóveis?
             </h2>
-            <p className="text-base md:text-lg text-white/90 max-w-2xl mx-auto leading-relaxed">
+            <p className={`text-base md:text-lg max-w-2xl mx-auto leading-relaxed transition-colors duration-300 ${
+              isDarkMode ? 'text-white/95' : 'text-white/90'
+            }`}>
               Cadastre-se para receber informações exclusivas e ser contatado por nossa equipe especializada.
             </p>
           </div>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -35,11 +35,7 @@ export default function UpgradePage() {
     notes: '',
   });
 
-  useEffect(() => {
-    loadTrialInfo();
-  }, []);
-
-  const loadTrialInfo = async () => {
+  const loadTrialInfo = useCallback(async () => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
@@ -63,7 +59,11 @@ export default function UpgradePage() {
     } catch (error) {
       console.error('Error loading trial info:', error);
     }
-  };
+  }, [router]);
+
+  useEffect(() => {
+    loadTrialInfo();
+  }, [loadTrialInfo]);
 
   const handleSubmitProof = async (e: React.FormEvent) => {
     e.preventDefault();

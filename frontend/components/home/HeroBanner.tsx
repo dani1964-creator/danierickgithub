@@ -8,9 +8,10 @@ import type { BrokerProfile, BrokerContact } from '@/shared/types/broker';
 interface HeroBannerProps {
   brokerProfile: BrokerProfile;
   onContactClick?: () => void;
+  isDarkMode?: boolean;
 }
 
-const HeroBanner = ({ brokerProfile, onContactClick }: HeroBannerProps) => {
+const HeroBanner = ({ brokerProfile, onContactClick, isDarkMode = false }: HeroBannerProps) => {
   const [contactInfo, setContactInfo] = useState<BrokerContact | null>(null);
   const { toast } = useToast();
   
@@ -113,14 +114,20 @@ const HeroBanner = ({ brokerProfile, onContactClick }: HeroBannerProps) => {
           />
           {/* Overlay Gradiente Premium */}
           <div 
-            className="absolute inset-0 bg-gradient-to-b from-black/10 via-black/40 to-black/70"
+            className={`absolute inset-0 ${isDarkMode 
+              ? 'bg-gradient-to-b from-black/40 via-black/70 to-black/90' 
+              : 'bg-gradient-to-b from-black/10 via-black/40 to-black/70'
+            }`}
             style={{ 
               backgroundColor: overlayColor,
               opacity: `${overlayOpacity}%`
             }}
           />
           {/* Efeito de vinheta */}
-          <div className="absolute inset-0 bg-gradient-radial from-transparent via-black/10 to-black/40" />
+          <div className={`absolute inset-0 ${isDarkMode 
+            ? 'bg-gradient-radial from-transparent via-black/30 to-black/60' 
+            : 'bg-gradient-radial from-transparent via-black/10 to-black/40'
+          }`} />
         </div>
         
         {/* Content Container Premium */}
@@ -148,17 +155,29 @@ const HeroBanner = ({ brokerProfile, onContactClick }: HeroBannerProps) => {
               <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-4">
                 <button
                   onClick={scrollToSearch}
-                  className="group relative overflow-hidden bg-white text-gray-900 hover:bg-white/95 px-8 py-4 text-base font-semibold rounded-lg shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 min-w-[200px]"
+                  className={`group relative overflow-hidden px-8 py-4 text-base font-semibold rounded-lg shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 min-w-[200px] ${
+                    isDarkMode 
+                      ? 'bg-gray-800 text-white hover:bg-gray-700' 
+                      : 'bg-white text-gray-900 hover:bg-white/95'
+                  }`}
                   style={{
-                    boxShadow: '0 10px 40px rgba(255,255,255,0.3)'
+                    boxShadow: isDarkMode ? '0 10px 40px rgba(0,0,0,0.5)' : '0 10px 40px rgba(255,255,255,0.3)'
                   }}
                 >
                   <span className="relative z-10">Explorar Imóveis</span>
-                  <span className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/30 to-white/0 translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-700"></span>
+                  <span className={`absolute inset-0 translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-700 ${
+                    isDarkMode 
+                      ? 'bg-gradient-to-r from-gray-800/0 via-gray-700/50 to-gray-800/0' 
+                      : 'bg-gradient-to-r from-white/0 via-white/30 to-white/0'
+                  }`}></span>
                 </button>
                 <button
                   onClick={handleContactClick}
-                  className="group relative overflow-hidden border-2 border-white/80 backdrop-blur-sm bg-white/10 text-white hover:bg-white hover:text-gray-900 px-8 py-4 text-base font-semibold rounded-lg transition-all duration-300 hover:scale-105 hover:border-white min-w-[200px] shadow-lg"
+                  className={`group relative overflow-hidden border-2 backdrop-blur-sm px-8 py-4 text-base font-semibold rounded-lg transition-all duration-300 hover:scale-105 min-w-[200px] shadow-lg ${
+                    isDarkMode
+                      ? 'border-white/60 bg-white/5 text-white hover:bg-gray-800 hover:border-white'
+                      : 'border-white/80 bg-white/10 text-white hover:bg-white hover:text-gray-900 hover:border-white'
+                  }`}
                 >
                   <span className="relative z-10">Entrar em Contato</span>
                   <span className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-700"></span>
@@ -212,14 +231,26 @@ const HeroBanner = ({ brokerProfile, onContactClick }: HeroBannerProps) => {
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-4">
               <button
                 onClick={scrollToSearch}
-                className="group relative overflow-hidden bg-white text-gray-900 hover:bg-white/95 px-8 py-4 text-base font-semibold rounded-lg shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 min-w-[200px]"
+                className={`group relative overflow-hidden px-8 py-4 text-base font-semibold rounded-lg shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 min-w-[200px] ${
+                  isDarkMode 
+                    ? 'bg-gray-800 text-white hover:bg-gray-700' 
+                    : 'bg-white text-gray-900 hover:bg-white/95'
+                }`}
               >
                 <span className="relative z-10">Explorar Imóveis</span>
-                <span className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/30 to-white/0 translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-700"></span>
+                <span className={`absolute inset-0 translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-700 ${
+                  isDarkMode 
+                    ? 'bg-gradient-to-r from-gray-800/0 via-gray-700/50 to-gray-800/0' 
+                    : 'bg-gradient-to-r from-white/0 via-white/30 to-white/0'
+                }`}></span>
               </button>
               <button
                 onClick={handleContactClick}
-                className="group relative overflow-hidden border-2 border-white/80 backdrop-blur-sm bg-white/10 text-white hover:bg-white hover:text-gray-900 px-8 py-4 text-base font-semibold rounded-lg transition-all duration-300 hover:scale-105 hover:border-white min-w-[200px] shadow-lg"
+                className={`group relative overflow-hidden border-2 backdrop-blur-sm px-8 py-4 text-base font-semibold rounded-lg transition-all duration-300 hover:scale-105 min-w-[200px] shadow-lg ${
+                  isDarkMode
+                    ? 'border-white/60 bg-white/5 text-white hover:bg-gray-800 hover:border-white'
+                    : 'border-white/80 bg-white/10 text-white hover:bg-white hover:text-gray-900 hover:border-white'
+                }`}
               >
                 <span className="relative z-10">Entrar em Contato</span>
                 <span className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-700"></span>

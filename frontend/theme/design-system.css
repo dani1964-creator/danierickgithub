@@ -564,3 +564,69 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
+/* ========================================
+   DARK MODE VARIANTS
+   Variantes para modo escuro
+   ======================================== */
+
+.dark {
+  /* Cores Primárias - Mais claras em dark mode */
+  --primary-50: #0a1929;
+  --primary-100: #132f4c;
+  --primary-200: #1e4976;
+  --primary-300: #2d5f8d;
+  --primary-400: #4a7ba7;
+  --primary-500: #6b9bc9;
+  --primary-600: #90b4d4;
+  --primary-700: #b4cde0;
+  --primary-800: #d7e6f0;
+  --primary-900: #ecf4f9;
+  --primary-950: #f5f9fc;
+
+  /* Accent/Gold - Ajustado para dark */
+  --accent-50: #332408;
+  --accent-100: #543d0f;
+  --accent-200: #8a6318;
+  --accent-300: #b88420;
+  --accent-400: #d4a116;
+  --accent-500: #f9c42b;
+  --accent-600: #fbd558;
+  --accent-700: #fce285;
+  --accent-800: #fdeeb8;
+  --accent-900: #fef8e7;
+
+  /* Neutros - Invertidos para dark */
+  --neutral-50: #fafaf9;
+  --neutral-100: #f5f5f4;
+  --neutral-200: #e7e5e4;
+  --neutral-300: #d6d3d1;
+  --neutral-400: #a8a29e;
+  --neutral-500: #78716c;
+  --neutral-600: #57534e;
+  --neutral-700: #44403c;
+  --neutral-800: #292524;
+  --neutral-900: #1c1917;
+  --neutral-950: #0c0a09;
+
+  /* Gradientes - Versões dark */
+  --gradient-primary: linear-gradient(135deg, var(--primary-400) 0%, var(--primary-600) 100%);
+  --gradient-accent: linear-gradient(135deg, var(--accent-400) 0%, var(--accent-600) 100%);
+  --gradient-warm: linear-gradient(135deg, #543d0f 0%, #8a6318 50%, #b88420 100%);
+  --gradient-dark: linear-gradient(180deg, var(--neutral-800) 0%, var(--neutral-900) 100%);
+  --gradient-glass: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%);
+
+  /* Sombras - Mais suaves em dark mode */
+  --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+  --shadow-sm: 0 2px 4px -1px rgba(0, 0, 0, 0.4), 0 1px 2px -1px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 8px -2px rgba(0, 0, 0, 0.5), 0 2px 4px -2px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 12px 24px -4px rgba(0, 0, 0, 0.6), 0 4px 8px -4px rgba(0, 0, 0, 0.5);
+  --shadow-xl: 0 20px 40px -8px rgba(0, 0, 0, 0.7), 0 8px 16px -8px rgba(0, 0, 0, 0.6);
+  --shadow-2xl: 0 32px 64px -12px rgba(0, 0, 0, 0.8), 0 12px 24px -12px rgba(0, 0, 0, 0.7);
+
+  /* Bordas - Mais claras em dark mode */
+  --border-color-light: var(--neutral-700);
+  --border-color-base: var(--neutral-600);
+  --border-color-dark: var(--neutral-500);
+}
+

@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -611,11 +611,7 @@ function SubscriptionsTab() {
   const [newMessage, setNewMessage] = useState('');
   const { toast } = useToast();
 
-  useEffect(() => {
-    loadSubscriptions();
-  }, []);
-
-  const loadSubscriptions = async () => {
+  const loadSubscriptions = useCallback(async () => {
     try {
       setLoading(true);
       const response = await fetch('/api/admin/subscriptions');
@@ -640,7 +636,11 @@ function SubscriptionsTab() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [toast]);
+
+  useEffect(() => {
+    loadSubscriptions();
+  }, [loadSubscriptions]);
 
   const renewSubscription = async (brokerId: string, days = 30) => {
     try {

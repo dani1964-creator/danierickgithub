@@ -40,6 +40,7 @@ interface SearchFiltersProps {
   brokerProfile?: BrokerProfile | null;
   propertyTypeOptions?: { value: string; label: string }[];
   propertyTypeGroups?: { label: string; options: { value: string; label: string }[] }[];
+  isDarkMode?: boolean;
 }
 
 const SearchFilters = ({
@@ -52,7 +53,8 @@ const SearchFilters = ({
   secondaryColor = '#64748b',
   brokerProfile,
   propertyTypeOptions,
-  propertyTypeGroups
+  propertyTypeGroups,
+  isDarkMode = false
 }: SearchFiltersProps) => {
   const [isAdvancedOpen, setIsAdvancedOpen] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -208,7 +210,11 @@ const SearchFilters = ({
           </CollapsibleTrigger>
           
           <CollapsibleContent className="mt-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 p-6 bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl border border-gray-200">
+            <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 p-6 rounded-2xl border transition-colors duration-300 ${
+              isDarkMode 
+                ? 'bg-gradient-to-br from-gray-800 to-gray-900 border-gray-700' 
+                : 'bg-gradient-to-br from-gray-50 to-gray-100 border-gray-200'
+            }`}>
               <div className="space-y-2">
                 <label className="text-sm font-semibold text-foreground block">
                   Código do Imóvel

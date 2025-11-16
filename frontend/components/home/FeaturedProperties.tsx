@@ -15,6 +15,7 @@ interface FeaturedPropertiesProps {
   onFavorite: (propertyId: string) => void;
   isFavorited: (propertyId: string) => boolean;
   onImageClick: (images: string[], index: number, title: string) => void;
+  isDarkMode?: boolean;
 }
 
 const FeaturedProperties = ({
@@ -24,7 +25,8 @@ const FeaturedProperties = ({
   onShare,
   onFavorite,
   isFavorited,
-  onImageClick
+  onImageClick,
+  isDarkMode = false
 }: FeaturedPropertiesProps) => {
   // Filter featured properties (for now show all since we don't have is_featured field)
   const featuredProperties = properties.slice(0, 8);

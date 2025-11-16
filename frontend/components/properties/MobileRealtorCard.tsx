@@ -61,10 +61,10 @@ const MobileRealtorCard = ({ property, brokerProfile, onWhatsAppClick }: MobileR
             </div>
           )}
           <div className="flex-1 min-w-0">
-            <p className="font-semibold text-foreground text-sm">
+            <p className="font-semibold text-gray-900 dark:text-white text-sm">
               {property.realtor_name}
             </p>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-gray-600 dark:text-gray-400">
               Corretor {property.realtor_creci && `• CRECI ${property.realtor_creci}`}
             </p>
           </div>

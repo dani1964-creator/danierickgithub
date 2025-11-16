@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/router';
+import Image from 'next/image';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -61,12 +62,7 @@ export default function PlanosPage() {
   const [newSubject, setNewSubject] = useState('');
   const [sendingMessage, setSendingMessage] = useState(false);
 
-  useEffect(() => {
-    loadSubscriptionData();
-    loadCommunications();
-  }, []);
-
-  const loadSubscriptionData = async () => {
+  const loadSubscriptionData = useCallback(async () => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
@@ -102,9 +98,9 @@ export default function PlanosPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [router, toast]);
 
-  const loadCommunications = async () => {
+  const loadCommunications = useCallback(async () => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
@@ -114,15 +110,20 @@ export default function PlanosPage() {
           'Authorization': `Bearer ${session.access_token}`,
         },
       });
+      
       const data = await response.json();
-
       if (response.ok) {
         setCommunications(data.communications || []);
       }
     } catch (error) {
       console.error('Error loading communications:', error);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    loadSubscriptionData();
+    loadCommunications();
+  }, [loadSubscriptionData, loadCommunications]);
 
   const sendMessage = async () => {
     if (!newMessage.trim()) {
@@ -143,6 +144,7 @@ export default function PlanosPage() {
           description: 'Sessão expirada. Faça login novamente.',
           variant: 'destructive',
         });
+        setSendingMessage(false);
         return;
       }
 
@@ -329,10 +331,12 @@ export default function PlanosPage() {
                   <div className="text-center">
                     <Label className="text-sm font-medium">QR Code para Pagamento</Label>
                     <div className="mt-2 p-4 bg-white rounded-lg inline-block">
-                      <img 
+                      <Image 
                         src={subscription.pix_qr_code_image_url} 
                         alt="QR Code PIX" 
-                        className="w-48 h-48 mx-auto"
+                        width={192}
+                        height={192}
+                        className="mx-auto"
                       />
                     </div>
                     <p className="text-xs text-muted-foreground mt-2">

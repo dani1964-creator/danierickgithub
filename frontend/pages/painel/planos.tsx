@@ -51,6 +51,48 @@ interface Communication {
   created_at: string;
 }
 
+// Função para extrair nome amigável do arquivo a partir da URL
+const getFileDisplayName = (url: string): string => {
+  try {
+    const urlObj = new URL(url);
+    const pathname = urlObj.pathname;
+    const extension = pathname.split('.').pop()?.toLowerCase() || 'arquivo';
+    
+    // Mapear extensões para nomes amigáveis
+    const extensionMap: { [key: string]: string } = {
+      'jpg': 'comprovante.jpg',
+      'jpeg': 'comprovante.jpg',
+      'png': 'comprovante.png',
+      'pdf': 'documento.pdf',
+      'doc': 'documento.doc',
+      'docx': 'documento.docx',
+    };
+    
+    return extensionMap[extension] || `anexo.${extension}`;
+  } catch {
+    return 'arquivo-anexo';
+  }
+};
+
+// Função para processar mensagem e mascarar URLs
+const formatMessageWithAttachment = (message: string): { text: string; attachmentUrl?: string; fileName?: string } => {
+  const attachmentRegex = /📎\s*Anexo:\s*(https?:\/\/[^\s]+)/i;
+  const match = message.match(attachmentRegex);
+  
+  if (match) {
+    const url = match[1];
+    const fileName = getFileDisplayName(url);
+    const textWithoutUrl = message.replace(attachmentRegex, '').trim();
+    return {
+      text: textWithoutUrl,
+      attachmentUrl: url,
+      fileName
+    };
+  }
+  
+  return { text: message };
+};
+
 export default function PlanosPage() {
   const router = useRouter();
   const { toast } = useToast();
@@ -182,6 +224,16 @@ export default function PlanosPage() {
         attachmentUrl = publicUrl;
       }
 
+      // Preparar mensagem com anexo mascarado
+      let messageToSend = newMessage;
+      if (attachmentUrl && attachedFile) {
+        const fileExt = attachedFile.name.split('.').pop()?.toLowerCase();
+        const displayName = fileExt === 'pdf' ? 'documento.pdf' : 
+                           ['jpg', 'jpeg', 'png'].includes(fileExt || '') ? `comprovante.${fileExt}` :
+                           `anexo.${fileExt}`;
+        messageToSend = `${newMessage}\n\n📎 Anexo: ${attachmentUrl}`;
+      }
+
       const response = await fetch('/api/subscription/communications', {
         method: 'POST',
         headers: {
@@ -189,9 +241,7 @@ export default function PlanosPage() {
           'Authorization': `Bearer ${session.access_token}`,
         },
         body: JSON.stringify({
-          message: attachmentUrl 
-            ? `${newMessage}\n\n📎 Anexo: ${attachmentUrl}`
-            : newMessage,
+          message: messageToSend,
           subject: newSubject || 'Dúvida sobre assinatura',
         }),
       });
@@ -444,29 +494,46 @@ export default function PlanosPage() {
               {/* Mensagens existentes */}
               {communications.length > 0 && (
                 <div className="space-y-3 max-h-64 overflow-y-auto">
-                  {communications.map((comm) => (
-                    <div
-                      key={comm.id}
-                      className={`p-3 rounded-lg border ${
-                        comm.sender_type === 'admin'
-                          ? 'bg-blue-50 border-blue-200'
-                          : 'bg-gray-50 border-gray-200'
-                      }`}
-                    >
-                      <div className="flex justify-between items-start mb-2">
-                        <span className="font-medium text-sm">
-                          {comm.sender_type === 'admin' ? '🔧 Suporte Admin' : '👤 Você'}
-                        </span>
-                        <span className="text-xs text-muted-foreground">
-                          {new Date(comm.created_at).toLocaleString('pt-BR')}
-                        </span>
+                  {communications.map((comm) => {
+                    const { text, attachmentUrl, fileName } = formatMessageWithAttachment(comm.message);
+                    
+                    return (
+                      <div
+                        key={comm.id}
+                        className={`p-3 rounded-lg border ${
+                          comm.sender_type === 'admin'
+                            ? 'bg-blue-50 border-blue-200'
+                            : 'bg-gray-50 border-gray-200'
+                        }`}
+                      >
+                        <div className="flex justify-between items-start mb-2">
+                          <span className="font-medium text-sm">
+                            {comm.sender_type === 'admin' ? '🔧 Suporte Admin' : '👤 Você'}
+                          </span>
+                          <span className="text-xs text-muted-foreground">
+                            {new Date(comm.created_at).toLocaleString('pt-BR')}
+                          </span>
+                        </div>
+                        {comm.subject && (
+                          <p className="font-medium text-sm mb-1">{comm.subject}</p>
+                        )}
+                        <p className="text-sm whitespace-pre-wrap">{text}</p>
+                        {attachmentUrl && fileName && (
+                          <div className="mt-2 flex items-center gap-2 p-2 bg-white rounded border border-gray-200">
+                            <Upload className="h-4 w-4 text-gray-500" />
+                            <a 
+                              href={attachmentUrl} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="text-sm text-blue-600 hover:underline"
+                            >
+                              {fileName}
+                            </a>
+                          </div>
+                        )}
                       </div>
-                      {comm.subject && (
-                        <p className="font-medium text-sm mb-1">{comm.subject}</p>
-                      )}
-                      <p className="text-sm">{comm.message}</p>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
 

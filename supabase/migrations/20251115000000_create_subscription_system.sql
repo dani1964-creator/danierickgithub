@@ -114,7 +114,7 @@ SET search_path = 'public'
 AS $$
 DECLARE
   end_date TIMESTAMP WITH TIME ZONE;
-  days_remaining INTEGER;
+  days_remaining NUMERIC;
 BEGIN
   SELECT current_period_end INTO end_date
   FROM public.subscriptions
@@ -125,9 +125,10 @@ BEGIN
     RETURN -1; -- Sem assinatura ativa
   END IF;
   
-  days_remaining := EXTRACT(DAY FROM (end_date - now()));
+  -- Usar CEIL para arredondar para cima (consistente com JavaScript Math.ceil)
+  days_remaining := CEIL(EXTRACT(EPOCH FROM (end_date - now())) / 86400);
   
-  RETURN GREATEST(days_remaining, 0);
+  RETURN GREATEST(days_remaining::INTEGER, 0);
 END;
 $$;
 

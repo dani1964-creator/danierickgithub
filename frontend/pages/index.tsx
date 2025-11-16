@@ -37,8 +37,8 @@ const Index = () => {
       {/* Header */}
       <header className="border-b bg-card/50 backdrop-blur-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Building2 className="h-8 w-8 text-primary" />
+          <div className="flex items-center gap-3">
+            <img src="/imobideps-logo.svg" alt="AdminImobiliaria" className="h-10 w-auto" />
             <span className="text-xl font-bold">AdminImobiliaria</span>
           </div>
           <div className="flex items-center gap-4">

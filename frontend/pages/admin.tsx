@@ -219,7 +219,7 @@ function SuperAdminPage() {
       setIsAuthorized(true);
       fetchBrokers();
     } else {
-  logger.warn('❌ [Frontend] Token inválido, mostrando login...');
+  logger.debug('ℹ️ [Frontend] Nenhum token encontrado, exibindo tela de login...');
       setIsAuthorized(false);
       setShowLoginDialog(true);
       setLoading(false);
@@ -1156,6 +1156,58 @@ function UpdatesTab() {
 }
 
 // Component for Tickets tab  
+// Função para extrair nome amigável do arquivo a partir da URL
+const getFileDisplayName = (url: string): string => {
+  try {
+    const urlObj = new URL(url);
+    const pathname = urlObj.pathname;
+    const extension = pathname.split('.').pop()?.toLowerCase() || 'arquivo';
+    
+    const extensionMap: { [key: string]: string } = {
+      'jpg': 'comprovante.jpg',
+      'jpeg': 'comprovante.jpg',
+      'png': 'comprovante.png',
+      'pdf': 'documento.pdf',
+      'doc': 'documento.doc',
+      'docx': 'documento.docx',
+    };
+    
+    return extensionMap[extension] || `anexo.${extension}`;
+  } catch {
+    return 'arquivo-anexo';
+  }
+};
+
+// Função para processar mensagem e extrair anexos
+const formatMessageWithAttachment = (message: string): { text: string; attachmentUrl?: string; fileName?: string; fileType?: 'image' | 'pdf' | 'other' } => {
+  const attachmentRegex = /📎\s*Anexo:\s*(https?:\/\/[^\s]+)/i;
+  const match = message.match(attachmentRegex);
+  
+  if (match) {
+    const url = match[1];
+    const fileName = getFileDisplayName(url);
+    const textWithoutUrl = message.replace(attachmentRegex, '').trim();
+    
+    // Determinar tipo de arquivo
+    const extension = url.split('.').pop()?.toLowerCase() || '';
+    let fileType: 'image' | 'pdf' | 'other' = 'other';
+    if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(extension)) {
+      fileType = 'image';
+    } else if (extension === 'pdf') {
+      fileType = 'pdf';
+    }
+    
+    return {
+      text: textWithoutUrl,
+      attachmentUrl: url,
+      fileName,
+      fileType
+    };
+  }
+  
+  return { text: message };
+};
+
 function TicketsTab() {
   const [tickets, setTickets] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -1336,7 +1388,59 @@ function TicketsTab() {
               <div>
                 <Label>Mensagem:</Label>
                 <div className="bg-muted p-3 rounded-lg mt-1">
-                  <p className="text-sm whitespace-pre-wrap">{selectedTicket.message}</p>
+                  {(() => {
+                    const { text, attachmentUrl, fileName, fileType } = formatMessageWithAttachment(selectedTicket.message);
+                    return (
+                      <>
+                        <p className="text-sm whitespace-pre-wrap">{text}</p>
+                        {attachmentUrl && (
+                          <div className="mt-4 border-t pt-4">
+                            <p className="text-xs font-medium text-muted-foreground mb-2">📎 Anexo: {fileName}</p>
+                            {fileType === 'image' && (
+                              <div className="mt-2">
+                                <img 
+                                  src={attachmentUrl} 
+                                  alt={fileName}
+                                  className="max-w-full h-auto rounded-lg border shadow-sm"
+                                  style={{ maxHeight: '400px' }}
+                                />
+                              </div>
+                            )}
+                            {fileType === 'pdf' && (
+                              <div className="mt-2">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => window.open(attachmentUrl, '_blank')}
+                                  className="w-full"
+                                >
+                                  <svg className="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                                  </svg>
+                                  Visualizar PDF
+                                </Button>
+                                <iframe
+                                  src={attachmentUrl}
+                                  className="w-full mt-3 rounded-lg border"
+                                  style={{ height: '500px' }}
+                                  title={fileName}
+                                />
+                              </div>
+                            )}
+                            {fileType === 'other' && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => window.open(attachmentUrl, '_blank')}
+                              >
+                                Baixar arquivo
+                              </Button>
+                            )}
+                          </div>
+                        )}
+                      </>
+                    );
+                  })()}
                 </div>
               </div>
               <div>

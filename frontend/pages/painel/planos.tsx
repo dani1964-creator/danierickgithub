@@ -521,14 +521,9 @@ export default function PlanosPage() {
                         {attachmentUrl && fileName && (
                           <div className="mt-2 flex items-center gap-2 p-2 bg-white rounded border border-gray-200">
                             <Upload className="h-4 w-4 text-gray-500" />
-                            <a 
-                              href={attachmentUrl} 
-                              target="_blank" 
-                              rel="noopener noreferrer"
-                              className="text-sm text-blue-600 hover:underline"
-                            >
+                            <span className="text-sm text-gray-700">
                               {fileName}
-                            </a>
+                            </span>
                           </div>
                         )}
                       </div>

@@ -499,7 +499,7 @@ const AdminUpdatesContent = () => {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="update-type">Tipo</Label>
+                    <Label>Tipo</Label>
                     <Select
                       value={updateForm.update_type}
                       onValueChange={(value: any) => setUpdateForm({ ...updateForm, update_type: value })}

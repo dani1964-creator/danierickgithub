@@ -35,6 +35,17 @@ export function TenantProvider({ children, initialTenant }: TenantProviderProps)
       setLoading(true);
       setError(null);
       
+      // Não carregar tenant para rotas administrativas
+      if (typeof window !== 'undefined') {
+        const isAdminRoute = window.location.pathname.startsWith('/admin') || 
+                            window.location.pathname.startsWith('/painel');
+        
+        if (isAdminRoute) {
+          setLoading(false);
+          return;
+        }
+      }
+      
       // Primeiro, tentar obter do meta tag (setado pelo middleware)
       if (typeof window !== 'undefined') {
         const tenantHeader = document.querySelector('meta[name="x-broker-data"]')?.getAttribute('content');

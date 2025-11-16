@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Sidebar, SidebarContent, SidebarProvider, SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import AppSidebar from "./AppSidebar";
 import { NotificationBell } from "./NotificationBell";
+import TrialBanner from "./TrialBanner";
 import { LogOut, Menu } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useSwipeGesture } from "@/hooks/useSwipeGesture";
@@ -89,6 +90,7 @@ const DashboardLayoutContent = ({ children }: DashboardLayoutProps) => {
         </header>
         <div className="flex-1 overflow-auto w-full bg-muted/20 min-h-0">
           <div className="animate-fade-in p-6">
+            <TrialBanner />
             {children}
           </div>
         </div>

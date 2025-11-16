@@ -116,7 +116,28 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       // A subscription pode ser criada manualmente depois
     }
 
-    // 5. Retornar sucesso
+    // 5. Enviar email de boas-vindas (não bloqueia o cadastro se falhar)
+    try {
+      await fetch(`${SUPABASE_URL}/functions/v1/send-welcome-email`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+        },
+        body: JSON.stringify({
+          email,
+          businessName,
+          ownerName,
+          websiteSlug,
+          trialEndsAt: trialEndDate.toISOString(),
+        }),
+      });
+    } catch (emailError) {
+      console.error('Welcome email error:', emailError);
+      // Não bloqueamos o cadastro por erro no email
+    }
+
+    // 6. Retornar sucesso
     return res.status(201).json({
       success: true,
       message: 'Cadastro realizado com sucesso! Você ganhou 30 dias grátis.',

@@ -83,7 +83,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         email: email,
         website_slug: websiteSlug,
         is_active: true,
-        trial_ends_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 dias
       })
       .select()
       .single();

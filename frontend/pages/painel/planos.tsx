@@ -74,16 +74,21 @@ export default function PlanosPage() {
         return;
       }
 
-      // Buscar dados da assinatura via API
-      const response = await fetch('/api/subscription/details');
+      // Buscar dados da assinatura via API com token
+      const response = await fetch('/api/subscription/details', {
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+        },
+      });
       const data = await response.json();
 
       if (response.ok) {
         setSubscription(data.subscription);
       } else {
+        console.error('API Error:', data);
         toast({
           title: 'Erro',
-          description: 'Não foi possível carregar dados da assinatura.',
+          description: data.error || 'Não foi possível carregar dados da assinatura.',
           variant: 'destructive',
         });
       }
@@ -101,7 +106,14 @@ export default function PlanosPage() {
 
   const loadCommunications = async () => {
     try {
-      const response = await fetch('/api/subscription/communications');
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+
+      const response = await fetch('/api/subscription/communications', {
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+        },
+      });
       const data = await response.json();
 
       if (response.ok) {
@@ -124,10 +136,21 @@ export default function PlanosPage() {
 
     setSendingMessage(true);
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast({
+          title: 'Erro',
+          description: 'Sessão expirada. Faça login novamente.',
+          variant: 'destructive',
+        });
+        return;
+      }
+
       const response = await fetch('/api/subscription/communications', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
         },
         body: JSON.stringify({
           message: newMessage,

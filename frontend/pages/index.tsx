@@ -68,12 +68,12 @@ const Index = () => {
             Plataforma multi-tenant para imobiliárias e corretores autônomos gerenciarem imóveis, leads e sites personalizados.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center pt-6">
-            <a href="https://painel.adminimobiliaria.site" target="_blank" rel="noopener noreferrer">
+            <Link href="/cadastro">
               <Button size="lg" className="w-full sm:w-auto">
                 Começar Agora
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
-            </a>
+            </Link>
             <Link href="/admin">
               <Button size="lg" variant="outline" className="w-full sm:w-auto">
                 Área Administrativa
@@ -177,12 +177,12 @@ const Index = () => {
             </div>
 
             <div className="text-center">
-              <a href="https://painel.adminimobiliaria.site" target="_blank" rel="noopener noreferrer">
+              <Link href="/cadastro">
                 <Button size="lg" className="w-full">
                   Começar Teste Gratuito
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
-              </a>
+              </Link>
               <p className="text-xs text-muted-foreground mt-3">
                 Sem compromisso • Cancele quando quiser
               </p>
@@ -228,12 +228,12 @@ const Index = () => {
           <p className="text-lg text-muted-foreground mb-8">
             Comece seu teste gratuito de 30 dias agora mesmo. Sem compromisso, sem taxas ocultas.
           </p>
-          <a href="https://painel.adminimobiliaria.site" target="_blank" rel="noopener noreferrer">
+          <Link href="/cadastro">
             <Button size="lg">
               Iniciar Teste Gratuito
               <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
-          </a>
+          </Link>
         </div>
       </section>
 

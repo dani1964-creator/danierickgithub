@@ -95,19 +95,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(500).json({ error: 'Erro ao criar imobiliária' });
     }
 
-    // 4. Criar assinatura em trial
-    const trialEndDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
-    
+    // 4. Criar assinatura em trial usando a função do banco
     const { error: subscriptionError } = await supabaseAdmin
-      .from('subscriptions')
-      .insert({
-        broker_id: broker.id,
-        plan_type: 'trial',
-        status: 'trial',
-        trial_start_date: new Date().toISOString(),
-        trial_end_date: trialEndDate.toISOString(),
-        monthly_price_cents: 0,
-        notes: `Conta criada via auto-cadastro em ${new Date().toLocaleDateString('pt-BR')}. Trial de 30 dias.`,
+      .rpc('initialize_subscription_trial', {
+        broker_uuid: broker.id
       });
 
     if (subscriptionError) {
@@ -117,6 +108,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     // 5. Enviar email de boas-vindas (não bloqueia o cadastro se falhar)
+    const trialEndDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+    
     try {
       await fetch(`${SUPABASE_URL}/functions/v1/send-welcome-email`, {
         method: 'POST',

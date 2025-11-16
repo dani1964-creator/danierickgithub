@@ -17,9 +17,10 @@ interface FooterProps {
   brokerProfile: BrokerProfile | null;
   socialLinks?: SocialLink[];
   onContactRequest: () => Promise<BrokerContact | null>;
+  isDarkMode?: boolean;
 }
 
-const Footer = ({ brokerProfile, socialLinks = [], onContactRequest }: FooterProps) => {
+const Footer = ({ brokerProfile, socialLinks = [], onContactRequest, isDarkMode = false }: FooterProps) => {
   const [contactInfo, setContactInfo] = useState<BrokerContact | null>(null);
   const [contactRequested, setContactRequested] = useState(false);
   const router = useRouter();

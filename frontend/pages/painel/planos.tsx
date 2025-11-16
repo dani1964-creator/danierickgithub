@@ -508,7 +508,7 @@ export default function PlanosPage() {
                       >
                         <div className="flex justify-between items-start mb-2">
                           <span className="font-medium text-sm">
-                            {comm.sender_type === 'admin' ? '🔧 Suporte Admin' : '👤 Você'}
+                            {comm.sender_type === 'admin' ? '🔧 Suporte IMOBIDEPS' : '👤 Você'}
                           </span>
                           <span className="text-xs text-muted-foreground">
                             {new Date(comm.created_at).toLocaleString('pt-BR')}

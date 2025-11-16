@@ -9,7 +9,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Building2, Users, Globe, Trash2, Plus, Eye, EyeOff, ExternalLink, RefreshCw, LogOut, Sparkles, CreditCard, CheckCircle, MessageSquare, XCircle } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -256,11 +256,11 @@ function SuperAdminPage() {
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
               <DialogTitle>Acesso Super Admin</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4">
-              <p className="text-sm text-muted-foreground">
+              <DialogDescription>
                 Faça login com suas credenciais de super administrador para acessar o painel.
-              </p>
+              </DialogDescription>
+            </DialogHeader>
+            <form onSubmit={(e) => { e.preventDefault(); handleLogin(); }} className="space-y-4">
               <div>
                 <Label htmlFor="login-email">Email</Label>
                 <Input
@@ -269,7 +269,7 @@ function SuperAdminPage() {
                   value={loginEmail}
                   onChange={(e) => setLoginEmail(e.target.value)}
                   placeholder="Digite seu email"
-                  onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
+                  autoComplete="email"
                 />
               </div>
               <div>
@@ -280,17 +280,17 @@ function SuperAdminPage() {
                   value={loginPassword}
                   onChange={(e) => setLoginPassword(e.target.value)}
                   placeholder="Digite sua senha"
-                  onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
+                  autoComplete="current-password"
                 />
               </div>
               <Button 
-                onClick={handleLogin} 
+                type="submit"
                 className="w-full"
                 disabled={loginLoading}
               >
                 {loginLoading ? "Entrando..." : "Entrar"}
               </Button>
-            </div>
+            </form>
           </DialogContent>
         </Dialog>
       </>

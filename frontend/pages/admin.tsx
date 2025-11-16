@@ -17,6 +17,7 @@ import Head from 'next/head';
 import { logger } from '@/lib/logger';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/router';
+import AdminUpdatesContent from '@/components/admin/AdminUpdatesContent';
 
 interface BrokerData {
   id: string;
@@ -49,7 +50,7 @@ function SuperAdminPage() {
   const [showLoginDialog, setShowLoginDialog] = useState(false);
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
-  const [activeTab, setActiveTab] = useState<'brokers' | 'subscriptions'>('brokers');
+  const [activeTab, setActiveTab] = useState<'brokers' | 'subscriptions' | 'updates' | 'tickets'>('brokers');
   const [loginLoading, setLoginLoading] = useState(false);
 
   // Debug: Log sempre que brokers mudar
@@ -402,6 +403,28 @@ function SuperAdminPage() {
               <CreditCard className="h-4 w-4 inline mr-2" />
               Assinaturas
             </button>
+            <button
+              onClick={() => setActiveTab('updates')}
+              className={`px-4 py-2 font-medium text-sm border-b-2 transition-colors ${
+                activeTab === 'updates'
+                  ? 'border-primary text-primary'
+                  : 'border-transparent text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              <Sparkles className="h-4 w-4 inline mr-2" />
+              Atualizações
+            </button>
+            <button
+              onClick={() => setActiveTab('tickets')}
+              className={`px-4 py-2 font-medium text-sm border-b-2 transition-colors ${
+                activeTab === 'tickets'
+                  ? 'border-primary text-primary'
+                  : 'border-transparent text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              <MessageSquare className="h-4 w-4 inline mr-2" />
+              Tickets
+            </button>
           </div>
         </div>
 
@@ -414,8 +437,12 @@ function SuperAdminPage() {
             toggleBrokerStatus={toggleBrokerStatus}
             baseDomain={baseDomain}
           />
-        ) : (
+        ) : activeTab === 'subscriptions' ? (
           <SubscriptionsTab />
+        ) : activeTab === 'updates' ? (
+          <UpdatesTab />
+        ) : (
+          <TicketsTab />
         )}
       </div>
     </div>
@@ -614,7 +641,11 @@ function SubscriptionsTab() {
   const loadSubscriptions = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/admin/subscriptions');
+      const response = await fetch('/api/admin/subscriptions', {
+        headers: {
+          'x-admin-auth': 'admin-access', // Token básico de autenticação
+        },
+      });
       const data = await response.json();
       
       if (response.ok) {
@@ -622,7 +653,7 @@ function SubscriptionsTab() {
       } else {
         toast({
           title: 'Erro',
-          description: 'Não foi possível carregar assinaturas.',
+          description: data.error || 'Não foi possível carregar assinaturas.',
           variant: 'destructive',
         });
       }
@@ -1109,6 +1140,222 @@ function SubscriptionsTab() {
                   disabled={!newMessage.trim()}
                 >
                   Enviar
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
+    </>
+  );
+}
+
+// Component for Updates tab
+function UpdatesTab() {
+  return <AdminUpdatesContent />;
+}
+
+// Component for Tickets tab  
+function TicketsTab() {
+  const [tickets, setTickets] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedTicket, setSelectedTicket] = useState<any>(null);
+  const [replyMessage, setReplyMessage] = useState('');
+  const { toast } = useToast();
+
+  const loadTickets = useCallback(async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('/api/admin/tickets', {
+        headers: {
+          'x-admin-auth': 'admin-access',
+        },
+      });
+      const data = await response.json();
+      
+      if (response.ok) {
+        setTickets(data.tickets || []);
+      } else {
+        toast({
+          title: 'Erro',
+          description: data.error || 'Não foi possível carregar tickets.',
+          variant: 'destructive',
+        });
+      }
+    } catch (error) {
+      console.error('Error loading tickets:', error);
+      toast({
+        title: 'Erro',
+        description: 'Erro ao carregar tickets.',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
+  }, [toast]);
+
+  useEffect(() => {
+    loadTickets();
+  }, [loadTickets]);
+
+  const markAsRead = async (ticketId: string) => {
+    try {
+      const response = await fetch('/api/admin/tickets/mark-read', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-admin-auth': 'admin-access',
+        },
+        body: JSON.stringify({ ticketId }),
+      });
+
+      if (response.ok) {
+        loadTickets();
+      }
+    } catch (error) {
+      console.error('Error marking as read:', error);
+    }
+  };
+
+  const sendReply = async () => {
+    if (!selectedTicket || !replyMessage.trim()) return;
+
+    try {
+      const response = await fetch('/api/admin/tickets/reply', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-admin-auth': 'admin-access',
+        },
+        body: JSON.stringify({
+          ticketId: selectedTicket.id,
+          message: replyMessage,
+        }),
+      });
+
+      if (response.ok) {
+        toast({
+          title: 'Sucesso',
+          description: 'Resposta enviada com sucesso!',
+        });
+        setReplyMessage('');
+        setSelectedTicket(null);
+        loadTickets();
+      } else {
+        throw new Error('Erro ao enviar resposta');
+      }
+    } catch (error) {
+      toast({
+        title: 'Erro',
+        description: 'Não foi possível enviar a resposta.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        <span className="ml-3 text-muted-foreground">Carregando tickets...</span>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <Card>
+        <CardHeader>
+          <CardTitle>Tickets de Suporte - Pagamentos</CardTitle>
+          <CardDescription>
+            Mensagens de imobiliárias sobre pagamentos e comprovantes
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {tickets.length === 0 ? (
+            <p className="text-center text-muted-foreground py-8">
+              Nenhum ticket recebido
+            </p>
+          ) : (
+            <div className="space-y-3">
+              {tickets.map((ticket: any) => (
+                <Card
+                  key={ticket.id}
+                  className={`cursor-pointer transition-colors ${
+                    !ticket.is_read ? 'border-primary bg-primary/5' : ''
+                  }`}
+                  onClick={() => {
+                    setSelectedTicket(ticket);
+                    if (!ticket.is_read) {
+                      markAsRead(ticket.id);
+                    }
+                  }}
+                >
+                  <CardContent className="p-4">
+                    <div className="flex justify-between items-start mb-2">
+                      <div>
+                        <p className="font-medium">{ticket.broker_name}</p>
+                        <p className="text-sm text-muted-foreground">{ticket.broker_email}</p>
+                      </div>
+                      <div className="text-right">
+                        <Badge variant={ticket.is_read ? 'secondary' : 'default'}>
+                          {ticket.is_read ? 'Lido' : 'Novo'}
+                        </Badge>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {new Date(ticket.created_at).toLocaleString('pt-BR')}
+                        </p>
+                      </div>
+                    </div>
+                    {ticket.subject && (
+                      <p className="font-medium text-sm mb-1">{ticket.subject}</p>
+                    )}
+                    <p className="text-sm line-clamp-2">{ticket.message}</p>
+                    {ticket.priority === 'high' && (
+                      <Badge variant="destructive" className="mt-2">Alta Prioridade</Badge>
+                    )}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Dialog de resposta */}
+      {selectedTicket && (
+        <Dialog open={!!selectedTicket} onOpenChange={() => setSelectedTicket(null)}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Ticket: {selectedTicket.subject}</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <Label>De:</Label>
+                <p className="text-sm">{selectedTicket.broker_name} ({selectedTicket.broker_email})</p>
+              </div>
+              <div>
+                <Label>Mensagem:</Label>
+                <div className="bg-muted p-3 rounded-lg mt-1">
+                  <p className="text-sm whitespace-pre-wrap">{selectedTicket.message}</p>
+                </div>
+              </div>
+              <div>
+                <Label htmlFor="reply">Responder:</Label>
+                <Textarea
+                  id="reply"
+                  placeholder="Digite sua resposta..."
+                  rows={4}
+                  value={replyMessage}
+                  onChange={(e) => setReplyMessage(e.target.value)}
+                />
+              </div>
+              <div className="flex gap-2 justify-end">
+                <Button variant="outline" onClick={() => setSelectedTicket(null)}>
+                  Fechar
+                </Button>
+                <Button onClick={sendReply} disabled={!replyMessage.trim()}>
+                  <MessageSquare className="h-4 w-4 mr-2" />
+                  Enviar Resposta
                 </Button>
               </div>
             </div>

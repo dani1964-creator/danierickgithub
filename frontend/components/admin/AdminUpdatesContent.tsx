@@ -67,7 +67,7 @@ import {
   AlertCircle
 } from 'lucide-react';
 
-const AdminUpdatesPage = () => {
+const AdminUpdatesContent = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const router = useRouter();
@@ -828,5 +828,4 @@ const AdminUpdatesPage = () => {
   );
 };
 
-export { AdminUpdatesPage };
-export default AdminUpdatesPage;
+export default AdminUpdatesContent;

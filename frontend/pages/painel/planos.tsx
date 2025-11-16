@@ -61,6 +61,7 @@ export default function PlanosPage() {
   const [newMessage, setNewMessage] = useState('');
   const [newSubject, setNewSubject] = useState('');
   const [sendingMessage, setSendingMessage] = useState(false);
+  const [attachedFile, setAttachedFile] = useState<File | null>(null);
 
   const loadSubscriptionData = useCallback(async () => {
     try {
@@ -135,6 +136,16 @@ export default function PlanosPage() {
       return;
     }
 
+    // Validar tamanho do arquivo
+    if (attachedFile && attachedFile.size > 5 * 1024 * 1024) {
+      toast({
+        title: 'Erro',
+        description: 'O arquivo deve ter no máximo 5MB.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     setSendingMessage(true);
     try {
       const { data: { session } } = await supabase.auth.getSession();
@@ -148,6 +159,29 @@ export default function PlanosPage() {
         return;
       }
 
+      let attachmentUrl = null;
+
+      // Upload do arquivo se houver
+      if (attachedFile) {
+        const fileExt = attachedFile.name.split('.').pop();
+        const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+        const filePath = `payment-proofs/${session.user.id}/${fileName}`;
+
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from('attachments')
+          .upload(filePath, attachedFile);
+
+        if (uploadError) {
+          throw new Error('Erro ao fazer upload do arquivo');
+        }
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('attachments')
+          .getPublicUrl(filePath);
+
+        attachmentUrl = publicUrl;
+      }
+
       const response = await fetch('/api/subscription/communications', {
         method: 'POST',
         headers: {
@@ -155,7 +189,9 @@ export default function PlanosPage() {
           'Authorization': `Bearer ${session.access_token}`,
         },
         body: JSON.stringify({
-          message: newMessage,
+          message: attachmentUrl 
+            ? `${newMessage}\n\n📎 Anexo: ${attachmentUrl}`
+            : newMessage,
           subject: newSubject || 'Dúvida sobre assinatura',
         }),
       });
@@ -163,6 +199,7 @@ export default function PlanosPage() {
       if (response.ok) {
         setNewMessage('');
         setNewSubject('');
+        setAttachedFile(null);
         toast({
           title: 'Sucesso',
           description: 'Mensagem enviada! Aguarde retorno do suporte.',
@@ -174,7 +211,7 @@ export default function PlanosPage() {
     } catch (error) {
       toast({
         title: 'Erro',
-        description: 'Não foi possível enviar a mensagem.',
+        description: error instanceof Error ? error.message : 'Não foi possível enviar a mensagem.',
         variant: 'destructive',
       });
     } finally {
@@ -456,6 +493,37 @@ export default function PlanosPage() {
                     value={newMessage}
                     onChange={(e) => setNewMessage(e.target.value)}
                   />
+                </div>
+                
+                <div>
+                  <Label htmlFor="attachment">Anexar Arquivo (Comprovante)</Label>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      id="attachment"
+                      type="file"
+                      accept="image/*,.pdf"
+                      onChange={(e) => setAttachedFile(e.target.files?.[0] || null)}
+                      className="cursor-pointer"
+                    />
+                    {attachedFile && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setAttachedFile(null)}
+                        className="text-red-500 hover:text-red-700"
+                      >
+                        <XCircle className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+                  {attachedFile && (
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Arquivo selecionado: {attachedFile.name} ({(attachedFile.size / 1024).toFixed(2)} KB)
+                    </p>
+                  )}
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Formatos aceitos: JPG, PNG, PDF (máx. 5MB)
+                  </p>
                 </div>
                 
                 <Button onClick={sendMessage} disabled={sendingMessage} className="w-full">

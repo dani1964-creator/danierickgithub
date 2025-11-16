@@ -42,7 +42,6 @@ interface ImprovementSuggestion {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -70,6 +69,7 @@ const UpdatesPage = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [brokerId, setBrokerId] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'updates' | 'suggestions'>('updates');
 
   // Form state
   const [newSuggestion, setNewSuggestion] = useState({
@@ -283,20 +283,36 @@ const UpdatesPage = () => {
         </p>
       </div>
 
-      <Tabs defaultValue="updates" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="updates">
-            <Sparkles className="h-4 w-4 mr-2" />
+      <div className="mb-6">
+        <div className="flex border-b">
+          <button
+            onClick={() => setActiveTab('updates')}
+            className={`px-4 py-2 font-medium text-sm border-b-2 transition-colors ${
+              activeTab === 'updates'
+                ? 'border-primary text-primary'
+                : 'border-transparent text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            <Sparkles className="h-4 w-4 inline mr-2" />
             Atualizações
-          </TabsTrigger>
-          <TabsTrigger value="suggestions">
-            <ThumbsUp className="h-4 w-4 mr-2" />
+          </button>
+          <button
+            onClick={() => setActiveTab('suggestions')}
+            className={`px-4 py-2 font-medium text-sm border-b-2 transition-colors ${
+              activeTab === 'suggestions'
+                ? 'border-primary text-primary'
+                : 'border-transparent text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            <ThumbsUp className="h-4 w-4 inline mr-2" />
             Sugestões
-          </TabsTrigger>
-        </TabsList>
+          </button>
+        </div>
+      </div>
 
-        {/* Tab: Atualizações */}
-        <TabsContent value="updates" className="space-y-4">
+      {/* Conteúdo das Abas */}
+      {activeTab === 'updates' ? (
+        <div className="space-y-4">
           {updates.length === 0 ? (
             <Card>
               <CardContent className="py-12 text-center text-muted-foreground">
@@ -338,10 +354,9 @@ const UpdatesPage = () => {
               </Card>
             ))
           )}
-        </TabsContent>
-
-        {/* Tab: Sugestões */}
-        <TabsContent value="suggestions" className="space-y-4">
+        </div>
+      ) : (
+        <div className="space-y-4">
           <div className="flex justify-between items-center mb-4">
             <p className="text-sm text-muted-foreground">
               Vote nas melhores ideias e sugira novas funcionalidades
@@ -482,8 +497,8 @@ const UpdatesPage = () => {
               </Card>
             ))
           )}
-        </TabsContent>
-      </Tabs>
+        </div>
+      )}
     </div>
   );
 };

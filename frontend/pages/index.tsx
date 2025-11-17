@@ -39,8 +39,8 @@ const Index = () => {
       <header className="border-b bg-card/50 backdrop-blur-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Image src="/imobideps-logo.svg" alt="AdminImobiliaria" width={40} height={40} className="h-10 w-auto" />
-            <span className="text-xl font-bold">AdminImobiliaria</span>
+            <Image src="/imobideps-logo.svg" alt="IMOBIDEPS" width={40} height={40} className="h-10 w-auto" />
+            <span className="text-xl font-bold">IMOBIDEPS</span>
           </div>
           <div className="flex items-center gap-4">
             <Link href="/admin">
@@ -239,9 +239,16 @@ const Index = () => {
       </section>
 
       {/* Footer */}
-      <footer className="border-t mt-20">
-        <div className="container mx-auto px-4 py-8 text-center text-sm text-muted-foreground">
-          <p>© 2025 AdminImobiliaria. Sistema de Gestão Imobiliária Multi-Tenant.</p>
+      <footer className="border-t mt-20 bg-muted/30">
+        <div className="container mx-auto px-4 py-8">
+          <div className="flex flex-col items-center justify-center gap-3">
+            <p className="text-sm text-muted-foreground">
+              © 2025 IMOBIDEPS • Sistema de Gestão Imobiliária
+            </p>
+            <p className="text-xs text-muted-foreground flex items-center gap-1">
+              Desenvolvido com <span className="text-red-500">❤</span> pela equipe IMOBIDEPS
+            </p>
+          </div>
         </div>
       </footer>
     </div>

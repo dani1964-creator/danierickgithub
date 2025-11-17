@@ -1397,16 +1397,29 @@ function TicketsTab() {
                         <p className="text-sm whitespace-pre-wrap">{text}</p>
                         {attachmentUrl && (
                           <div className="mt-4 pt-4 border-t">
-                            <p className="text-xs font-medium text-muted-foreground mb-3">📎 Anexo: {fileName}</p>
+                            <div className="flex items-center justify-between mb-3">
+                              <p className="text-xs font-medium text-muted-foreground">📎 Anexo: {fileName}</p>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => window.open(attachmentUrl, '_blank')}
+                              >
+                                Abrir em Nova Aba
+                              </Button>
+                            </div>
                             {fileType === 'image' && (
-                              <div className="mt-2 flex justify-center bg-black/5 rounded-lg p-4">
+                              <div className="mt-2 bg-slate-100 dark:bg-slate-900 rounded-lg p-4 flex justify-center">
                                 {/* eslint-disable-next-line @next/next/no-img-element */}
                                 <img 
                                   src={attachmentUrl} 
                                   alt={fileName}
-                                  className="max-w-full h-auto rounded-lg border shadow-lg"
+                                  className="max-w-full h-auto rounded-lg border-2 border-white shadow-xl"
                                   style={{ maxHeight: '600px', objectFit: 'contain' }}
-                                  loading="lazy"
+                                  onError={(e) => {
+                                    console.error('Erro ao carregar imagem:', attachmentUrl);
+                                    (e.target as HTMLImageElement).style.display = 'none';
+                                  }}
+                                  onLoad={() => console.log('Imagem carregada com sucesso:', attachmentUrl)}
                                 />
                               </div>
                             )}

@@ -25,6 +25,7 @@ import Footer from '@/components/home/Footer';
 import LeadModal from '@/components/leads/LeadModal';
 import { FinancingCard } from '@/components/properties/FinancingCard';
 import { PaymentMethods } from '@/components/properties/PaymentMethods';
+import { PropertyDetails } from '@/components/properties/PropertyDetails';
 import { getErrorMessage } from '@/lib/utils';
 import { getPublicUrl } from '@/lib/seo';
 import { logger } from '@/lib/logger';
@@ -140,7 +141,7 @@ const PropertyDetailPage = ({ initialQuery }: PropertyDetailPageProps = {}) => {
   const [viewsCount, setViewsCount] = useState(0);
   const [carouselApi, setCarouselApi] = useState<CarouselApi>();
   const [thumbnailCarouselApi, setThumbnailCarouselApi] = useState<CarouselApi>();
-  const [activeTab, setActiveTab] = useState<'Detalhes' | 'Características'>('Detalhes');
+  // Removido: const [activeTab, setActiveTab] = useState - não mais necessário sem tabs
   const [imageErrors, setImageErrors] = useState<Set<number>>(new Set());
   const [preloadedImages, setPreloadedImages] = useState<Set<string>>(new Set());
   const thumbnailsRef = useRef<HTMLDivElement>(null);
@@ -1777,210 +1778,13 @@ const PropertyDetailPage = ({ initialQuery }: PropertyDetailPageProps = {}) => {
                   </div>
                 </div>
 
-                {/* Conteúdo Unificado Premium - Tabs + Detalhes/Características */}
-                <div className="property-detail-content-block">
-                  {/* Tabs Premium */}
-                  <div className="property-detail-tabs">
-                    {['Detalhes', 'Características'].map((tab) => (
-                      <button
-                        key={tab}
-                        onClick={() => setActiveTab(tab as 'Detalhes' | 'Características')}
-                        className={`property-detail-tab ${activeTab === tab ? 'is-active' : ''}`}
-                      >
-                        {tab}
-                      </button>
-                    ))}
-                  </div>
-
-                  {/* Conteúdo da Tab Ativa */}
-                  <div className="property-detail-content-section">
-                    {activeTab === 'Detalhes' && (
-                      <div className="space-y-6">
-                        {/* Descrição */}
-                        <div>
-                          <h2 className="property-detail-content-section__title">
-                            <svg className="property-detail-content-section__title-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h7" />
-                            </svg>
-                            Descrição
-                          </h2>
-                          <div className="prose max-w-none">
-                            {property.description ? (
-                              <p className="property-detail-description__text">{property.description}</p>
-                            ) : (
-                              <p className="text-gray-500 italic text-sm">Nenhuma descrição disponível.</p>
-                            )}
-                          </div>
-                        </div>
-                        
-                        {/* Formas de Pagamento - opcional */}
-                        {property.payment_methods_type && property.payment_methods_type !== 'none' && (
-                          <PaymentMethods
-                            type={property.payment_methods_type as 'text' | 'banner'}
-                            methods={property.payment_methods_text || []}
-                            bannerUrl={property.payment_methods_banner_url || undefined}
-                            isDarkMode={isDarkMode}
-                            primaryColor={brokerProfile?.primary_color}
-                          />
-                        )}
-                      </div>
-                    )}
-
-                    {activeTab === 'Características' && (
-                      <div>
-                        <h2 className="property-detail-content-section__title">
-                          <svg className="property-detail-content-section__title-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                          </svg>
-                          Características
-                        </h2>
-                        {/* Layout em duas colunas */}
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                          {/* Coluna Esquerda */}
-                          <div className="space-y-2">
-                            <div className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-3 pb-2 border-b border-gray-100">
-                              Características Gerais
-                            </div>
-                            
-                            {/* Itens vindos de features (texto livre) */}
-                            {property.features && property.features.length > 0 && property.features.map((feature, index) => (
-                              <div key={`feat-${index}`} className="flex items-center py-2 text-sm text-gray-700">
-                                <div className="w-1.5 h-1.5 bg-primary-500 rounded-full mr-3 flex-shrink-0"></div>
-                                <span>{feature}</span>
-                              </div>
-                            ))}
-
-                            {/* Itens estruturados */}
-                          {property.private_area_m2 && (
-                            <div className="flex items-center py-2 text-sm text-gray-700">
-                              <div className="w-1.5 h-1.5 bg-primary-500 rounded-full mr-3 flex-shrink-0"></div>
-                              <span>Área privativa: {property.private_area_m2}m²</span>
-                            </div>
-                          )}
-                          {property.total_area_m2 && (
-                            <div className="flex items-center py-2 text-sm text-gray-700">
-                              <div className="w-1.5 h-1.5 bg-primary-500 rounded-full mr-3 flex-shrink-0"></div>
-                              <span>Área total: {property.total_area_m2}m²</span>
-                            </div>
-                          )}
-                          {property.suites != null && (
-                            <div className="flex items-center py-2 text-sm text-gray-700">
-                              <div className="w-1.5 h-1.5 bg-primary-500 rounded-full mr-3 flex-shrink-0"></div>
-                              <span>Suítes: {property.suites}</span>
-                            </div>
-                          )}
-                          {property.covered_parking_spaces != null && (
-                            <div className="flex items-center py-2 text-sm text-gray-700">
-                              <div className="w-1.5 h-1.5 bg-primary-500 rounded-full mr-3 flex-shrink-0"></div>
-                              <span>Vagas cobertas: {property.covered_parking_spaces}</span>
-                            </div>
-                          )}
-                          {property.floor_number != null && (
-                            <div className="flex items-center py-2 text-sm text-gray-700">
-                              <div className="w-1.5 h-1.5 bg-primary-500 rounded-full mr-3 flex-shrink-0"></div>
-                              <span>Andar: {property.floor_number}</span>
-                            </div>
-                          )}
-                          {property.total_floors != null && (
-                            <div className="flex items-center py-2 text-sm text-gray-700">
-                              <div className="w-1.5 h-1.5 bg-primary-500 rounded-full mr-3 flex-shrink-0"></div>
-                              <span>Total de andares: {property.total_floors}</span>
-                            </div>
-                          )}
-                          {property.built_year && (
-                            <div className="flex items-center py-2 text-sm text-gray-700">
-                              <div className="w-1.5 h-1.5 bg-primary-500 rounded-full mr-3 flex-shrink-0"></div>
-                              <span>Ano de construção: {property.built_year}</span>
-                            </div>
-                          )}
-                          {property.sunlight_orientation && (
-                            <div className="flex items-center py-2 text-sm text-gray-700">
-                              <div className="w-1.5 h-1.5 bg-primary-500 rounded-full mr-3 flex-shrink-0"></div>
-                              <span>Face do sol: {property.sunlight_orientation}</span>
-                            </div>
-                          )}
-                              </div>
-
-                          {/* Coluna Direita - Condições e comodidades */}
-                          <div className="space-y-2">
-                            <div className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-3 pb-2 border-b border-gray-100">
-                              Condições & Comodidades
-                            </div>
-                            
-                          {property.property_condition && (
-                            <div className="flex items-center py-2 text-sm text-gray-700">
-                              <div className="w-1.5 h-1.5 bg-primary-500 rounded-full mr-3 flex-shrink-0"></div>
-                              <span>Condição: {property.property_condition}</span>
-                            </div>
-                          )}
-                          {property.water_cost != null && (
-                            <div className="flex items-center py-2 text-sm text-gray-700">
-                              <div className="w-1.5 h-1.5 bg-primary-500 rounded-full mr-3 flex-shrink-0"></div>
-                              <span>Água: {formatPrice(property.water_cost)}</span>
-                            </div>
-                          )}
-                          {property.electricity_cost != null && (
-                            <div className="flex items-center py-2 text-sm text-gray-700">
-                              <div className="w-1.5 h-1.5 bg-primary-500 rounded-full mr-3 flex-shrink-0"></div>
-                              <span>Luz: {formatPrice(property.electricity_cost)}</span>
-                            </div>
-                          )}
-                          {typeof property.furnished === 'boolean' && (
-                            <div className="flex items-center py-2 text-sm text-gray-700">
-                              <div className="w-1.5 h-1.5 bg-primary-500 rounded-full mr-3 flex-shrink-0"></div>
-                              <span>Mobiliado: {property.furnished ? 'Sim' : 'Não'}</span>
-                            </div>
-                          )}
-                          {typeof property.accepts_pets === 'boolean' && (
-                            <div className="flex items-center py-2 text-sm text-gray-700">
-                              <div className="w-1.5 h-1.5 bg-primary-500 rounded-full mr-3 flex-shrink-0"></div>
-                              <span>Aceita pets: {property.accepts_pets ? 'Sim' : 'Não'}</span>
-                            </div>
-                          )}
-                          {typeof property.elevator === 'boolean' && (
-                            <div className="flex items-center py-2 text-sm text-gray-700">
-                              <div className="w-1.5 h-1.5 bg-primary-500 rounded-full mr-3 flex-shrink-0"></div>
-                              <span>Elevador: {property.elevator ? 'Sim' : 'Não'}</span>
-                            </div>
-                          )}
-                          {typeof property.portaria_24h === 'boolean' && (
-                            <div className="flex items-center py-2 text-sm text-gray-700">
-                              <div className="w-1.5 h-1.5 bg-primary-500 rounded-full mr-3 flex-shrink-0"></div>
-                              <span>Portaria 24h: {property.portaria_24h ? 'Sim' : 'Não'}</span>
-                            </div>
-                          )}
-                          {typeof property.gas_included === 'boolean' && (
-                            <div className="flex items-center py-2 text-sm text-gray-700">
-                              <div className="w-1.5 h-1.5 bg-primary-500 rounded-full mr-3 flex-shrink-0"></div>
-                              <span>Gás incluso: {property.gas_included ? 'Sim' : 'Não'}</span>
-                            </div>
-                          )}
-                          {typeof property.accessibility === 'boolean' && (
-                            <div className="flex items-center py-2 text-sm text-gray-700">
-                              <div className="w-1.5 h-1.5 bg-primary-500 rounded-full mr-3 flex-shrink-0"></div>
-                              <span>Acessibilidade: {property.accessibility ? 'Sim' : 'Não'}</span>
-                            </div>
-                          )}
-                          {property.heating_type && (
-                            <div className="flex items-center py-2 text-sm text-gray-700">
-                              <div className="w-1.5 h-1.5 bg-primary-500 rounded-full mr-3 flex-shrink-0"></div>
-                              <span>Aquecimento: {property.heating_type}</span>
-                            </div>
-                          )}
-                          </div>
-                        </div>
-
-                        {/* Observações ocupam toda a largura */}
-                        {property.notes && (
-                          <div className="mt-6 p-4 rounded-lg border border-primary-200 bg-primary-50">
-                            <div className="text-xs text-gray-600 mb-2 font-medium">📝 Observações</div>
-                            <div className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">{property.notes}</div>
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                </div>
+                {/* Detalhes e Características Unificados */}
+                <PropertyDetails
+                  property={property}
+                  brokerProfile={brokerProfile}
+                  isDarkMode={isDarkMode}
+                  formatPrice={formatPrice}
+                />
 
                 {/* Localização - Integrada ao bloco unificado */}
                 <div className="property-detail-content-section">

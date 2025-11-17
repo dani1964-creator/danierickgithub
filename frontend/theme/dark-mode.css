@@ -16,22 +16,38 @@
 
 .dark .bg-white {
   background-color: #1e293b !important;
+  color: #f8fafc !important;
 }
 
 .dark .bg-gray-50 {
   background-color: #1e293b !important;
+  color: #f8fafc !important;
 }
 
 .dark .bg-gray-100 {
   background-color: #334155 !important;
+  color: #f8fafc !important;
 }
 
 .dark .bg-background {
   background-color: #0f172a;
+  color: #f8fafc;
 }
 
 .dark .bg-card {
   background: linear-gradient(135deg, #1e293b 0%, #1a2332 100%);
+  color: #f8fafc;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Todas as seções devem ter fundo escuro */
+.dark section,
+.dark .section,
+.dark .container,
+.dark .content {
+  background-color: #0f172a;
+  color: #f8fafc;
+  border-color: rgba(255, 255, 255, 0.1);
 }
 
 /* ========================================
@@ -63,13 +79,13 @@
 
 /* Headings com alto contraste */
 .dark h1 {
-  color: #f8fafc;
+  color: #f8fafc !important;
   font-weight: 800;
   letter-spacing: -0.03em;
 }
 
 .dark h2 {
-  color: #f8fafc;
+  color: #f8fafc !important;
   font-weight: 700;
   letter-spacing: -0.025em;
 }
@@ -78,8 +94,21 @@
 .dark h4,
 .dark h5,
 .dark h6 {
-  color: #f8fafc;
+  color: #f8fafc !important;
   font-weight: 600;
+}
+
+/* Garantir todos os textos em branco */
+.dark p,
+.dark span:not(.lucide):not([class*="icon"]),
+.dark li,
+.dark div:not([class*="lucide"]):not([class*="icon"]) {
+  color: #f8fafc;
+}
+
+.dark label,
+.dark small {
+  color: #f8fafc !important;
 }
 
 /* ========================================
@@ -438,17 +467,39 @@
 }
 
 /* ========================================
-   BORDERS
+   BORDERS - LINHAS BRANCAS PARA DEMARCAR
    ======================================== */
 
 .dark .border,
 .dark [class*="border-"] {
-  border-color: #334155 !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
 }
 
 .dark .border-gray-200,
-.dark .border-gray-300 {
-  border-color: #334155 !important;
+.dark .border-gray-300,
+.dark .border-gray-100 {
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Bordas de separação */
+.dark hr,
+.dark .border-b,
+.dark .border-t,
+.dark .border-l,
+.dark .border-r {
+  border-color: rgba(255, 255, 255, 0.15) !important;
+}
+
+/* Bordas de destaque */
+.dark .border-primary {
+  border-color: rgba(59, 130, 246, 0.5) !important;
+}
+
+/* Divisores */
+.dark .divider,
+.dark .separator {
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  background-color: rgba(255, 255, 255, 0.1);
 }
 
 /* ========================================

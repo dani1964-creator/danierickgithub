@@ -82,41 +82,57 @@ All colors MUST be HSL.
   }
 
   .dark {
-    --background: 217.2 32.6% 17.5%;
+    /* Background escuro profundo e elegante */
+    --background: 222 47% 11%;
     --foreground: 210 40% 98%;
 
-    --card: 217.2 32.6% 17.5%;
+    /* Cards com elevação sutil */
+    --card: 217 33% 17%;
     --card-foreground: 210 40% 98%;
 
-    --popover: 217.2 32.6% 17.5%;
+    /* Popover com contraste */
+    --popover: 217 33% 15%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    /* Primary mantém identidade mas ajustado para dark */
+    --primary: 217 91% 60%;
+    --primary-foreground: 222 47% 11%;
 
-    --secondary: 217.2 32.6% 17.5%;
+    /* Secondary com contraste suave */
+    --secondary: 217 33% 23%;
     --secondary-foreground: 210 40% 98%;
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    /* Muted para textos secundários */
+    --muted: 217 33% 23%;
+    --muted-foreground: 215 20% 70%;
 
-    --accent: 217.2 32.6% 17.5%;
+    /* Accent com destaque */
+    --accent: 217 33% 25%;
     --accent-foreground: 210 40% 98%;
 
-    --destructive: 0 62.8% 30.6%;
+    /* Destructive */
+    --destructive: 0 63% 31%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 217.2 32.6% 17.5%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 217.2 32.6% 20%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 217.2 32.6% 20%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    /* Borders sutis */
+    --border: 217 33% 23%;
+    --input: 217 33% 25%;
+    --ring: 217 91% 60%;
+
+    /* Sidebar */
+    --sidebar-background: 222 47% 11%;
+    --sidebar-foreground: 210 40% 95%;
+    --sidebar-primary: 217 91% 60%;
+    --sidebar-primary-foreground: 222 47% 11%;
+    --sidebar-accent: 217 33% 20%;
+    --sidebar-accent-foreground: 210 40% 95%;
+    --sidebar-border: 217 33% 20%;
+    --sidebar-ring: 217 91% 60%;
+
+    /* Tokens para design system */
+    --surface: #1e293b;
+    --surface-fg: #f1f5f9;
+    --shadow: 0 20px 40px rgba(0, 0, 0, 0.4), 0 4px 12px rgba(0, 0, 0, 0.3);
   }
 
   /* Skeleton shimmer effect */
@@ -180,6 +196,69 @@ body {
 .rounded-brand { border-radius: var(--radius); }
 .shadow-brand { box-shadow: var(--shadow); }
 .border-brand { border-color: color-mix(in srgb, var(--surface-fg) 12%, transparent); }
+
+/* Dark mode específicos para melhor contraste */
+.dark .bg-card {
+  background: linear-gradient(135deg, hsl(217, 33%, 17%) 0%, hsl(217, 33%, 19%) 100%);
+}
+
+.dark .border-border {
+  border-color: hsl(217, 33%, 25%);
+}
+
+.dark input,
+.dark textarea,
+.dark select {
+  background-color: hsl(217, 33%, 20%);
+  border-color: hsl(217, 33%, 28%);
+  color: hsl(210, 40%, 98%);
+}
+
+.dark input:focus,
+.dark textarea:focus,
+.dark select:focus {
+  border-color: hsl(217, 91%, 60%);
+  box-shadow: 0 0 0 3px hsla(217, 91%, 60%, 0.2);
+}
+
+.dark button:not(.btn-ghost) {
+  background-color: hsl(217, 91%, 60%);
+  color: hsl(222, 47%, 11%);
+  font-weight: 600;
+}
+
+.dark button:hover:not(.btn-ghost) {
+  background-color: hsl(217, 91%, 55%);
+  box-shadow: 0 4px 12px hsla(217, 91%, 60%, 0.3);
+}
+
+.dark .text-muted-foreground {
+  color: hsl(215, 20%, 70%);
+}
+
+.dark h1,
+.dark h2,
+.dark h3,
+.dark h4,
+.dark h5,
+.dark h6 {
+  color: hsl(210, 40%, 98%);
+  font-weight: 700;
+}
+
+/* Cards com elevação */
+.dark .card-elevated {
+  background: linear-gradient(135deg, hsl(217, 33%, 18%) 0%, hsl(217, 33%, 21%) 100%);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.3);
+  border: 1px solid hsl(217, 33%, 25%);
+}
+
+/* Hover states */
+.dark .hover-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.5), 0 4px 12px rgba(0, 0, 0, 0.4);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
 
 /* Public site layout improvements */
 .public-site-layout {

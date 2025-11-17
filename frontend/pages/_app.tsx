@@ -6,6 +6,7 @@ import { Toaster } from '@/components/ui/toaster';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import '@/index.css';
 import '@/theme/design-system.css';
+import '@/theme/dark-mode.css';
 import '@/theme/property-card-premium.css';
 import '@/theme/search-filters-premium.css';
 import '@/theme/header-footer-premium.css';

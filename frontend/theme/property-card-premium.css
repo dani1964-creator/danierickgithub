@@ -578,21 +578,85 @@
 }
 
 .dark .property-card-type {
-  background: hsl(var(--muted));
-  color: hsl(var(--muted-foreground));
+  background: #334155;
+  color: #cbd5e1;
 }
 
 .dark .property-card-cta {
-  background: linear-gradient(135deg, var(--primary-600) 0%, var(--primary-800) 100%);
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
   color: white;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 }
 
 .dark .property-card-cta:hover {
-  background: linear-gradient(135deg, var(--primary-500) 0%, var(--primary-700) 100%);
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4);
+  transform: translateY(-1px);
 }
 
 .dark .property-card-no-image {
-  background: linear-gradient(135deg, var(--neutral-800) 0%, var(--neutral-900) 100%);
-  color: var(--neutral-500);
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  color: #64748b;
 }
+
+/* Dark mode melhorado para property cards */
+.dark .property-card {
+  background: linear-gradient(135deg, #1e293b 0%, #1a2332 100%);
+  border: 1px solid #334155;
+  box-shadow: 
+    0 10px 30px rgba(0, 0, 0, 0.6),
+    0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+.dark .property-card:hover {
+  border-color: #3b82f6;
+  box-shadow: 
+    0 20px 40px rgba(0, 0, 0, 0.7),
+    0 0 0 1px rgba(59, 130, 246, 0.2);
+  transform: translateY(-4px);
+}
+
+.dark .property-card-image-overlay {
+  background: linear-gradient(180deg, transparent 0%, rgba(15, 23, 42, 0.9) 100%);
+}
+
+.dark .property-card-title {
+  color: #f8fafc;
+  font-weight: 700;
+}
+
+.dark .property-card-location,
+.dark .property-card-description {
+  color: #cbd5e1;
+}
+
+.dark .property-card-price {
+  color: #f8fafc;
+  font-weight: 800;
+}
+
+.dark .property-card-details {
+  background: rgba(30, 41, 59, 0.8);
+  border-top: 1px solid #334155;
+}
+
+.dark .property-card-badge {
+  background: rgba(59, 130, 246, 0.2);
+  color: #93c5fd;
+  border: 1px solid rgba(59, 130, 246, 0.4);
+}
+
+.dark .property-card-badge.featured {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  color: #ffffff;
+  border: none;
+}
+
+.dark .property-card-badge.exclusive {
+  background: rgba(168, 85, 247, 0.2);
+  color: #c4b5fd;
+  border: 1px solid rgba(168, 85, 247, 0.4);
+}
+
 

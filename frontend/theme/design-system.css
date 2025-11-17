@@ -571,62 +571,257 @@ body {
    ======================================== */
 
 .dark {
-  /* Cores Primárias - Mais claras em dark mode */
+  /* ========================================
+     DARK MODE PREMIUM
+     Sistema de cores profissional e sofisticado
+     ======================================== */
+  
+  /* Background primário - Navy escuro profundo */
+  --bg-primary: #0f172a;      /* Slate 900 */
+  --bg-secondary: #1e293b;    /* Slate 800 */
+  --bg-tertiary: #334155;     /* Slate 700 */
+  --bg-elevated: #1e293b;     /* Cards */
+  --bg-overlay: rgba(15, 23, 42, 0.95);
+
+  /* Textos - Alto contraste */
+  --text-primary: #f8fafc;    /* Slate 50 */
+  --text-secondary: #cbd5e1;  /* Slate 300 */
+  --text-tertiary: #94a3b8;   /* Slate 400 */
+  --text-muted: #64748b;      /* Slate 500 */
+
+  /* Cores Primárias - Navy Blue ajustado para dark */
   --primary-50: #0a1929;
   --primary-100: #132f4c;
   --primary-200: #1e4976;
   --primary-300: #2d5f8d;
   --primary-400: #4a7ba7;
-  --primary-500: #6b9bc9;
+  --primary-500: #6b9bc9;      /* Azul principal em dark */
   --primary-600: #90b4d4;
   --primary-700: #b4cde0;
   --primary-800: #d7e6f0;
   --primary-900: #ecf4f9;
   --primary-950: #f5f9fc;
 
-  /* Accent/Gold - Ajustado para dark */
+  /* Accent/Gold - Mais vibrante em dark */
   --accent-50: #332408;
   --accent-100: #543d0f;
   --accent-200: #8a6318;
   --accent-300: #b88420;
   --accent-400: #d4a116;
-  --accent-500: #f9c42b;
+  --accent-500: #f9c42b;       /* Gold brilhante */
   --accent-600: #fbd558;
   --accent-700: #fce285;
   --accent-800: #fdeeb8;
   --accent-900: #fef8e7;
 
   /* Neutros - Invertidos para dark */
-  --neutral-50: #fafaf9;
-  --neutral-100: #f5f5f4;
-  --neutral-200: #e7e5e4;
-  --neutral-300: #d6d3d1;
-  --neutral-400: #a8a29e;
+  --neutral-50: #0c0a09;
+  --neutral-100: #1c1917;
+  --neutral-200: #292524;
+  --neutral-300: #44403c;
+  --neutral-400: #57534e;
   --neutral-500: #78716c;
-  --neutral-600: #57534e;
-  --neutral-700: #44403c;
-  --neutral-800: #292524;
-  --neutral-900: #1c1917;
-  --neutral-950: #0c0a09;
+  --neutral-600: #a8a29e;
+  --neutral-700: #d6d3d1;
+  --neutral-800: #e7e5e4;
+  --neutral-900: #f5f5f4;
+  --neutral-950: #fafaf9;
 
-  /* Gradientes - Versões dark */
-  --gradient-primary: linear-gradient(135deg, var(--primary-400) 0%, var(--primary-600) 100%);
-  --gradient-accent: linear-gradient(135deg, var(--accent-400) 0%, var(--accent-600) 100%);
+  /* Gradientes - Profundidade em dark */
+  --gradient-primary: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+  --gradient-accent: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
   --gradient-warm: linear-gradient(135deg, #543d0f 0%, #8a6318 50%, #b88420 100%);
-  --gradient-dark: linear-gradient(180deg, var(--neutral-800) 0%, var(--neutral-900) 100%);
-  --gradient-glass: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%);
+  --gradient-dark: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+  --gradient-glass: linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.03) 100%);
+  --gradient-hero: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
 
-  /* Sombras - Mais suaves em dark mode */
-  --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
-  --shadow-sm: 0 2px 4px -1px rgba(0, 0, 0, 0.4), 0 1px 2px -1px rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 4px 8px -2px rgba(0, 0, 0, 0.5), 0 2px 4px -2px rgba(0, 0, 0, 0.4);
-  --shadow-lg: 0 12px 24px -4px rgba(0, 0, 0, 0.6), 0 4px 8px -4px rgba(0, 0, 0, 0.5);
-  --shadow-xl: 0 20px 40px -8px rgba(0, 0, 0, 0.7), 0 8px 16px -8px rgba(0, 0, 0, 0.6);
-  --shadow-2xl: 0 32px 64px -12px rgba(0, 0, 0, 0.8), 0 12px 24px -12px rgba(0, 0, 0, 0.7);
+  /* Sombras - Profundidade realista em dark */
+  --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.5);
+  --shadow-sm: 0 2px 4px -1px rgba(0, 0, 0, 0.6), 0 1px 2px -1px rgba(0, 0, 0, 0.5);
+  --shadow-md: 0 4px 8px -2px rgba(0, 0, 0, 0.7), 0 2px 4px -2px rgba(0, 0, 0, 0.6);
+  --shadow-lg: 0 12px 24px -4px rgba(0, 0, 0, 0.8), 0 4px 8px -4px rgba(0, 0, 0, 0.7);
+  --shadow-xl: 0 20px 40px -8px rgba(0, 0, 0, 0.9), 0 8px 16px -8px rgba(0, 0, 0, 0.8);
+  --shadow-2xl: 0 32px 64px -12px rgba(0, 0, 0, 0.95), 0 12px 24px -12px rgba(0, 0, 0, 0.9);
+  
+  /* Sombras coloridas em dark mode */
+  --shadow-primary: 0 12px 32px -8px rgba(59, 130, 246, 0.4);
+  --shadow-accent: 0 12px 32px -8px rgba(245, 158, 11, 0.4);
+  --shadow-glow: 0 0 40px rgba(59, 130, 246, 0.15);
 
-  /* Bordas - Mais claras em dark mode */
-  --border-color-light: var(--neutral-700);
-  --border-color-base: var(--neutral-600);
-  --border-color-dark: var(--neutral-500);
+  /* Bordas - Sutil mas visível em dark */
+  --border-color-light: #334155;    /* Slate 700 */
+  --border-color-base: #475569;     /* Slate 600 */
+  --border-color-dark: #64748b;     /* Slate 500 */
+  
+  /* Glass/Blur effects */
+  --glass-bg: rgba(30, 41, 59, 0.8);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
 }
+
+/* ========================================
+   COMPONENTES DARK MODE
+   Estilos específicos para componentes
+   ======================================== */
+
+/* Cards com elevação realista */
+.dark .ds-card,
+.dark .card-elevated {
+  background: linear-gradient(135deg, #1e293b 0%, #1a2332 100%);
+  border: 1px solid #334155;
+  box-shadow: 
+    0 10px 30px rgba(0, 0, 0, 0.6),
+    0 2px 8px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.dark .ds-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 
+    0 20px 40px rgba(0, 0, 0, 0.7),
+    0 4px 12px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  border-color: #475569;
+}
+
+/* Inputs com melhor contraste */
+.dark input,
+.dark textarea,
+.dark select,
+.dark .ds-input {
+  background: #1e293b;
+  border: 1.5px solid #334155;
+  color: #f8fafc;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.dark input:focus,
+.dark textarea:focus,
+.dark select:focus,
+.dark .ds-input:focus {
+  background: #1e293b;
+  border-color: #3b82f6;
+  box-shadow: 
+    inset 0 2px 4px rgba(0, 0, 0, 0.3),
+    0 0 0 3px rgba(59, 130, 246, 0.2);
+  outline: none;
+}
+
+/* Botões premium */
+.dark .ds-btn-primary,
+.dark button:not(.btn-ghost):not(.ds-btn-secondary) {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: #ffffff;
+  font-weight: 600;
+  border: none;
+  box-shadow: 
+    0 4px 12px rgba(59, 130, 246, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.dark .ds-btn-primary:hover,
+.dark button:hover:not(.btn-ghost):not(.ds-btn-secondary) {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  box-shadow: 
+    0 6px 16px rgba(59, 130, 246, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  transform: translateY(-1px);
+}
+
+.dark .ds-btn-secondary {
+  background: #334155;
+  color: #f8fafc;
+  border: 1px solid #475569;
+}
+
+.dark .ds-btn-secondary:hover {
+  background: #475569;
+  border-color: #64748b;
+}
+
+/* Headers e navegação */
+.dark header,
+.dark nav {
+  background: rgba(15, 23, 42, 0.95);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid #334155;
+}
+
+/* Footers */
+.dark footer {
+  background: linear-gradient(180deg, #0f172a 0%, #020617 100%);
+  border-top: 1px solid #334155;
+}
+
+/* Glass morphism */
+.dark .glass-card {
+  background: rgba(30, 41, 59, 0.7);
+  backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+/* Tipografia com contraste */
+.dark h1,
+.dark h2,
+.dark h3,
+.dark h4,
+.dark h5,
+.dark h6 {
+  color: #f8fafc;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+}
+
+.dark p,
+.dark span,
+.dark li {
+  color: #cbd5e1;
+}
+
+.dark .text-muted,
+.dark .text-muted-foreground {
+  color: #94a3b8;
+}
+
+/* Links com hover suave */
+.dark a {
+  color: #60a5fa;
+  transition: color 0.2s ease;
+}
+
+.dark a:hover {
+  color: #93c5fd;
+  text-decoration: underline;
+  text-decoration-color: rgba(147, 197, 253, 0.3);
+}
+
+/* Dividers */
+.dark hr,
+.dark .divider {
+  border-color: #334155;
+  opacity: 0.6;
+}
+
+/* Scrollbar customizada */
+.dark ::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.dark ::-webkit-scrollbar-track {
+  background: #1e293b;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #475569;
+  border-radius: 5px;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #64748b;
+}
+
 

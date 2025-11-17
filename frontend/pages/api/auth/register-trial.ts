@@ -136,8 +136,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     console.log('✅ Broker criado com sucesso:', broker.id);
 
-    console.log('✅ Broker criado com sucesso:', broker.id);
-
     // 4. Criar assinatura em trial usando a função do banco
     console.log('📝 Tentando inicializar subscription trial para broker:', broker.id);
     

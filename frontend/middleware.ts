@@ -113,6 +113,8 @@ export async function middleware(request: NextRequest) {
     
     // Permitir rotas específicas do painel
     const isAuthPath = pathname.startsWith('/auth');
+    const isForgotPasswordPath = pathname.startsWith('/forgot-password');
+    const isResetPasswordPath = pathname.startsWith('/reset-password');
     const isDashboardPath = pathname.startsWith('/dashboard');
     const isPainelPath = pathname.startsWith('/painel');
     
@@ -124,7 +126,7 @@ export async function middleware(request: NextRequest) {
     }
     
     // Bloquear acesso a rotas que não são do painel
-    if (!isAuthPath && !isDashboardPath && !isPainelPath && !isApiPath) {
+    if (!isAuthPath && !isForgotPasswordPath && !isResetPasswordPath && !isDashboardPath && !isPainelPath && !isApiPath) {
       const url = request.nextUrl.clone();
       url.pathname = '/auth';
       return NextResponse.redirect(url);

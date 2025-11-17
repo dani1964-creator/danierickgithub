@@ -79,7 +79,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       .insert({
         user_id: userId,
         business_name: businessName,
-        owner_name: ownerName,
+        display_name: ownerName,
         email: email,
         website_slug: websiteSlug,
         is_active: true,

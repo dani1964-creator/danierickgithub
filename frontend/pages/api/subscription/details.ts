@@ -44,8 +44,37 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       .single();
 
     if (subError) {
+      // Se não encontrou assinatura, tentar criar uma nova
+      if (subError.code === 'PGRST116') {
+        console.log('Subscription not found, creating new trial subscription for broker:', broker.id);
+        
+        // Chamar função para criar assinatura trial
+        const { error: createError } = await supabaseAdmin.rpc('initialize_subscription_trial', {
+          p_broker_id: broker.id
+        });
+
+        if (createError) {
+          console.error('Error creating subscription:', createError);
+          return res.status(500).json({ error: 'Failed to create subscription' });
+        }
+
+        // Buscar novamente após criar
+        const { data: newSubscription, error: newSubError } = await supabaseAdmin
+          .from('subscription_details')
+          .select('*')
+          .eq('broker_id', broker.id)
+          .single();
+
+        if (newSubError) {
+          console.error('Error fetching new subscription:', newSubError);
+          return res.status(500).json({ error: 'Subscription created but failed to fetch' });
+        }
+
+        return res.status(200).json({ subscription: newSubscription });
+      }
+      
       console.error('Error fetching subscription:', subError);
-      return res.status(404).json({ error: 'Subscription not found' });
+      return res.status(500).json({ error: 'Database error' });
     }
 
     return res.status(200).json({ subscription });

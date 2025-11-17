@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
+import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -126,7 +127,16 @@ const Auth = () => {
               </Button>
             </form>
             
-            <div className="mt-6 text-center">
+            <div className="mt-4 text-center">
+              <Link 
+                href="/forgot-password"
+                className="text-sm text-primary hover:text-primary/80 hover:underline transition-colors"
+              >
+                Esqueceu sua senha?
+              </Link>
+            </div>
+            
+            <div className="mt-4 text-center">
               <p className="text-xs text-muted-foreground">
                 Novos usuários devem ser cadastrados pelo administrador
               </p>

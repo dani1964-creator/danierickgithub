@@ -1400,14 +1400,13 @@ function TicketsTab() {
                             <p className="text-xs font-medium text-muted-foreground mb-3">📎 Anexo: {fileName}</p>
                             {fileType === 'image' && (
                               <div className="mt-2 flex justify-center bg-black/5 rounded-lg p-4">
-                                <Image 
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img 
                                   src={attachmentUrl} 
                                   alt={fileName}
-                                  width={0}
-                                  height={0}
-                                  sizes="100vw"
-                                  className="w-full h-auto rounded-lg border shadow-lg"
-                                  style={{ width: '100%', height: 'auto', maxHeight: '600px', objectFit: 'contain' }}
+                                  className="max-w-full h-auto rounded-lg border shadow-lg"
+                                  style={{ maxHeight: '600px', objectFit: 'contain' }}
+                                  loading="lazy"
                                 />
                               </div>
                             )}

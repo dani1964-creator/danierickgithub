@@ -4,6 +4,14 @@ import { createClient } from '@supabase/supabase-js';
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
+// Validar variáveis de ambiente
+if (!SUPABASE_URL) {
+  console.error('❌ NEXT_PUBLIC_SUPABASE_URL não está configurada!');
+}
+if (!SUPABASE_SERVICE_ROLE_KEY) {
+  console.error('❌ SUPABASE_SERVICE_ROLE_KEY não está configurada!');
+}
+
 const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
 /**
@@ -15,8 +23,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
+  // Verificar variáveis de ambiente
+  if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+    console.error('❌ Variáveis de ambiente não configuradas:', {
+      hasUrl: !!SUPABASE_URL,
+      hasServiceKey: !!SUPABASE_SERVICE_ROLE_KEY,
+    });
+    return res.status(500).json({ 
+      error: 'Configuração do servidor incompleta. Contate o administrador.',
+      details: 'Variáveis de ambiente não configuradas'
+    });
+  }
+
   try {
     const { businessName, ownerName, email, password } = req.body;
+    
+    console.log('📝 Iniciando cadastro para:', { businessName, ownerName, email });
 
     // Validações
     if (!businessName || !ownerName || !email || !password) {
@@ -74,6 +96,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     // 3. Criar broker
+    console.log('📝 Tentando criar broker com dados:', {
+      user_id: userId,
+      business_name: businessName,
+      display_name: ownerName,
+      email: email,
+      website_slug: websiteSlug,
+    });
+
     const { data: broker, error: brokerError } = await supabaseAdmin
       .from('brokers')
       .insert({
@@ -88,22 +118,46 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       .single();
 
     if (brokerError || !broker) {
-      console.error('Broker error:', brokerError);
+      console.error('❌ Broker error DETALHADO:', {
+        error: brokerError,
+        message: brokerError?.message,
+        details: brokerError?.details,
+        hint: brokerError?.hint,
+        code: brokerError?.code,
+      });
       // Deletar usuário se falhar ao criar broker
       await supabaseAdmin.auth.admin.deleteUser(userId);
-      return res.status(500).json({ error: 'Erro ao criar imobiliária' });
+      return res.status(500).json({ 
+        error: 'Erro ao criar imobiliária',
+        details: brokerError?.message,
+        hint: brokerError?.hint,
+      });
     }
 
+    console.log('✅ Broker criado com sucesso:', broker.id);
+
+    console.log('✅ Broker criado com sucesso:', broker.id);
+
     // 4. Criar assinatura em trial usando a função do banco
-    const { error: subscriptionError } = await supabaseAdmin
+    console.log('📝 Tentando inicializar subscription trial para broker:', broker.id);
+    
+    const { data: subscriptionData, error: subscriptionError } = await supabaseAdmin
       .rpc('initialize_subscription_trial', {
         broker_uuid: broker.id
       });
 
     if (subscriptionError) {
-      console.error('Subscription error:', subscriptionError);
+      console.error('❌ Subscription error DETALHADO:', {
+        error: subscriptionError,
+        message: subscriptionError?.message,
+        details: subscriptionError?.details,
+        hint: subscriptionError?.hint,
+        code: subscriptionError?.code,
+      });
       // Não vamos reverter, mas vamos logar o erro
       // A subscription pode ser criada manualmente depois
+    } else {
+      console.log('✅ Subscription criada com sucesso:', subscriptionData);
     }
 
     // 5. Enviar email de boas-vindas (não bloqueia o cadastro se falhar)
@@ -142,7 +196,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
   } catch (error) {
-    console.error('Registration error:', error);
-    return res.status(500).json({ error: 'Erro interno ao processar cadastro' });
+    console.error('❌ Registration error COMPLETO:', {
+      error,
+      message: error instanceof Error ? error.message : 'Erro desconhecido',
+      stack: error instanceof Error ? error.stack : undefined,
+    });
+    return res.status(500).json({ 
+      error: 'Erro interno ao processar cadastro',
+      details: error instanceof Error ? error.message : 'Erro desconhecido',
+    });
   }
 }

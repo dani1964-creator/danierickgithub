@@ -241,7 +241,20 @@ const PublicSite = () => {
     try {
       // Garantir que slug seja string | undefined (router.query pode retornar string[])
       const slugString = Array.isArray(slug) ? slug[0] : slug;
-      const effectiveSlug = isCustomDomain() ? undefined : slugString;
+      
+      // Se não há slug na query e não é domínio customizado, extrair do hostname
+      let effectiveSlug = isCustomDomain() ? undefined : slugString;
+      
+      if (!effectiveSlug && !isCustomDomain() && typeof window !== 'undefined') {
+        // Extrair slug do hostname (ex: rfimobiliaria.adminimobiliaria.site -> rfimobiliaria)
+        const baseDomain = process.env.NEXT_PUBLIC_BASE_DOMAIN || 'adminimobiliaria.site';
+        const hostname = window.location.hostname;
+        if (hostname.endsWith(`.${baseDomain}`)) {
+          effectiveSlug = hostname.slice(0, -(baseDomain.length + 1));
+          logger.debug('Extracted slug from hostname:', effectiveSlug);
+        }
+      }
+      
       const cacheKey = effectiveSlug || (typeof window !== 'undefined' ? window.location.hostname : '');
       
       // Verificar cache (apenas se não for refresh forçado)

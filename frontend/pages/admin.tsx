@@ -1398,11 +1398,14 @@ function TicketsTab() {
                             <p className="text-xs font-medium text-muted-foreground mb-2">📎 Anexo: {fileName}</p>
                             {fileType === 'image' && (
                               <div className="mt-2">
-                                <img 
+                                <Image 
                                   src={attachmentUrl} 
                                   alt={fileName}
+                                  width={800}
+                                  height={400}
                                   className="max-w-full h-auto rounded-lg border shadow-sm"
-                                  style={{ maxHeight: '400px' }}
+                                  style={{ maxHeight: '400px', objectFit: 'contain' }}
+                                  unoptimized
                                 />
                               </div>
                             )}

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
+import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -118,7 +119,7 @@ export default function CadastroPage() {
           <Card className="shadow-xl border-2">
             <CardHeader className="space-y-3 text-center pb-6">
               <div className="mx-auto w-20 h-20 rounded-2xl flex items-center justify-center">
-                <img src="/imobideps-logo.svg" alt="AdminImobiliaria" className="h-16 w-auto" />
+                <Image src="/imobideps-logo.svg" alt="AdminImobiliaria" width={64} height={64} className="h-16 w-auto" />
               </div>
               
               <CardTitle className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">

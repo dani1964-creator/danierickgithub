@@ -70,16 +70,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
     }
 
-    // 1. Criar usuário no Supabase Auth
-    console.log('🔐 [REGISTER] Criando usuário...');
-    const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
+    // 1. Criar usuário - o trigger on_auth_user_created cria o broker automaticamente
+    console.log('🔐 [REGISTER] Criando usuário (trigger criará broker automaticamente)...');
+    
+    const { data: authData, error: authError } = await supabaseAdmin.auth.signUp({
       email,
       password,
-      email_confirm: true, // Auto-confirmar email
-      user_metadata: {
-        full_name: ownerName,
-        business_name: businessName,
-      },
+      options: {
+        data: {
+          business_name: businessName,
+          display_name: ownerName,
+          full_name: ownerName,
+        }
+      }
     });
 
     if (authError || !authData.user) {
@@ -88,7 +91,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         message: authError?.message,
       });
       
-      if (authError?.message?.includes('already registered')) {
+      if (authError?.message?.includes('already') || authError?.message?.includes('duplicate')) {
         return res.status(400).json({ 
           error: 'Este email já está cadastrado',
           code: 'EMAIL_EXISTS'
@@ -103,80 +106,30 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const userId = authData.user.id;
     console.log('✅ [REGISTER] Usuário criado:', userId);
-
-    // 2. Gerar slug único
-    console.log('🔤 [REGISTER] Gerando slug...');
-    const baseSlug = businessName
-      .toLowerCase()
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '') // Remove acentos
-      .replace(/[^a-z0-9]+/g, '-') // Substitui caracteres especiais por hífen
-      .replace(/^-+|-+$/g, ''); // Remove hífens das extremidades
-
-    // Verificar se slug já existe e adicionar número se necessário
-    let websiteSlug = baseSlug;
-    let counter = 1;
-    let slugExists = true;
-
-    while (slugExists) {
-      const { data: existing, error: slugError } = await supabaseAdmin
-        .from('brokers')
-        .select('id')
-        .eq('website_slug', websiteSlug)
-        .maybeSingle();
-
-      if (slugError) {
-        console.error('❌ [REGISTER] Erro ao verificar slug:', slugError);
-        throw new Error(`Erro ao verificar slug: ${slugError.message}`);
-      }
-
-      if (!existing) {
-        slugExists = false;
-      } else {
-        websiteSlug = `${baseSlug}-${counter}`;
-        counter++;
-      }
-    }
-    console.log('✅ [REGISTER] Slug gerado:', websiteSlug);
-
-    // 3. Criar broker
-    console.log('🏢 [REGISTER] Criando broker...');
-
+    
+    // 2. Aguardar trigger criar broker (1.5s)
+    console.log('⏳ [REGISTER] Aguardando trigger criar broker...');
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    
+    // 3. Buscar broker criado pelo trigger
     const { data: broker, error: brokerError } = await supabaseAdmin
       .from('brokers')
-      .insert({
-        user_id: userId,
-        business_name: businessName,
-        display_name: ownerName,
-        email: email,
-        website_slug: websiteSlug,
-        is_active: true,
-      })
-      .select()
+      .select('id, website_slug, business_name')
+      .eq('user_id', userId)
       .single();
-
+      
     if (brokerError || !broker) {
-      console.error('❌ [REGISTER] Broker error:', {
-        error: brokerError,
-        message: brokerError?.message,
-        details: brokerError?.details,
-        hint: brokerError?.hint,
-        code: brokerError?.code,
-      });
-      
-      // Rollback: Deletar usuário
-      console.log('🔄 [REGISTER] Revertendo usuário...');
+      console.error('❌ [REGISTER] Broker não criado pelo trigger:', brokerError);
       await supabaseAdmin.auth.admin.deleteUser(userId);
-      
       return res.status(500).json({ 
         error: 'Erro ao criar imobiliária',
-        details: brokerError?.message,
-        hint: brokerError?.hint,
-        code: 'BROKER_CREATE_ERROR'
+        details: 'Trigger não executou corretamente',
+        code: 'TRIGGER_FAILED'
       });
     }
-
-    console.log('✅ [REGISTER] Broker criado:', broker.id);
+    
+    console.log('✅ [REGISTER] Broker criado pelo trigger:', broker.id);
+    const websiteSlug = broker.website_slug;
 
     // 4. Criar assinatura em trial
     console.log('💳 [REGISTER] Criando subscription...');

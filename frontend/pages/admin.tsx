@@ -1377,41 +1377,42 @@ function TicketsTab() {
       {/* Dialog de resposta */}
       {selectedTicket && (
         <Dialog open={!!selectedTicket} onOpenChange={() => setSelectedTicket(null)}>
-          <DialogContent className="max-w-2xl">
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Ticket: {selectedTicket.subject}</DialogTitle>
+              <DialogTitle>Ticket: {selectedTicket.subject || 'Sem assunto'}</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
-              <div>
-                <Label>De:</Label>
-                <p className="text-sm">{selectedTicket.broker_name} ({selectedTicket.broker_email})</p>
+              <div className="bg-muted/50 p-4 rounded-lg">
+                <Label className="text-xs text-muted-foreground">De:</Label>
+                <p className="text-sm font-medium mt-1">{selectedTicket.broker_name}</p>
+                <p className="text-xs text-muted-foreground">{selectedTicket.broker_email}</p>
               </div>
               <div>
                 <Label>Mensagem:</Label>
-                <div className="bg-muted p-3 rounded-lg mt-1">
+                <div className="bg-muted p-4 rounded-lg mt-2">
                   {(() => {
                     const { text, attachmentUrl, fileName, fileType } = formatMessageWithAttachment(selectedTicket.message);
                     return (
                       <>
                         <p className="text-sm whitespace-pre-wrap">{text}</p>
                         {attachmentUrl && (
-                          <div className="mt-4 border-t pt-4">
-                            <p className="text-xs font-medium text-muted-foreground mb-2">📎 Anexo: {fileName}</p>
+                          <div className="mt-4 pt-4 border-t">
+                            <p className="text-xs font-medium text-muted-foreground mb-3">📎 Anexo: {fileName}</p>
                             {fileType === 'image' && (
-                              <div className="mt-2">
+                              <div className="mt-2 flex justify-center bg-black/5 rounded-lg p-4">
                                 <Image 
                                   src={attachmentUrl} 
                                   alt={fileName}
-                                  width={800}
-                                  height={400}
-                                  className="max-w-full h-auto rounded-lg border shadow-sm"
-                                  style={{ maxHeight: '400px', objectFit: 'contain' }}
-                                  unoptimized
+                                  width={0}
+                                  height={0}
+                                  sizes="100vw"
+                                  className="w-full h-auto rounded-lg border shadow-lg"
+                                  style={{ width: '100%', height: 'auto', maxHeight: '600px', objectFit: 'contain' }}
                                 />
                               </div>
                             )}
                             {fileType === 'pdf' && (
-                              <div className="mt-2">
+                              <div className="mt-2 space-y-3">
                                 <Button
                                   variant="outline"
                                   size="sm"
@@ -1421,12 +1422,12 @@ function TicketsTab() {
                                   <svg className="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
                                   </svg>
-                                  Visualizar PDF
+                                  Abrir PDF em Nova Aba
                                 </Button>
                                 <iframe
                                   src={attachmentUrl}
-                                  className="w-full mt-3 rounded-lg border"
-                                  style={{ height: '500px' }}
+                                  className="w-full rounded-lg border"
+                                  style={{ height: '600px' }}
                                   title={fileName}
                                 />
                               </div>

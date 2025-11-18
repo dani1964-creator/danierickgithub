@@ -162,20 +162,7 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
           </div>
           <div className="property-details-section__content">
             <div className="property-details-list">
-              {property.elevator && (
-                <div className="property-details-item">
-                  <Building2 className="w-4 h-4 text-blue-500" />
-                  <span className="property-details-item__label">Elevador</span>
-                  <CheckCircle className="w-5 h-5 text-green-500" />
-                </div>
-              )}
-              {property.portaria_24h && (
-                <div className="property-details-item">
-                  <Building2 className="w-4 h-4 text-green-500" />
-                  <span className="property-details-item__label">Portaria 24h</span>
-                  <CheckCircle className="w-5 h-5 text-green-500" />
-                </div>
-              )}
+              {/* Condição e Aquecimento PRIMEIRO (com valores de texto) */}
               {property.property_condition && (
                 <div className="property-details-item">
                   <Sparkles className="w-4 h-4 text-purple-500" />
@@ -190,17 +177,40 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
                   <span className="property-details-item__value">{property.heating_type}</span>
                 </div>
               )}
+              {/* Elevador e Portaria (apenas check verde, sem duplicatas nas features) */}
+              {property.elevator && (
+                <div className="property-details-item">
+                  <Building2 className="w-4 h-4 text-blue-500" />
+                  <span className="property-details-item__label">Elevador</span>
+                  <CheckCircle className="w-5 h-5 text-green-500" />
+                </div>
+              )}
+              {property.portaria_24h && (
+                <div className="property-details-item">
+                  <Building2 className="w-4 h-4 text-green-500" />
+                  <span className="property-details-item__label">Portaria 24h</span>
+                  <CheckCircle className="w-5 h-5 text-green-500" />
+                </div>
+              )}
             </div>
             
-            {/* Features mescladas (sem subtítulo) */}
+            {/* Features mescladas (agora com check verde ao lado, sem duplicatas) */}
             {property.features && property.features.length > 0 && (
-              <div className="property-features-grid mt-4">
-                {property.features.map((feature: string, index: number) => (
-                  <div key={`feat-${index}`} className="property-feature-item">
-                    <div className="property-feature-item__dot"></div>
-                    <span className="property-feature-item__text">{feature}</span>
-                  </div>
-                ))}
+              <div className="property-details-list mt-4">
+                {property.features
+                  .filter((feature: string) => {
+                    // Remover duplicatas: não mostrar se já aparece como campo individual
+                    const lowerFeature = feature.toLowerCase().trim();
+                    return !lowerFeature.includes('elevador') && 
+                           !lowerFeature.includes('portaria');
+                  })
+                  .map((feature: string, index: number) => (
+                    <div key={`feat-${index}`} className="property-details-item">
+                      <Sparkles className="w-4 h-4 text-purple-400" />
+                      <span className="property-details-item__label">{feature}</span>
+                      <CheckCircle className="w-5 h-5 text-green-500" />
+                    </div>
+                  ))}
               </div>
             )}
           </div>

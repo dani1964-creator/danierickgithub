@@ -278,7 +278,7 @@ const EditPropertyDialog = ({ property, open, onOpenChange, onPropertyUpdated }:
   ];
 
   const commonFeatures = [
-    'Garagem', 'Piscina', 'Elevador', 'Portaria 24h', 'Área de lazer',
+    'Garagem', 'Piscina', 'Área de lazer',
     'Academia', 'Salão de festas', 'Varanda', 'Área gourmet', 'Jardim'
   ];
 

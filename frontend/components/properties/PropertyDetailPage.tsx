@@ -1676,109 +1676,94 @@ const PropertyDetailPage = ({ initialQuery }: PropertyDetailPageProps = {}) => {
                 )}
               </div>
 
-              {/* Property Info Section Modernizada */}
-              <div className="property-detail-main">
-                {/* Title and Price Card Minimalista */}
-                <div className="property-detail-header">
-                  <div className="space-y-4">
-                    <div>
-                      <h1 className="property-detail-title">
-                        {property.title}
-                      </h1>
-                      <div className="property-detail-location">
-                        <MapPin className="h-5 w-5" />
-                        <span>{property.neighborhood && `${property.neighborhood}, `}{property.city && `${property.city} - `}{property.uf}</span>
-                      </div>
-                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                        <div className="inline-flex items-baseline gap-2">
-                          <span className="property-detail-price">
-                            {formatPrice(property.price)}
-                          </span>
-                          {property.transaction_type === 'rent' && (
-                            <span className="text-gray-500 text-sm">/ mês</span>
-                          )}
-                        </div>
-                        <div className="flex flex-wrap gap-2">
-                          <FeeBadge label="Condomínio" amount={property.hoa_fee} periodicity={property.hoa_periodicity} />
-                          <FeeBadge label="IPTU" amount={property.iptu_value} periodicity={property.iptu_periodicity} />
-                        </div>
-                      </div>
-                      <div className="property-detail-code">
-                        Código: {property.property_code || property.id.slice(-8)}
-                      </div>
-                    </div>
-                    
-                    {/* Property Features Compactas e Elegantes */}
-                    <div className="property-detail-features__grid">
-                      {property.bedrooms > 0 && (
-                        <div className="property-detail-feature">
-                          <Bed className="property-detail-feature__icon" />
-                          <div className="property-detail-feature__content">
-                            <span className="property-detail-feature__value">{property.bedrooms}</span>
-                            <span className="property-detail-feature__label">Quartos</span>
-                          </div>
-                        </div>
-                      )}
-                      {property.bathrooms > 0 && (
-                        <div className="property-detail-feature">
-                          <Bath className="property-detail-feature__icon" />
-                          <div className="property-detail-feature__content">
-                            <span className="property-detail-feature__value">{property.bathrooms}</span>
-                            <span className="property-detail-feature__label">Banheiros</span>
-                          </div>
-                        </div>
-                      )}
-                      {property.area_m2 && (
-                        <div className="property-detail-feature">
-                          <Square className="property-detail-feature__icon" />
-                          <div className="property-detail-feature__content">
-                            <span className="property-detail-feature__value">{property.area_m2}m²</span>
-                            <span className="property-detail-feature__label">Área</span>
-                          </div>
-                        </div>
-                      )}
-                      {property.parking_spaces > 0 && (
-                        <div className="property-detail-feature">
-                          <Car className="property-detail-feature__icon" />
-                          <div className="property-detail-feature__content">
-                            <span className="property-detail-feature__value">{property.parking_spaces}</span>
-                            <span className="property-detail-feature__label">Vagas</span>
-                          </div>
-                        </div>
+              {/* CAIXA BRANCA ÚNICA - TODO CONTEÚDO DENTRO */}
+              <div className="property-detail-unified-card">
+                {/* Título, Preço e Informações Principais */}
+                <div className="property-detail-section">
+                  <h1 className="property-detail-title">
+                    {property.title}
+                  </h1>
+                  <div className="property-detail-location">
+                    <MapPin className="h-5 w-5" />
+                    <span>{property.neighborhood && `${property.neighborhood}, `}{property.city && `${property.city} - `}{property.uf}</span>
+                  </div>
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                    <div className="inline-flex items-baseline gap-2">
+                      <span className="property-detail-price">
+                        {formatPrice(property.price)}
+                      </span>
+                      {property.transaction_type === 'rent' && (
+                        <span className="text-gray-500 text-sm">/ mês</span>
                       )}
                     </div>
+                    <div className="flex flex-wrap gap-2">
+                      <FeeBadge label="Condomínio" amount={property.hoa_fee} periodicity={property.hoa_periodicity} />
+                      <FeeBadge label="IPTU" amount={property.iptu_value} periodicity={property.iptu_periodicity} />
+                    </div>
+                  </div>
+                  <div className="property-detail-code">
+                    Código: {property.property_code || property.id.slice(-8)}
+                  </div>
+                </div>
 
-                    {/* Type and Transaction Badges Premium */}
-                    <div className="property-detail-badges">
-                      <span className="property-detail-badge property-detail-badge--type">
-                        {property.property_type}
-                      </span>
-                      <span className="property-detail-badge property-detail-badge--transaction">
-                        {property.transaction_type === 'sale' ? 'Venda' : 'Aluguel'}
-                      </span>
-                      {property.is_featured && (
-                        <span className="property-detail-badge property-detail-badge--featured">
-                          ⭐ Destaque
-                        </span>
-                      )}
-                    </div>
-                    
-                    {/* Card de Financiamento - opcional */}
-                    {property.financing_enabled && property.transaction_type === 'sale' && (
-                      <div className="mt-4">
-                        <FinancingCard
-                          price={property.price}
-                          downPaymentPercentage={property.financing_down_payment_percentage || 20}
-                          maxInstallments={property.financing_max_installments || 360}
-                          interestRate={property.financing_interest_rate || 0}
-                          isDarkMode={isDarkMode}
-                        />
+                {/* Property Features */}
+                <div className="property-detail-section">
+                  <div className="property-detail-features__grid">
+                    {property.bedrooms > 0 && (
+                      <div className="property-detail-feature">
+                        <Bed className="property-detail-feature__icon" />
+                        <div className="property-detail-feature__content">
+                          <span className="property-detail-feature__value">{property.bedrooms}</span>
+                          <span className="property-detail-feature__label">Quartos</span>
+                        </div>
                       </div>
+                    )}
+                    {property.bathrooms > 0 && (
+                      <div className="property-detail-feature">
+                        <Bath className="property-detail-feature__icon" />
+                        <div className="property-detail-feature__content">
+                          <span className="property-detail-feature__value">{property.bathrooms}</span>
+                          <span className="property-detail-feature__label">Banheiros</span>
+                        </div>
+                      </div>
+                    )}
+                    {property.area_m2 && (
+                      <div className="property-detail-feature">
+                        <Square className="property-detail-feature__icon" />
+                        <div className="property-detail-feature__content">
+                          <span className="property-detail-feature__value">{property.area_m2}m²</span>
+                          <span className="property-detail-feature__label">Área</span>
+                        </div>
+                      </div>
+                    )}
+                    {property.parking_spaces > 0 && (
+                      <div className="property-detail-feature">
+                        <Car className="property-detail-feature__icon" />
+                        <div className="property-detail-feature__content">
+                          <span className="property-detail-feature__value">{property.parking_spaces}</span>
+                          <span className="property-detail-feature__label">Vagas</span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Badges */}
+                  <div className="property-detail-badges mt-4">
+                    <span className="property-detail-badge property-detail-badge--type">
+                      {property.property_type}
+                    </span>
+                    <span className="property-detail-badge property-detail-badge--transaction">
+                      {property.transaction_type === 'sale' ? 'Venda' : 'Aluguel'}
+                    </span>
+                    {property.is_featured && (
+                      <span className="property-detail-badge property-detail-badge--featured">
+                        ⭐ Destaque
+                      </span>
                     )}
                   </div>
                 </div>
 
-                {/* Detalhes e Características Unificados */}
+                {/* Detalhes e Características */}
                 <PropertyDetails
                   property={property}
                   brokerProfile={brokerProfile}
@@ -1786,10 +1771,23 @@ const PropertyDetailPage = ({ initialQuery }: PropertyDetailPageProps = {}) => {
                   formatPrice={formatPrice}
                 />
 
-                {/* Localização - Integrada ao bloco unificado */}
-                <div className="property-detail-content-section">
-                  <h2 className="property-detail-content-section__title">
-                    <MapPin className="property-detail-content-section__title-icon" />
+                {/* Simulação de Financiamento - MOVIDO PARA CÁ */}
+                {property.financing_enabled && property.transaction_type === 'sale' && (
+                  <div className="property-detail-section">
+                    <FinancingCard
+                      price={property.price}
+                      downPaymentPercentage={property.financing_down_payment_percentage || 20}
+                      maxInstallments={property.financing_max_installments || 360}
+                      interestRate={property.financing_interest_rate || 0}
+                      isDarkMode={isDarkMode}
+                    />
+                  </div>
+                )}
+
+                {/* Localização e Mapa */}
+                <div className="property-detail-section property-detail-section--last">
+                  <h2 className="property-details-section__title">
+                    <MapPin className="property-details-section__icon" />
                     Localização
                   </h2>
                   <div className="space-y-4">
@@ -1803,7 +1801,7 @@ const PropertyDetailPage = ({ initialQuery }: PropertyDetailPageProps = {}) => {
                       </span>
                     </div>
                     
-                    {/* Mapa Google Maps Integrado */}
+                    {/* Mapa */}
                     <div className="relative w-full h-64 sm:h-80 rounded-lg overflow-hidden border border-neutral-200 shadow-md">
                       <iframe
                         title="Mapa da localização"
@@ -1850,6 +1848,7 @@ const PropertyDetailPage = ({ initialQuery }: PropertyDetailPageProps = {}) => {
                     </div>
                   </div>
                 </div>
+              </div>
 
                 {/* Similar Properties */}
                 {similarProperties.length > 0 && (

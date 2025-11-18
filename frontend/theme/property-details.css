@@ -1,15 +1,50 @@
 /* =================================================================
-   PROPERTY DETAILS - LAYOUT LINEAR COM DIVISÓRIAS
-   Layout vertical com seções separadas por linhas horizontais
+   PROPERTY DETAILS - CAIXA ÚNICA COM DIVISÓRIAS INTERNAS
+   Uma única caixa branca contendo todas as seções separadas por linhas
    ================================================================= */
 
-.property-details-linear {
-  width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
+/* Caixa branca única grande */
+.property-detail-unified-card {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  margin-bottom: 1.5rem;
 }
 
-/* Seções separadas por linhas */
+.dark .property-detail-unified-card {
+  background: #1e293b;
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Seções dentro da caixa - separadas por linhas */
+.property-detail-section {
+  padding: 2rem 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.property-detail-section:first-child {
+  padding-top: 0;
+}
+
+.property-detail-section:last-child,
+.property-detail-section--last {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+/* Dark mode - linhas brancas */
+.dark .property-detail-section {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Container do PropertyDetails - sem padding extra */
+.property-details-linear {
+  width: 100%;
+}
+
+/* Seções do PropertyDetails - seguem o mesmo padrão */
 .property-details-section {
   padding: 2rem 0;
   border-bottom: 1px solid rgba(0, 0, 0, 0.1);

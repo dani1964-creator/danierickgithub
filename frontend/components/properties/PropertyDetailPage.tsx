@@ -1898,7 +1898,7 @@ const PropertyDetailPage = ({ initialQuery }: PropertyDetailPageProps = {}) => {
                       ))}
                     </div>
                   </div>
-                </div>
+                )}
               </div>
 
             {/* Contact Sidebar - 1 coluna */}

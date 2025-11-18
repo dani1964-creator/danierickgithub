@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button';
 import { Building2, Users, Globe, TrendingUp, ArrowRight, CheckCircle, Server, Code, HeadphonesIcon } from 'lucide-react';
 import Link from 'next/link';
 import { PhoneMockup } from '@/components/marketing/PhoneMockup';
-import '@/components/marketing/PhoneMockup.css';
 
 /**
  * Página inicial do domínio principal (adminimobiliaria.site)

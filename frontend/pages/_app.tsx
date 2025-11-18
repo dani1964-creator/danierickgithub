@@ -11,6 +11,7 @@ import '@/theme/property-details.css';
 import '@/theme/property-card-premium.css';
 import '@/theme/search-filters-premium.css';
 import '@/theme/header-footer-premium.css';
+import '@/components/marketing/PhoneMockup.css';
 import { TenantProvider } from '@/contexts/TenantContext';
 import { analytics } from '@/lib/analytics';
 

@@ -40,16 +40,20 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
   // Verificar se há dados de custos
   const hasCostsData = property.water_cost != null || property.electricity_cost != null;
 
-  // Verificar se há dados de comodidades
-  const hasAmenitiesData = typeof property.furnished === 'boolean' ||
-    typeof property.accepts_pets === 'boolean' ||
-    typeof property.elevator === 'boolean' ||
-    typeof property.portaria_24h === 'boolean' ||
-    typeof property.gas_included === 'boolean' ||
-    typeof property.accessibility === 'boolean';
+  // Verificar se há dados de comodidades (apenas itens que realmente aparecem - valor true)
+  const hasAmenitiesData = 
+    property.furnished === true ||
+    property.accepts_pets === true ||
+    property.gas_included === true ||
+    property.accessibility === true;
 
-  // Verificar se há dados de condição
-  const hasConditionData = property.property_condition || property.heating_type;
+  // Verificar se há dados de condição (apenas itens que realmente aparecem)
+  const hasConditionData = 
+    property.elevator === true ||
+    property.portaria_24h === true ||
+    property.property_condition || 
+    property.heating_type || 
+    (property.features && property.features.length > 0);
 
   return (
     <div className="property-details-linear">
@@ -160,7 +164,7 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
         </div>
       )}
 
-      {/* Comodidades & Facilidades */}
+      {/* Comodidades & Facilidades - SEM DUPLICATAS */}
       {hasAmenitiesData && (
         <div className="property-details-section">
           <div className="property-details-section__header">
@@ -171,8 +175,6 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
             <div className="property-amenities-grid">
               {renderAmenityBadge('Mobiliado', property.furnished, <Home className="w-4 h-4" />)}
               {renderAmenityBadge('Aceita Pets', property.accepts_pets, <PawPrint className="w-4 h-4" />)}
-              {renderAmenityBadge('Elevador', property.elevator, <Building2 className="w-4 h-4" />)}
-              {renderAmenityBadge('Portaria 24h', property.portaria_24h, <Building2 className="w-4 h-4" />)}
               {renderAmenityBadge('Gás Incluso', property.gas_included, <Wind className="w-4 h-4" />)}
               {renderAmenityBadge('Acessibilidade', property.accessibility, <Building2 className="w-4 h-4" />)}
             </div>
@@ -180,7 +182,7 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
         </div>
       )}
 
-      {/* Condição & Estrutura */}
+      {/* Condição & Estrutura - AGORA INCLUI CARACTERÍSTICAS ADICIONAIS */}
       {hasConditionData && (
         <div className="property-details-section">
           <div className="property-details-section__header">
@@ -189,6 +191,21 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
           </div>
           <div className="property-details-section__content">
             <div className="property-details-list">
+              {/* Elevador e Portaria movidos para cá */}
+              {property.elevator && (
+                <div className="property-details-item">
+                  <Building2 className="w-4 h-4 text-blue-500" />
+                  <span className="property-details-item__label">Elevador</span>
+                  <span className="property-details-item__value">Sim</span>
+                </div>
+              )}
+              {property.portaria_24h && (
+                <div className="property-details-item">
+                  <Building2 className="w-4 h-4 text-green-500" />
+                  <span className="property-details-item__label">Portaria 24h</span>
+                  <span className="property-details-item__value">Sim</span>
+                </div>
+              )}
               {property.property_condition && (
                 <div className="property-details-item">
                   <Sparkles className="w-4 h-4 text-purple-500" />
@@ -204,26 +221,18 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
                 </div>
               )}
             </div>
-          </div>
-        </div>
-      )}
-
-      {/* Features Personalizadas */}
-      {property.features && property.features.length > 0 && (
-        <div className="property-details-section">
-          <div className="property-details-section__header">
-            <Sparkles className="property-details-section__icon" />
-            <h2 className="property-details-section__title">Características Adicionais</h2>
-          </div>
-          <div className="property-details-section__content">
-            <div className="property-features-grid">
-              {property.features.map((feature: string, index: number) => (
-                <div key={`feat-${index}`} className="property-feature-item">
-                  <div className="property-feature-item__dot"></div>
-                  <span className="property-feature-item__text">{feature}</span>
-                </div>
-              ))}
-            </div>
+            
+            {/* Features mescladas (sem subtítulo) */}
+            {property.features && property.features.length > 0 && (
+              <div className="property-features-grid mt-4">
+                {property.features.map((feature: string, index: number) => (
+                  <div key={`feat-${index}`} className="property-feature-item">
+                    <div className="property-feature-item__dot"></div>
+                    <span className="property-feature-item__text">{feature}</span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       )}

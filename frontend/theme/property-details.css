@@ -178,24 +178,40 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.625rem 1rem;
-  background: hsl(var(--primary) / 0.15);
-  border: 1px solid hsl(var(--primary) / 0.3);
+  background: hsl(var(--primary) / 0.08);
+  border: 1px solid hsl(var(--primary) / 0.2);
   border-radius: 0.5rem;
   font-size: 0.875rem;
   font-weight: 600;
-  color: var(--primary-color, hsl(var(--primary)));
+  color: #1f2937; /* Texto preto em modo claro */
   transition: all 0.2s;
 }
 
 .property-amenity-badge:hover {
-  background: hsl(var(--primary) / 0.2);
+  background: hsl(var(--primary) / 0.12);
   transform: translateY(-1px);
+}
+
+.property-amenity-badge__icon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Ícones coloridos em ambos os modos */
+.property-amenity-badge__icon svg {
+  color: var(--primary-color, hsl(var(--primary)));
 }
 
 /* Dark mode - badges com cores mais vivas */
 .dark .property-amenity-badge {
-  background: rgba(59, 130, 246, 0.2);
-  border: 1px solid rgba(59, 130, 246, 0.4);
+  background: rgba(59, 130, 246, 0.15);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  color: #f8fafc; /* Texto branco em modo escuro */
+}
+
+.dark .property-amenity-badge__icon svg {
   color: #60a5fa;
 }
 

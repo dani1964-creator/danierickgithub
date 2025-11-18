@@ -37,9 +37,6 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
     property.floor_number != null || property.total_floors != null ||
     property.built_year || property.sunlight_orientation;
 
-  // Verificar se há dados de custos
-  const hasCostsData = property.water_cost != null || property.electricity_cost != null;
-
   // Verificar se há dados de comodidades (apenas itens que realmente aparecem - valor true)
   const hasAmenitiesData = 
     property.furnished === true ||
@@ -136,33 +133,7 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
         </div>
       )}
 
-      {/* Custos Mensais */}
-      {hasCostsData && (
-        <div className="property-details-section">
-          <div className="property-details-section__header">
-            <DollarSign className="property-details-section__icon" />
-            <h2 className="property-details-section__title">Custos Mensais</h2>
-          </div>
-          <div className="property-details-section__content">
-            <div className="property-details-list">
-              {property.water_cost != null && (
-                <div className="property-details-item">
-                  <Droplet className="w-4 h-4 text-blue-500" />
-                  <span className="property-details-item__label">Água</span>
-                  <span className="property-details-item__value">{formatPrice(property.water_cost)}</span>
-                </div>
-              )}
-              {property.electricity_cost != null && (
-                <div className="property-details-item">
-                  <Zap className="w-4 h-4 text-yellow-500" />
-                  <span className="property-details-item__label">Energia elétrica</span>
-                  <span className="property-details-item__value">{formatPrice(property.electricity_cost)}</span>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
+
 
       {/* Comodidades & Facilidades - SEM DUPLICATAS */}
       {hasAmenitiesData && (
@@ -191,19 +162,18 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
           </div>
           <div className="property-details-section__content">
             <div className="property-details-list">
-              {/* Elevador e Portaria movidos para cá */}
               {property.elevator && (
                 <div className="property-details-item">
                   <Building2 className="w-4 h-4 text-blue-500" />
                   <span className="property-details-item__label">Elevador</span>
-                  <span className="property-details-item__value">Sim</span>
+                  <CheckCircle className="w-5 h-5 text-green-500" />
                 </div>
               )}
               {property.portaria_24h && (
                 <div className="property-details-item">
                   <Building2 className="w-4 h-4 text-green-500" />
                   <span className="property-details-item__label">Portaria 24h</span>
-                  <span className="property-details-item__value">Sim</span>
+                  <CheckCircle className="w-5 h-5 text-green-500" />
                 </div>
               )}
               {property.property_condition && (

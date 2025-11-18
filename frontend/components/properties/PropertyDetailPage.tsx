@@ -1701,9 +1701,6 @@ const PropertyDetailPage = ({ initialQuery }: PropertyDetailPageProps = {}) => {
                       <FeeBadge label="IPTU" amount={property.iptu_value} periodicity={property.iptu_periodicity} />
                     </div>
                   </div>
-                  <div className="property-detail-code">
-                    Código: {property.property_code || property.id.slice(-8)}
-                  </div>
                 </div>
 
                 {/* Property Features */}

@@ -4,6 +4,8 @@ import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Building2, Users, Globe, TrendingUp, ArrowRight, CheckCircle, Server, Code, HeadphonesIcon } from 'lucide-react';
 import Link from 'next/link';
+import { PhoneMockup } from '@/components/marketing/PhoneMockup';
+import '@/components/marketing/PhoneMockup.css';
 
 /**
  * Página inicial do domínio principal (adminimobiliaria.site)
@@ -87,45 +89,39 @@ const Index = () => {
       {/* Features */}
       <section className="container mx-auto px-4 py-20">
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-          <div className="p-6 rounded-lg border bg-card hover:shadow-lg transition-all duration-300">
-            <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
-              <Building2 className="h-6 w-6 text-primary" />
-            </div>
-            <h3 className="text-lg font-semibold mb-2">Gestão de Imóveis</h3>
-            <p className="text-muted-foreground text-sm">
-              Cadastre e gerencie seu portfólio completo de imóveis com fotos, descrições e detalhes.
-            </p>
-          </div>
+          <PhoneMockup
+            images={['https://i.ibb.co/whnc9QgQ/Screenshot-20251118-000937.png']}
+            title="Gestão de Imóveis"
+            description="Cadastre e gerencie seu portfólio completo de imóveis com fotos, descrições e detalhes."
+            scrollable={true}
+          />
 
-          <div className="p-6 rounded-lg border bg-card hover:shadow-lg transition-all duration-300">
-            <div className="w-12 h-12 rounded-lg bg-blue-500/10 flex items-center justify-center mb-4">
-              <Users className="h-6 w-6 text-blue-500" />
-            </div>
-            <h3 className="text-lg font-semibold mb-2">Captação de Leads</h3>
-            <p className="text-muted-foreground text-sm">
-              Receba e gerencie leads de interessados com integração WhatsApp e notificações em tempo real.
-            </p>
-          </div>
+          <PhoneMockup
+            images={[
+              'https://i.ibb.co/7tfjLVzW/Screenshot-20251118-002320.png',
+              'https://i.ibb.co/wNNC57x5/Screenshot-20251118-001010.png'
+            ]}
+            title="Captação de Leads"
+            description="Receba e gerencie leads de interessados com integração WhatsApp e notificações em tempo real."
+            scrollable={false}
+          />
 
-          <div className="p-6 rounded-lg border bg-card hover:shadow-lg transition-all duration-300">
-            <div className="w-12 h-12 rounded-lg bg-green-500/10 flex items-center justify-center mb-4">
-              <Globe className="h-6 w-6 text-green-500" />
-            </div>
-            <h3 className="text-lg font-semibold mb-2">Sites Personalizados</h3>
-            <p className="text-muted-foreground text-sm">
-              Cada corretor tem seu próprio site com domínio personalizado e identidade visual única.
-            </p>
-          </div>
+          <PhoneMockup
+            images={['https://i.ibb.co/vSTGF5K/Screenshot-20251117-235929.png']}
+            title="Sites Personalizados"
+            description="Cada corretor tem seu próprio site com domínio personalizado e identidade visual única."
+            scrollable={true}
+          />
 
-          <div className="p-6 rounded-lg border bg-card hover:shadow-lg transition-all duration-300">
-            <div className="w-12 h-12 rounded-lg bg-purple-500/10 flex items-center justify-center mb-4">
-              <TrendingUp className="h-6 w-6 text-purple-500" />
-            </div>
-            <h3 className="text-lg font-semibold mb-2">Analytics & SEO</h3>
-            <p className="text-muted-foreground text-sm">
-              Dashboard com métricas, integração com Google Analytics e otimização para mecanismos de busca.
-            </p>
-          </div>
+          <PhoneMockup
+            images={[
+              'https://i.ibb.co/XZy5z3Gk/Screenshot-20251118-000915.png',
+              'https://i.ibb.co/ZyTp4wc/Screenshot-20251118-001145.png'
+            ]}
+            title="Analytics & SEO"
+            description="Dashboard com métricas, integração com Google Analytics e otimização para mecanismos de busca."
+            scrollable={false}
+          />
         </div>
       </section>
 

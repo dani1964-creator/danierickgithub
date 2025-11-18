@@ -1,0 +1,226 @@
+/* =====================================================
+   PHONE MOCKUP - Marketing Features Section
+   ===================================================== */
+
+.feature-card {
+  position: relative;
+  padding: 2rem;
+  border-radius: 1rem;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  background: white;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+}
+
+.feature-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+  border-color: rgba(99, 102, 241, 0.3);
+}
+
+.dark .feature-card {
+  background: #1e293b;
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.dark .feature-card:hover {
+  border-color: rgba(99, 102, 241, 0.5);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+}
+
+/* Phone Frame */
+.phone-mockup {
+  position: relative;
+  width: 100%;
+  max-width: 280px;
+  margin: 0 auto 2rem;
+  perspective: 1000px;
+}
+
+.phone-frame {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 9 / 19.5; /* iPhone-like ratio */
+  background: #1f2937;
+  border-radius: 2.5rem;
+  padding: 0.75rem;
+  box-shadow: 
+    0 0 0 2px #374151,
+    0 0 0 4px #1f2937,
+    0 20px 60px rgba(0, 0, 0, 0.3),
+    inset 0 0 1px rgba(255, 255, 255, 0.1);
+  transition: transform 0.3s ease;
+}
+
+.feature-card:hover .phone-frame {
+  transform: rotateY(5deg) rotateX(-2deg);
+}
+
+/* Notch (Dynamic Island style) */
+.phone-notch {
+  position: absolute;
+  top: 0.75rem;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 120px;
+  height: 30px;
+  background: #000;
+  border-radius: 0 0 1.5rem 1.5rem;
+  z-index: 10;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.phone-notch::before {
+  content: '';
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 8px;
+  height: 8px;
+  background: #1e40af;
+  border-radius: 50%;
+  box-shadow: 0 0 4px rgba(30, 64, 175, 0.6);
+}
+
+/* Screen */
+.phone-screen {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: #000;
+  border-radius: 1.75rem;
+  overflow: hidden;
+}
+
+.phone-screen-content {
+  width: 100%;
+  height: 100%;
+  will-change: transform;
+}
+
+.phone-screenshot {
+  width: 100%;
+  height: auto;
+  display: block;
+  object-fit: cover;
+  object-position: top;
+}
+
+/* Home Indicator */
+.phone-home-indicator {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 120px;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 2px;
+  z-index: 10;
+}
+
+/* Dots Indicator */
+.phone-dots-indicator {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  margin-top: 1rem;
+}
+
+.phone-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+}
+
+.dark .phone-dot {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.phone-dot.active {
+  background: #6366f1;
+  transform: scale(1.3);
+}
+
+/* Feature Content */
+.feature-content {
+  text-align: center;
+}
+
+.feature-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  color: #111827;
+  transition: color 0.3s ease;
+}
+
+.dark .feature-title {
+  color: #f9fafb;
+}
+
+.feature-description {
+  font-size: 0.9375rem;
+  color: #6b7280;
+  line-height: 1.6;
+}
+
+.dark .feature-description {
+  color: #9ca3af;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .phone-mockup {
+    max-width: 240px;
+  }
+
+  .phone-frame {
+    border-radius: 2rem;
+  }
+
+  .phone-screen {
+    border-radius: 1.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .feature-card {
+    padding: 1.5rem;
+  }
+
+  .phone-mockup {
+    max-width: 200px;
+    margin-bottom: 1.5rem;
+  }
+
+  .phone-notch {
+    width: 100px;
+    height: 25px;
+  }
+
+  .feature-title {
+    font-size: 1.125rem;
+  }
+
+  .feature-description {
+    font-size: 0.875rem;
+  }
+}
+
+/* Animation on scroll */
+@keyframes phoneFloat {
+  0%, 100% {
+    transform: translateY(0) rotateY(0);
+  }
+  50% {
+    transform: translateY(-10px) rotateY(2deg);
+  }
+}
+
+.feature-card:hover .phone-frame {
+  animation: phoneFloat 3s ease-in-out infinite;
+}

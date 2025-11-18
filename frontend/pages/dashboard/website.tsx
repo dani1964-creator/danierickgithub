@@ -687,11 +687,13 @@ const WebsiteSettings = () => {
                               ⚙️ Configuração DNS Necessária
                             </p>
                             <p className="text-xs text-blue-800 dark:text-blue-200 mb-2">
-                              Acesse o painel do seu provedor de DNS (Registro.br, GoDaddy, Hostgator, etc) e adicione o seguinte registro:
+                              Acesse o painel do seu provedor de DNS (Registro.br, GoDaddy, Hostgator, etc) e adicione os seguintes registros:
                             </p>
                           </div>
 
+                          {/* Registro CNAME para www */}
                           <div className="bg-white dark:bg-gray-900 p-3 rounded border border-blue-300 dark:border-blue-700">
+                            <p className="text-xs font-semibold text-blue-900 dark:text-blue-100 mb-2">1. Registro CNAME (para www)</p>
                             <div className="grid grid-cols-3 gap-2 text-xs font-mono">
                               <div>
                                 <span className="text-gray-500 dark:text-gray-400">Tipo:</span>
@@ -699,13 +701,32 @@ const WebsiteSettings = () => {
                               </div>
                               <div>
                                 <span className="text-gray-500 dark:text-gray-400">Nome/Host:</span>
-                                <div className="font-semibold text-blue-900 dark:text-blue-100">@ ou www</div>
+                                <div className="font-semibold text-blue-900 dark:text-blue-100">www</div>
                               </div>
                               <div>
                                 <span className="text-gray-500 dark:text-gray-400">Valor/Destino:</span>
                                 <div className="font-semibold text-blue-900 dark:text-blue-100 break-all">
-                                  {process.env.NEXT_PUBLIC_CNAME_TARGET || 'whale-app-w84mh.ondigitalocean.app'}
+                                  {process.env.NEXT_PUBLIC_BASE_PUBLIC_DOMAIN || 'adminimobiliaria.site'}
                                 </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Registro A para domínio raiz */}
+                          <div className="bg-white dark:bg-gray-900 p-3 rounded border border-blue-300 dark:border-blue-700">
+                            <p className="text-xs font-semibold text-blue-900 dark:text-blue-100 mb-2">2. Registro A (para domínio raiz)</p>
+                            <div className="grid grid-cols-3 gap-2 text-xs font-mono">
+                              <div>
+                                <span className="text-gray-500 dark:text-gray-400">Tipo:</span>
+                                <div className="font-semibold text-blue-900 dark:text-blue-100">A</div>
+                              </div>
+                              <div>
+                                <span className="text-gray-500 dark:text-gray-400">Nome/Host:</span>
+                                <div className="font-semibold text-blue-900 dark:text-blue-100">@ (ou vazio)</div>
+                              </div>
+                              <div>
+                                <span className="text-gray-500 dark:text-gray-400">Valor/IP:</span>
+                                <div className="font-semibold text-blue-900 dark:text-blue-100">162.159.140.98</div>
                               </div>
                             </div>
                           </div>
@@ -715,10 +736,11 @@ const WebsiteSettings = () => {
                               📌 Observações importantes:
                             </p>
                             <ul className="text-xs text-blue-700 dark:text-blue-300 space-y-1 list-disc list-inside">
-                              <li>Se usar <strong>www.seudominio.com.br</strong>, configure CNAME com nome "www"</li>
-                              <li>Se usar apenas <strong>seudominio.com.br</strong> (sem www), alguns provedores exigem usar "@" ou deixar em branco</li>
-                              <li>Alguns provedores não permitem CNAME no registro raiz (@). Neste caso, use um registro <strong>ALIAS</strong> ou <strong>ANAME</strong> se disponível</li>
+                              <li><strong>CNAME www</strong> → aponta www.seudominio.com para {process.env.NEXT_PUBLIC_BASE_PUBLIC_DOMAIN || 'adminimobiliaria.site'}</li>
+                              <li><strong>A record @</strong> → aponta seudominio.com (raiz) para o IP 162.159.140.98</li>
+                              <li>TTL recomendado: <strong>1 hora (3600 segundos)</strong></li>
                               <li>Aguarde de 10 minutos a 48h para propagação DNS completa</li>
+                              <li>Use o botão <strong>"Verificar DNS"</strong> para testar se está funcionando</li>
                             </ul>
                           </div>
                         </div>

@@ -32,7 +32,7 @@
 .phone-mockup {
   position: relative;
   width: 100%;
-  max-width: 280px;
+  max-width: 360px;
   margin: 0 auto 2rem;
   perspective: 1000px;
 }
@@ -90,13 +90,30 @@
   height: 100%;
   background: #000;
   border-radius: 1.75rem;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.phone-screen::-webkit-scrollbar {
+  width: 4px;
+}
+
+.phone-screen::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.phone-screen::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 2px;
+}
+
+.phone-screen::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
 }
 
 .phone-screen-content {
   width: 100%;
-  height: 100%;
-  will-change: transform;
+  min-height: 100%;
 }
 
 .phone-screenshot {
@@ -175,7 +192,7 @@
 /* Responsive */
 @media (max-width: 1024px) {
   .phone-mockup {
-    max-width: 240px;
+    max-width: 320px;
   }
 
   .phone-frame {
@@ -193,7 +210,7 @@
   }
 
   .phone-mockup {
-    max-width: 200px;
+    max-width: 280px;
     margin-bottom: 1.5rem;
   }
 

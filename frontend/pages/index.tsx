@@ -92,7 +92,6 @@ const Index = () => {
             images={['https://i.ibb.co/whnc9QgQ/Screenshot-20251118-000937.png']}
             title="Gestão de Imóveis"
             description="Cadastre e gerencie seu portfólio completo de imóveis com fotos, descrições e detalhes."
-            scrollable={true}
           />
 
           <PhoneMockup
@@ -102,14 +101,12 @@ const Index = () => {
             ]}
             title="Captação de Leads"
             description="Receba e gerencie leads de interessados com integração WhatsApp e notificações em tempo real."
-            scrollable={false}
           />
 
           <PhoneMockup
             images={['https://i.ibb.co/vSTGF5K/Screenshot-20251117-235929.png']}
             title="Sites Personalizados"
             description="Cada corretor tem seu próprio site com domínio personalizado e identidade visual única."
-            scrollable={true}
           />
 
           <PhoneMockup
@@ -119,7 +116,6 @@ const Index = () => {
             ]}
             title="Analytics & SEO"
             description="Dashboard com métricas, integração com Google Analytics e otimização para mecanismos de busca."
-            scrollable={false}
           />
         </div>
       </section>

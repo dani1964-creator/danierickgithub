@@ -15,23 +15,6 @@ export const PhoneMockup: React.FC<PhoneMockupProps> = ({
   scrollable = false 
 }) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [scrollPosition, setScrollPosition] = useState(0);
-
-  // Auto-scroll para imagens compridas
-  useEffect(() => {
-    if (!scrollable || images.length === 0) return;
-
-    const interval = setInterval(() => {
-      setScrollPosition(prev => {
-        // Se chegou ao final, volta ao topo
-        if (prev >= 100) return 0;
-        // Incrementa gradualmente
-        return prev + 0.5;
-      });
-    }, 50); // Suave, 50ms
-
-    return () => clearInterval(interval);
-  }, [scrollable, images]);
 
   // Alternar entre múltiplas imagens
   useEffect(() => {
@@ -39,8 +22,7 @@ export const PhoneMockup: React.FC<PhoneMockupProps> = ({
 
     const interval = setInterval(() => {
       setCurrentImageIndex(prev => (prev + 1) % images.length);
-      setScrollPosition(0); // Reset scroll ao trocar imagem
-    }, 4000); // Troca a cada 4 segundos
+    }, 5000); // Troca a cada 5 segundos
 
     return () => clearInterval(interval);
   }, [images.length]);
@@ -55,18 +37,12 @@ export const PhoneMockup: React.FC<PhoneMockupProps> = ({
           
           {/* Screen */}
           <div className="phone-screen">
-            <div 
-              className="phone-screen-content"
-              style={{
-                transform: scrollable ? `translateY(-${scrollPosition}%)` : 'none',
-                transition: 'transform 0.3s ease-out'
-              }}
-            >
+            <div className="phone-screen-content">
               <Image 
                 src={images[currentImageIndex]} 
                 alt={title}
-                width={280}
-                height={606}
+                width={400}
+                height={866}
                 className="phone-screenshot"
                 priority={currentImageIndex === 0}
                 unoptimized

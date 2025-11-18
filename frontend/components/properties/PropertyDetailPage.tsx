@@ -1898,9 +1898,8 @@ const PropertyDetailPage = ({ initialQuery }: PropertyDetailPageProps = {}) => {
                       ))}
                     </div>
                   </div>
-                )}
+                </div>
               </div>
-            </div>
 
             {/* Contact Sidebar - 1 coluna */}
             <div className="lg:col-span-1">

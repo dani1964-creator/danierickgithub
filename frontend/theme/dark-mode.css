@@ -503,6 +503,59 @@
 }
 
 /* ========================================
+   PROPERTY CARDS - PREÇOS E FUNDOS
+   ======================================== */
+
+/* Preço em branco nos cards */
+.dark .property-card-price,
+.dark .property-price,
+.dark [class*="price"] {
+  color: #f8fafc !important;
+}
+
+/* Fundos escuros nas seções de imóveis */
+.dark .properties-section,
+.dark .featured-properties,
+.dark .properties-grid,
+.dark section:not(.property-amenity-badge) {
+  background-color: #0f172a;
+}
+
+/* Cards de imóveis com fundo escuro */
+.dark .property-card {
+  background: linear-gradient(135deg, #1e293b 0%, #1a2332 100%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Layout linear de detalhes */
+.dark .property-details-linear {
+  background-color: #0f172a;
+}
+
+/* Seções de detalhes com fundo escuro */
+.dark .property-details-section__content {
+  background-color: transparent;
+}
+
+/* ========================================
+   INPUTS DE LOCALIZAÇÃO
+   ======================================== */
+
+.dark input[placeholder="Bairro"],
+.dark input[placeholder="Cidade"],
+.dark input[placeholder="Estado"] {
+  background: #1e293b !important;
+  color: #f8fafc !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+.dark input[placeholder="Bairro"]::placeholder,
+.dark input[placeholder="Cidade"]::placeholder,
+.dark input[placeholder="Estado"]::placeholder {
+  color: #94a3b8 !important;
+}
+
+/* ========================================
    SHADOWS
    ======================================== */
 

@@ -1,354 +1,88 @@
-/**
- * Property Details - Design Minimalista e Elegante
- * 
- * Sistema unificado de exibição de detalhes de imóveis
- * sem abas, com cards semânticos e hierarquia visual clara
- */
+/* =================================================================
+   PROPERTY DETAILS - LAYOUT LINEAR COM DIVISÓRIAS
+   Layout vertical com seções separadas por linhas horizontais
+   ================================================================= */
 
-/* ========================================
-   CONTAINER PRINCIPAL
-   ======================================== */
-
-.property-details-container {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
+.property-details-linear {
   width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
-/* ========================================
-   CARDS BASE
-   ======================================== */
-
-.property-details-card {
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  padding: 1.5rem;
-  transition: all 0.2s ease;
+/* Seções separadas por linhas */
+.property-details-section {
+  padding: 2rem 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
 }
 
-.property-details-card:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+.property-details-section:last-child {
+  border-bottom: none;
 }
 
-/* Card de descrição - destaque maior */
-.property-details-card--description {
-  background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
-  border: 1px solid #e0e7ff;
-  padding: 2rem;
+/* Dark mode - linhas brancas */
+.dark .property-details-section {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-/* Card de observações - destaque sutil */
-.property-details-card--notes {
-  background: #fef3c7;
-  border: 1px solid #fbbf24;
-}
-
-/* Card de amenidades - full width */
-.property-details-card--amenities {
-  background: #f0f9ff;
-  border: 1px solid #93c5fd;
-}
-
-/* ========================================
-   HEADER DO CARD
-   ======================================== */
-
-.property-details-card__header {
+/* Header de cada seção */
+.property-details-section__header {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  margin-bottom: 1.25rem;
-  padding-bottom: 0.75rem;
-  border-bottom: 2px solid #f3f4f6;
+  margin-bottom: 1.5rem;
 }
 
-.property-details-card__icon {
-  width: 20px;
-  height: 20px;
-  color: #3b82f6;
+.property-details-section__icon {
+  width: 1.5rem;
+  height: 1.5rem;
+  color: var(--primary-color, hsl(var(--primary)));
   flex-shrink: 0;
 }
 
-.property-details-card__title {
-  font-size: 1.125rem;
-  font-weight: 700;
-  color: #1f2937;
-  margin: 0;
-  letter-spacing: -0.025em;
-}
-
-/* ========================================
-   CONTENT DO CARD
-   ======================================== */
-
-.property-details-card__content {
-  color: #4b5563;
-  line-height: 1.6;
-}
-
-/* ========================================
-   DESCRIÇÃO
-   ======================================== */
-
-.property-details-description {
-  font-size: 1rem;
-  color: #374151;
-  line-height: 1.75;
-  margin: 0;
-  white-space: pre-wrap;
-}
-
-.property-details-empty {
-  font-size: 0.875rem;
-  color: #9ca3af;
-  font-style: italic;
+.property-details-section__title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: hsl(var(--foreground));
   margin: 0;
 }
 
-/* ========================================
-   GRID DE CARDS
-   ======================================== */
-
-.property-details-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 1.5rem;
+/* Dark mode - títulos e ícones */
+.dark .property-details-section__title {
+  color: #f8fafc;
 }
 
-@media (min-width: 768px) {
-  .property-details-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
+/* Conteúdo */
+.property-details-section__content {
+  padding-left: 2.25rem; /* Alinhado com o título após o ícone */
 }
 
-@media (min-width: 1024px) {
-  .property-details-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-
-/* ========================================
-   LISTA DE DETALHES
-   ======================================== */
-
+/* Lista de detalhes (chave-valor) */
 .property-details-list {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 1rem;
 }
 
 .property-details-item {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.625rem 0;
-  border-bottom: 1px solid #f3f4f6;
-}
-
-.property-details-item:last-child {
-  border-bottom: none;
+  gap: 0.75rem;
+  padding: 0.5rem 0;
 }
 
 .property-details-item__label {
-  flex: 1;
-  font-size: 0.875rem;
-  color: #6b7280;
   font-weight: 500;
+  color: hsl(var(--muted-foreground));
+  flex: 1;
 }
 
 .property-details-item__value {
-  font-size: 0.9375rem;
-  color: #1f2937;
   font-weight: 600;
+  color: hsl(var(--foreground));
+  text-align: right;
 }
 
-/* ========================================
-   BADGES DE AMENIDADES
-   ======================================== */
-
-.property-amenities-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 1rem;
-}
-
-.property-amenity-badge {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.875rem 1rem;
-  border-radius: 8px;
-  border: 1.5px solid;
-  transition: all 0.2s ease;
-}
-
-/* Badge disponível (Sim) */
-.property-amenity-badge.is-available {
-  background: #ecfdf5;
-  border-color: #10b981;
-  color: #065f46;
-}
-
-.property-amenity-badge.is-available .property-amenity-badge__icon {
-  color: #10b981;
-}
-
-.property-amenity-badge.is-available .property-amenity-badge__status {
-  color: #10b981;
-}
-
-/* Badge indisponível (Não) */
-.property-amenity-badge.is-unavailable {
-  background: #f3f4f6;
-  border-color: #d1d5db;
-  color: #6b7280;
-}
-
-.property-amenity-badge.is-unavailable .property-amenity-badge__icon {
-  color: #9ca3af;
-}
-
-.property-amenity-badge.is-unavailable .property-amenity-badge__status {
-  color: #9ca3af;
-}
-
-.property-amenity-badge__icon {
-  flex-shrink: 0;
-}
-
-.property-amenity-badge__label {
-  flex: 1;
-  font-size: 0.875rem;
-  font-weight: 600;
-}
-
-.property-amenity-badge__status {
-  flex-shrink: 0;
-}
-
-.property-amenity-badge:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-
-/* ========================================
-   FEATURES PERSONALIZADAS
-   ======================================== */
-
-.property-features-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 0.75rem;
-}
-
-.property-feature-item {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.625rem 0;
-}
-
-.property-feature-item__dot {
-  width: 6px;
-  height: 6px;
-  background: #3b82f6;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
-.property-feature-item__text {
-  font-size: 0.875rem;
-  color: #4b5563;
-  line-height: 1.5;
-}
-
-/* ========================================
-   OBSERVAÇÕES
-   ======================================== */
-
-.property-details-notes {
-  font-size: 0.9375rem;
-  color: #92400e;
-  line-height: 1.75;
-  margin: 0;
-  white-space: pre-wrap;
-}
-
-/* ========================================
-   DARK MODE - TEXTOS BRANCOS E BORDAS BRANCAS
-   ======================================== */
-
-.dark .property-details-card {
-  background: #1e293b;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-}
-
-.dark .property-details-card:hover {
-  border-color: rgba(255, 255, 255, 0.2);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
-}
-
-/* Card de descrição em dark mode */
-.dark .property-details-card--description {
-  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-}
-
-/* Card de observações em dark mode */
-.dark .property-details-card--notes {
-  background: rgba(251, 191, 36, 0.15);
-  border: 1px solid rgba(251, 191, 36, 0.4);
-}
-
-/* Card de amenidades em dark mode */
-.dark .property-details-card--amenities {
-  background: rgba(59, 130, 246, 0.1);
-  border: 1px solid rgba(59, 130, 246, 0.3);
-}
-
-/* ========================================
-   HEADER EM DARK MODE
-   ======================================== */
-
-.dark .property-details-card__header {
-  border-bottom: 2px solid rgba(255, 255, 255, 0.1);
-}
-
-.dark .property-details-card__icon {
-  color: #60a5fa;
-}
-
-.dark .property-details-card__title {
-  color: #f8fafc;
-}
-
-/* ========================================
-   CONTENT EM DARK MODE - TEXTOS BRANCOS
-   ======================================== */
-
-.dark .property-details-card__content {
-  color: #f8fafc;
-}
-
-.dark .property-details-description {
-  color: #f8fafc;
-}
-
-.dark .property-details-empty {
-  color: #94a3b8;
-}
-
-/* ========================================
-   LISTA EM DARK MODE
-   ======================================== */
-
-.dark .property-details-item {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-}
-
+/* Dark mode - labels e values */
 .dark .property-details-item__label {
   color: #cbd5e1;
 }
@@ -357,75 +91,139 @@
   color: #f8fafc;
 }
 
-/* ========================================
-   BADGES EM DARK MODE
-   ======================================== */
-
-/* Badge disponível em dark mode */
-.dark .property-amenity-badge.is-available {
-  background: rgba(16, 185, 129, 0.15);
-  border-color: rgba(16, 185, 129, 0.5);
-  color: #6ee7b7;
+/* Descrição */
+.property-details-description {
+  color: hsl(var(--foreground));
+  line-height: 1.7;
+  white-space: pre-wrap;
+  margin: 0;
 }
 
-.dark .property-amenity-badge.is-available .property-amenity-badge__icon {
-  color: #10b981;
+.dark .property-details-description {
+  color: #f8fafc;
 }
 
-.dark .property-amenity-badge.is-available .property-amenity-badge__status {
-  color: #10b981;
+.property-details-empty {
+  color: hsl(var(--muted-foreground));
+  font-style: italic;
+  margin: 0;
 }
 
-/* Badge indisponível em dark mode */
-.dark .property-amenity-badge.is-unavailable {
-  background: rgba(100, 116, 139, 0.15);
-  border-color: rgba(100, 116, 139, 0.3);
+.dark .property-details-empty {
   color: #94a3b8;
 }
 
-.dark .property-amenity-badge.is-unavailable .property-amenity-badge__icon {
-  color: #64748b;
+/* Observações */
+.property-details-notes {
+  color: hsl(var(--foreground));
+  background: hsl(var(--muted) / 0.3);
+  padding: 1rem;
+  border-radius: 0.5rem;
+  line-height: 1.7;
+  white-space: pre-wrap;
+  margin: 0;
+  border-left: 3px solid var(--primary-color, hsl(var(--primary)));
 }
 
-.dark .property-amenity-badge.is-unavailable .property-amenity-badge__status {
-  color: #64748b;
+.dark .property-details-notes {
+  color: #f8fafc;
+  background: rgba(255, 255, 255, 0.05);
 }
 
-/* ========================================
-   FEATURES EM DARK MODE
-   ======================================== */
+/* Grid de comodidades (badges) */
+.property-amenities-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.property-amenity-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1rem;
+  background: hsl(var(--primary) / 0.1);
+  border: 1px solid hsl(var(--primary) / 0.2);
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--primary-color, hsl(var(--primary)));
+  transition: all 0.2s;
+}
+
+.property-amenity-badge:hover {
+  background: hsl(var(--primary) / 0.15);
+  transform: translateY(-1px);
+}
+
+/* Dark mode - badges */
+.dark .property-amenity-badge {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #f8fafc;
+}
+
+.dark .property-amenity-badge:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+/* Grid de features personalizadas */
+.property-features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.property-feature-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0;
+}
+
+.property-feature-item__dot {
+  width: 6px;
+  height: 6px;
+  background: var(--primary-color, hsl(var(--primary)));
+  border-radius: 50%;
+  flex-shrink: 0;
+}
 
 .dark .property-feature-item__dot {
-  background: #60a5fa;
+  background: #f8fafc;
+}
+
+.property-feature-item__text {
+  font-size: 0.9375rem;
+  color: hsl(var(--foreground));
+  line-height: 1.5;
 }
 
 .dark .property-feature-item__text {
   color: #f8fafc;
 }
 
-/* ========================================
-   OBSERVAÇÕES EM DARK MODE
-   ======================================== */
+/* =================================================================
+   RESPONSIVIDADE
+   ================================================================= */
 
-.dark .property-details-notes {
-  color: #fbbf24;
-}
-
-/* ========================================
-   RESPONSIVIDADE MOBILE
-   ======================================== */
-
-@media (max-width: 640px) {
-  .property-details-card {
-    padding: 1.25rem;
+@media (max-width: 768px) {
+  .property-details-section {
+    padding: 1.5rem 0;
   }
 
-  .property-details-card--description {
-    padding: 1.5rem;
+  .property-details-section__header {
+    margin-bottom: 1rem;
   }
 
-  .property-details-card__title {
-    font-size: 1rem;
+  .property-details-section__title {
+    font-size: 1.125rem;
+  }
+
+  .property-details-section__content {
+    padding-left: 0;
   }
 
   .property-amenities-grid {
@@ -434,5 +232,30 @@
 
   .property-features-grid {
     grid-template-columns: 1fr;
+  }
+
+  .property-details-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
+
+  .property-details-item__value {
+    text-align: left;
+  }
+}
+
+@media (max-width: 480px) {
+  .property-details-section {
+    padding: 1.25rem 0;
+  }
+
+  .property-details-section__icon {
+    width: 1.25rem;
+    height: 1.25rem;
+  }
+
+  .property-details-section__title {
+    font-size: 1rem;
   }
 }

@@ -51,7 +51,7 @@ const FixedHeader = ({ brokerProfile, isDarkMode = false, toggleDarkMode }: Fixe
           <div className="flex items-center justify-between h-14 sm:h-16 md:h-20">
           <button 
             onClick={handleGoToHome}
-            className="flex items-center space-x-2 sm:space-x-3 hover:opacity-80 transition-opacity cursor-pointer bg-transparent border-none p-0"
+            className="flex items-center space-x-2 sm:space-x-3 hover:opacity-80 transition-opacity cursor-pointer bg-transparent border-none p-0 outline-none focus:outline-none"
             aria-label="Voltar ao início"
           >
             {/* Opção 1: Imagem combinada de logo + nome */}
@@ -122,14 +122,10 @@ const FixedHeader = ({ brokerProfile, isDarkMode = false, toggleDarkMode }: Fixe
                 variant="ghost"
                 size="sm"
                 onClick={toggleDarkMode}
-                className={`p-2 rounded-lg transition-colors duration-300 ${
-                  isDarkMode 
-                    ? 'hover:bg-gray-700 text-yellow-400' 
-                    : 'hover:bg-gray-100 text-gray-600'
-                }`}
+                className="p-2 transition-opacity hover:opacity-70 bg-transparent border-none"
                 title={isDarkMode ? "Modo claro" : "Modo escuro"}
               >
-                {isDarkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+                {isDarkMode ? <Sun className="h-5 w-5 text-white" /> : <Moon className="h-5 w-5 text-gray-600" />}
               </Button>
             )}
             

@@ -17,14 +17,15 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
 }) => {
   // Helper para renderizar badge de amenidade
   const renderAmenityBadge = (label: string, value: boolean, icon: React.ReactNode) => {
-    if (typeof value !== 'boolean') return null;
+    // Só renderizar se for true (disponível)
+    if (value !== true) return null;
     
     return (
-      <div className={`property-amenity-badge ${value ? 'is-available' : 'is-unavailable'}`}>
+      <div className="property-amenity-badge is-available">
         <span className="property-amenity-badge__icon">{icon}</span>
         <span className="property-amenity-badge__label">{label}</span>
         <span className="property-amenity-badge__status">
-          {value ? <CheckCircle className="w-4 h-4" /> : <XCircle className="w-4 h-4" />}
+          <CheckCircle className="w-4 h-4" />
         </span>
       </div>
     );
@@ -51,14 +52,14 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
   const hasConditionData = property.property_condition || property.heating_type;
 
   return (
-    <div className="property-details-container">
-      {/* Descrição - Destaque no topo */}
-      <div className="property-details-card property-details-card--description">
-        <div className="property-details-card__header">
-          <FileText className="property-details-card__icon" />
-          <h2 className="property-details-card__title">Descrição</h2>
+    <div className="property-details-linear">
+      {/* Descrição */}
+      <div className="property-details-section">
+        <div className="property-details-section__header">
+          <FileText className="property-details-section__icon" />
+          <h2 className="property-details-section__title">Descrição</h2>
         </div>
-        <div className="property-details-card__content">
+        <div className="property-details-section__content">
           {property.description ? (
             <p className="property-details-description">{property.description}</p>
           ) : (
@@ -67,156 +68,106 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
         </div>
       </div>
 
-      {/* Formas de Pagamento */}
-      {property.payment_methods_type && property.payment_methods_type !== 'none' && (
-        <div className="property-details-card">
-          <div className="property-details-card__header">
-            <DollarSign className="property-details-card__icon" />
-            <h2 className="property-details-card__title">Formas de Pagamento</h2>
+      {/* Áreas & Medidas */}
+      {hasAreaData && (
+        <div className="property-details-section">
+          <div className="property-details-section__header">
+            <Ruler className="property-details-section__icon" />
+            <h2 className="property-details-section__title">Áreas & Medidas</h2>
           </div>
-          <div className="property-details-card__content">
-            <PaymentMethods
-              type={property.payment_methods_type as 'text' | 'banner'}
-              methods={property.payment_methods_text || []}
-              bannerUrl={property.payment_methods_banner_url || undefined}
-              isDarkMode={isDarkMode}
-              primaryColor={brokerProfile?.primary_color}
-            />
+          <div className="property-details-section__content">
+            <div className="property-details-list">
+              {property.private_area_m2 && (
+                <div className="property-details-item">
+                  <span className="property-details-item__label">Área privativa</span>
+                  <span className="property-details-item__value">{property.private_area_m2}m²</span>
+                </div>
+              )}
+              {property.total_area_m2 && (
+                <div className="property-details-item">
+                  <span className="property-details-item__label">Área total</span>
+                  <span className="property-details-item__value">{property.total_area_m2}m²</span>
+                </div>
+              )}
+              {property.suites != null && (
+                <div className="property-details-item">
+                  <span className="property-details-item__label">Suítes</span>
+                  <span className="property-details-item__value">{property.suites}</span>
+                </div>
+              )}
+              {property.covered_parking_spaces != null && (
+                <div className="property-details-item">
+                  <span className="property-details-item__label">Vagas cobertas</span>
+                  <span className="property-details-item__value">{property.covered_parking_spaces}</span>
+                </div>
+              )}
+              {property.floor_number != null && (
+                <div className="property-details-item">
+                  <span className="property-details-item__label">Andar</span>
+                  <span className="property-details-item__value">{property.floor_number}</span>
+                </div>
+              )}
+              {property.total_floors != null && (
+                <div className="property-details-item">
+                  <span className="property-details-item__label">Total de andares</span>
+                  <span className="property-details-item__value">{property.total_floors}</span>
+                </div>
+              )}
+              {property.built_year && (
+                <div className="property-details-item">
+                  <Calendar className="w-4 h-4 text-gray-400" />
+                  <span className="property-details-item__label">Ano de construção</span>
+                  <span className="property-details-item__value">{property.built_year}</span>
+                </div>
+              )}
+              {property.sunlight_orientation && (
+                <div className="property-details-item">
+                  <Sun className="w-4 h-4 text-yellow-500" />
+                  <span className="property-details-item__label">Face do sol</span>
+                  <span className="property-details-item__value">{property.sunlight_orientation}</span>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}
 
-      {/* Grid de Cards */}
-      <div className="property-details-grid">
-        {/* Áreas & Medidas */}
-        {hasAreaData && (
-          <div className="property-details-card">
-            <div className="property-details-card__header">
-              <Ruler className="property-details-card__icon" />
-              <h2 className="property-details-card__title">Áreas & Medidas</h2>
-            </div>
-            <div className="property-details-card__content">
-              <div className="property-details-list">
-                {property.private_area_m2 && (
-                  <div className="property-details-item">
-                    <span className="property-details-item__label">Área privativa</span>
-                    <span className="property-details-item__value">{property.private_area_m2}m²</span>
-                  </div>
-                )}
-                {property.total_area_m2 && (
-                  <div className="property-details-item">
-                    <span className="property-details-item__label">Área total</span>
-                    <span className="property-details-item__value">{property.total_area_m2}m²</span>
-                  </div>
-                )}
-                {property.suites != null && (
-                  <div className="property-details-item">
-                    <span className="property-details-item__label">Suítes</span>
-                    <span className="property-details-item__value">{property.suites}</span>
-                  </div>
-                )}
-                {property.covered_parking_spaces != null && (
-                  <div className="property-details-item">
-                    <span className="property-details-item__label">Vagas cobertas</span>
-                    <span className="property-details-item__value">{property.covered_parking_spaces}</span>
-                  </div>
-                )}
-                {property.floor_number != null && (
-                  <div className="property-details-item">
-                    <span className="property-details-item__label">Andar</span>
-                    <span className="property-details-item__value">{property.floor_number}</span>
-                  </div>
-                )}
-                {property.total_floors != null && (
-                  <div className="property-details-item">
-                    <span className="property-details-item__label">Total de andares</span>
-                    <span className="property-details-item__value">{property.total_floors}</span>
-                  </div>
-                )}
-                {property.built_year && (
-                  <div className="property-details-item">
-                    <Calendar className="w-4 h-4 text-gray-400" />
-                    <span className="property-details-item__label">Ano de construção</span>
-                    <span className="property-details-item__value">{property.built_year}</span>
-                  </div>
-                )}
-                {property.sunlight_orientation && (
-                  <div className="property-details-item">
-                    <Sun className="w-4 h-4 text-yellow-500" />
-                    <span className="property-details-item__label">Face do sol</span>
-                    <span className="property-details-item__value">{property.sunlight_orientation}</span>
-                  </div>
-                )}
-              </div>
+      {/* Custos Mensais */}
+      {hasCostsData && (
+        <div className="property-details-section">
+          <div className="property-details-section__header">
+            <DollarSign className="property-details-section__icon" />
+            <h2 className="property-details-section__title">Custos Mensais</h2>
+          </div>
+          <div className="property-details-section__content">
+            <div className="property-details-list">
+              {property.water_cost != null && (
+                <div className="property-details-item">
+                  <Droplet className="w-4 h-4 text-blue-500" />
+                  <span className="property-details-item__label">Água</span>
+                  <span className="property-details-item__value">{formatPrice(property.water_cost)}</span>
+                </div>
+              )}
+              {property.electricity_cost != null && (
+                <div className="property-details-item">
+                  <Zap className="w-4 h-4 text-yellow-500" />
+                  <span className="property-details-item__label">Energia elétrica</span>
+                  <span className="property-details-item__value">{formatPrice(property.electricity_cost)}</span>
+                </div>
+              )}
             </div>
           </div>
-        )}
+        </div>
+      )}
 
-        {/* Custos Mensais */}
-        {hasCostsData && (
-          <div className="property-details-card">
-            <div className="property-details-card__header">
-              <DollarSign className="property-details-card__icon" />
-              <h2 className="property-details-card__title">Custos Mensais</h2>
-            </div>
-            <div className="property-details-card__content">
-              <div className="property-details-list">
-                {property.water_cost != null && (
-                  <div className="property-details-item">
-                    <Droplet className="w-4 h-4 text-blue-500" />
-                    <span className="property-details-item__label">Água</span>
-                    <span className="property-details-item__value">{formatPrice(property.water_cost)}</span>
-                  </div>
-                )}
-                {property.electricity_cost != null && (
-                  <div className="property-details-item">
-                    <Zap className="w-4 h-4 text-yellow-500" />
-                    <span className="property-details-item__label">Energia elétrica</span>
-                    <span className="property-details-item__value">{formatPrice(property.electricity_cost)}</span>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Condição & Estrutura */}
-        {hasConditionData && (
-          <div className="property-details-card">
-            <div className="property-details-card__header">
-              <Building2 className="property-details-card__icon" />
-              <h2 className="property-details-card__title">Condição & Estrutura</h2>
-            </div>
-            <div className="property-details-card__content">
-              <div className="property-details-list">
-                {property.property_condition && (
-                  <div className="property-details-item">
-                    <Sparkles className="w-4 h-4 text-purple-500" />
-                    <span className="property-details-item__label">Condição</span>
-                    <span className="property-details-item__value">{property.property_condition}</span>
-                  </div>
-                )}
-                {property.heating_type && (
-                  <div className="property-details-item">
-                    <Wind className="w-4 h-4 text-orange-500" />
-                    <span className="property-details-item__label">Aquecimento</span>
-                    <span className="property-details-item__value">{property.heating_type}</span>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Comodidades & Facilidades - Full width com badges */}
+      {/* Comodidades & Facilidades */}
       {hasAmenitiesData && (
-        <div className="property-details-card property-details-card--amenities">
-          <div className="property-details-card__header">
-            <Home className="property-details-card__icon" />
-            <h2 className="property-details-card__title">Comodidades & Facilidades</h2>
+        <div className="property-details-section">
+          <div className="property-details-section__header">
+            <Home className="property-details-section__icon" />
+            <h2 className="property-details-section__title">Comodidades & Facilidades</h2>
           </div>
-          <div className="property-details-card__content">
+          <div className="property-details-section__content">
             <div className="property-amenities-grid">
               {renderAmenityBadge('Mobiliado', property.furnished, <Home className="w-4 h-4" />)}
               {renderAmenityBadge('Aceita Pets', property.accepts_pets, <PawPrint className="w-4 h-4" />)}
@@ -229,14 +180,42 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
         </div>
       )}
 
+      {/* Condição & Estrutura */}
+      {hasConditionData && (
+        <div className="property-details-section">
+          <div className="property-details-section__header">
+            <Building2 className="property-details-section__icon" />
+            <h2 className="property-details-section__title">Condição & Estrutura</h2>
+          </div>
+          <div className="property-details-section__content">
+            <div className="property-details-list">
+              {property.property_condition && (
+                <div className="property-details-item">
+                  <Sparkles className="w-4 h-4 text-purple-500" />
+                  <span className="property-details-item__label">Condição</span>
+                  <span className="property-details-item__value">{property.property_condition}</span>
+                </div>
+              )}
+              {property.heating_type && (
+                <div className="property-details-item">
+                  <Wind className="w-4 h-4 text-orange-500" />
+                  <span className="property-details-item__label">Aquecimento</span>
+                  <span className="property-details-item__value">{property.heating_type}</span>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Features Personalizadas */}
       {property.features && property.features.length > 0 && (
-        <div className="property-details-card">
-          <div className="property-details-card__header">
-            <Sparkles className="property-details-card__icon" />
-            <h2 className="property-details-card__title">Características Adicionais</h2>
+        <div className="property-details-section">
+          <div className="property-details-section__header">
+            <Sparkles className="property-details-section__icon" />
+            <h2 className="property-details-section__title">Características Adicionais</h2>
           </div>
-          <div className="property-details-card__content">
+          <div className="property-details-section__content">
             <div className="property-features-grid">
               {property.features.map((feature: string, index: number) => (
                 <div key={`feat-${index}`} className="property-feature-item">
@@ -249,14 +228,33 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
         </div>
       )}
 
+      {/* Formas de Pagamento */}
+      {property.payment_methods_type && property.payment_methods_type !== 'none' && (
+        <div className="property-details-section">
+          <div className="property-details-section__header">
+            <DollarSign className="property-details-section__icon" />
+            <h2 className="property-details-section__title">Formas de Pagamento</h2>
+          </div>
+          <div className="property-details-section__content">
+            <PaymentMethods
+              type={property.payment_methods_type as 'text' | 'banner'}
+              methods={property.payment_methods_text || []}
+              bannerUrl={property.payment_methods_banner_url || undefined}
+              isDarkMode={isDarkMode}
+              primaryColor={brokerProfile?.primary_color}
+            />
+          </div>
+        </div>
+      )}
+
       {/* Observações */}
       {property.notes && (
-        <div className="property-details-card property-details-card--notes">
-          <div className="property-details-card__header">
-            <FileText className="property-details-card__icon" />
-            <h2 className="property-details-card__title">Observações Importantes</h2>
+        <div className="property-details-section">
+          <div className="property-details-section__header">
+            <FileText className="property-details-section__icon" />
+            <h2 className="property-details-section__title">Observações Importantes</h2>
           </div>
-          <div className="property-details-card__content">
+          <div className="property-details-section__content">
             <p className="property-details-notes">{property.notes}</p>
           </div>
         </div>

@@ -31,9 +31,9 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
     );
   };
 
-  // Verificar se há dados de áreas
-  const hasAreaData = property.private_area_m2 || property.total_area_m2 || 
-    property.suites != null || property.covered_parking_spaces != null ||
+  // Verificar se há dados de áreas (área total e vagas já aparecem no topo)
+  const hasAreaData = property.private_area_m2 || 
+    property.suites != null ||
     property.floor_number != null || property.total_floors != null ||
     property.built_year || property.sunlight_orientation;
 
@@ -84,22 +84,10 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
                   <span className="property-details-item__value">{property.private_area_m2}m²</span>
                 </div>
               )}
-              {property.total_area_m2 && (
-                <div className="property-details-item">
-                  <span className="property-details-item__label">Área total</span>
-                  <span className="property-details-item__value">{property.total_area_m2}m²</span>
-                </div>
-              )}
               {property.suites != null && (
                 <div className="property-details-item">
                   <span className="property-details-item__label">Suítes</span>
                   <span className="property-details-item__value">{property.suites}</span>
-                </div>
-              )}
-              {property.covered_parking_spaces != null && (
-                <div className="property-details-item">
-                  <span className="property-details-item__label">Vagas cobertas</span>
-                  <span className="property-details-item__value">{property.covered_parking_spaces}</span>
                 </div>
               )}
               {property.floor_number != null && (
@@ -165,7 +153,7 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
               {/* Condição e Aquecimento PRIMEIRO (com valores de texto) */}
               {property.property_condition && (
                 <div className="property-details-item">
-                  <Sparkles className="w-4 h-4 text-purple-500" />
+                  <Home className="w-4 h-4 text-purple-500" />
                   <span className="property-details-item__label">Condição</span>
                   <span className="property-details-item__value">{property.property_condition}</span>
                 </div>
@@ -206,7 +194,7 @@ export const PropertyDetails: React.FC<PropertyDetailsProps> = ({
                   })
                   .map((feature: string, index: number) => (
                     <div key={`feat-${index}`} className="property-details-item">
-                      <Sparkles className="w-4 h-4 text-purple-400" />
+                      <Home className="w-4 h-4 text-blue-400" />
                       <span className="property-details-item__label">{feature}</span>
                       <CheckCircle className="w-5 h-5 text-green-500" />
                     </div>

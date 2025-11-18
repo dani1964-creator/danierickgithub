@@ -15,17 +15,25 @@ export const PhoneMockup: React.FC<PhoneMockupProps> = ({
   scrollable = false 
 }) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
 
-  // Alternar entre múltiplas imagens
+  // Alternar entre múltiplas imagens automaticamente
   useEffect(() => {
-    if (images.length <= 1) return;
+    if (images.length <= 1 || isPaused) return;
 
     const interval = setInterval(() => {
       setCurrentImageIndex(prev => (prev + 1) % images.length);
     }, 5000); // Troca a cada 5 segundos
 
     return () => clearInterval(interval);
-  }, [images.length]);
+  }, [images.length, isPaused]);
+
+  const goToImage = (index: number) => {
+    setCurrentImageIndex(index);
+    setIsPaused(true);
+    // Retoma auto-play após 10 segundos
+    setTimeout(() => setIsPaused(false), 10000);
+  };
 
   return (
     <div className="feature-card group">
@@ -58,9 +66,12 @@ export const PhoneMockup: React.FC<PhoneMockupProps> = ({
         {images.length > 1 && (
           <div className="phone-dots-indicator">
             {images.map((_, index) => (
-              <div
+              <button
                 key={index}
+                onClick={() => goToImage(index)}
                 className={`phone-dot ${index === currentImageIndex ? 'active' : ''}`}
+                aria-label={`Ver imagem ${index + 1}`}
+                type="button"
               />
             ))}
           </div>

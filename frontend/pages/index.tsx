@@ -89,30 +89,30 @@ const Index = () => {
       <section className="container mx-auto px-4 py-20">
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
           <PhoneMockup
-            images={['https://i.ibb.co/whnc9QgQ/Screenshot-20251118-000937.png']}
+            images={['/marketing/gestao-imoveis.png']}
             title="Gestão de Imóveis"
             description="Cadastre e gerencie seu portfólio completo de imóveis com fotos, descrições e detalhes."
           />
 
           <PhoneMockup
             images={[
-              'https://i.ibb.co/7tfjLVzW/Screenshot-20251118-002320.png',
-              'https://i.ibb.co/wNNC57x5/Screenshot-20251118-001010.png'
+              '/marketing/captacao-leads-1.png',
+              '/marketing/captacao-leads-2.png'
             ]}
             title="Captação de Leads"
             description="Receba e gerencie leads de interessados com integração WhatsApp e notificações em tempo real."
           />
 
           <PhoneMockup
-            images={['https://i.ibb.co/vSTGF5K/Screenshot-20251117-235929.png']}
+            images={['/marketing/sites-personalizados.png']}
             title="Sites Personalizados"
             description="Cada corretor tem seu próprio site com domínio personalizado e identidade visual única."
           />
 
           <PhoneMockup
             images={[
-              'https://i.ibb.co/XZy5z3Gk/Screenshot-20251118-000915.png',
-              'https://i.ibb.co/ZyTp4wc/Screenshot-20251118-001145.png'
+              '/marketing/analytics-1.png',
+              '/marketing/analytics-2.png'
             ]}
             title="Analytics & SEO"
             description="Dashboard com métricas, integração com Google Analytics e otimização para mecanismos de busca."

@@ -89,30 +89,30 @@ const Index = () => {
       <section className="container mx-auto px-4 py-20">
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
           <PhoneMockup
-            images={['/marketing/gestao-imoveis.png']}
+            images={['https://demcjskpwcxqohzlyjxb.supabase.co/storage/v1/object/public/public-assets/marketing/Screenshot_20251118-000937.png']}
             title="Gestão de Imóveis"
             description="Cadastre e gerencie seu portfólio completo de imóveis com fotos, descrições e detalhes."
           />
 
           <PhoneMockup
             images={[
-              '/marketing/captacao-leads-1.png',
-              '/marketing/captacao-leads-2.png'
+              'https://demcjskpwcxqohzlyjxb.supabase.co/storage/v1/object/public/public-assets/marketing/Screenshot_20251118-002320.png',
+              'https://demcjskpwcxqohzlyjxb.supabase.co/storage/v1/object/public/public-assets/marketing/Screenshot_20251118-001010.png'
             ]}
             title="Captação de Leads"
             description="Receba e gerencie leads de interessados com integração WhatsApp e notificações em tempo real."
           />
 
           <PhoneMockup
-            images={['/marketing/sites-personalizados.png']}
+            images={['https://demcjskpwcxqohzlyjxb.supabase.co/storage/v1/object/public/public-assets/marketing/Screenshot_20251117-235929.png']}
             title="Sites Personalizados"
             description="Cada corretor tem seu próprio site com domínio personalizado e identidade visual única."
           />
 
           <PhoneMockup
             images={[
-              '/marketing/analytics-1.png',
-              '/marketing/analytics-2.png'
+              'https://demcjskpwcxqohzlyjxb.supabase.co/storage/v1/object/public/public-assets/marketing/Screenshot_20251118-000915.png',
+              'https://demcjskpwcxqohzlyjxb.supabase.co/storage/v1/object/public/public-assets/marketing/Screenshot_20251118-001145.png'
             ]}
             title="Analytics & SEO"
             description="Dashboard com métricas, integração com Google Analytics e otimização para mecanismos de busca."

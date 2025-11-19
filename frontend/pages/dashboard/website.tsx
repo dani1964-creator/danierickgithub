@@ -3,7 +3,7 @@ import { getErrorMessage } from '@/lib/utils';
 import type { Json } from '@/integrations/supabase/types';
 import { useState, useEffect, useCallback } from 'react';
 import dynamic from 'next/dynamic';
-import { Save, Globe, Palette, Code, Share2, FileText, Search, CheckCircle, XCircle, RefreshCw } from 'lucide-react';
+import { Save, Globe, Palette, Code, Share2, FileText, Search } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -31,9 +31,6 @@ const WebsiteSettings = () => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [checkingDNS, setCheckingDNS] = useState(false);
-  const [dnsStatus, setDnsStatus] = useState<'idle' | 'checking' | 'success' | 'error'>('idle');
-  const [dnsMessage, setDnsMessage] = useState<string>('');
   const [profile, setProfile] = useState<WebsiteProfile | null>(null);
   const [activeTab, setActiveTab] = useState('general');
 
@@ -222,66 +219,6 @@ const WebsiteSettings = () => {
   const updateProfile = (field: keyof WebsiteProfile, value: string | number | boolean | Json | null) => {
     if (profile) {
       setProfile({ ...profile, [field]: value });
-    }
-  };
-
-  const checkDNSPropagation = async () => {
-    if (!profile?.custom_domain) {
-      toast({
-        title: "Nenhum domínio configurado",
-        description: "Configure um domínio personalizado primeiro.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    setCheckingDNS(true);
-    setDnsStatus('checking');
-    setDnsMessage('Verificando propagação DNS...');
-
-    try {
-      // Tenta fazer uma requisição para o domínio
-      const domain = profile.custom_domain.replace(/^https?:\/\//, '');
-      const testUrl = `https://${domain}`;
-
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
-
-      const response = await fetch(testUrl, {
-        method: 'HEAD',
-        signal: controller.signal,
-        mode: 'no-cors' // Permite verificar mesmo com CORS
-      });
-
-      clearTimeout(timeoutId);
-
-      // Se chegou aqui sem erro, o domínio está acessível
-      setDnsStatus('success');
-      setDnsMessage(`✅ Domínio ${domain} está acessível! A propagação DNS foi concluída.`);
-      
-      toast({
-        title: "DNS Propagado com Sucesso",
-        description: `O domínio ${domain} está funcionando corretamente!`,
-      });
-    } catch (error: unknown) {
-      const err = error as { name?: string; message?: string };
-      
-      if (err.name === 'AbortError') {
-        setDnsStatus('error');
-        setDnsMessage('⏱️ Tempo limite excedido. O domínio pode ainda não estar propagado ou configurado incorretamente.');
-      } else {
-        // Para mode: 'no-cors', qualquer resposta (mesmo erro) significa que o domínio está acessível
-        setDnsStatus('success');
-        setDnsMessage(`✅ Domínio detectado! O servidor respondeu. Verifique se o site está carregando corretamente.`);
-      }
-
-      toast({
-        title: "Verificação DNS Completa",
-        description: dnsMessage,
-        variant: err.name === 'AbortError' ? 'destructive' : 'default'
-      });
-    } finally {
-      setCheckingDNS(false);
     }
   };
 
@@ -613,187 +550,9 @@ const WebsiteSettings = () => {
                       <p className="text-sm text-muted-foreground">
                         Seu subdomínio gratuito. Ex: <strong>minhaimobiliaria</strong>.adminimobiliaria.site
                       </p>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="custom_domain">Domínio Personalizado (Opcional)</Label>
-                      <div className="flex gap-2">
-                        <Input
-                          id="custom_domain"
-                          name="custom_domain"
-                          type="url"
-                          value={profile.custom_domain || ''}
-                          onChange={(e) => updateProfile('custom_domain', e.target.value.toLowerCase())}
-                          placeholder="www.minhaimobiliaria.com.br"
-                          className="flex-1"
-                          autoComplete="url"
-                        />
-                        <Button
-                          type="button"
-                          onClick={saveProfile}
-                          disabled={saving}
-                          size="default"
-                          className="gap-2"
-                        >
-                          <Save className="h-4 w-4" />
-                          {saving ? 'Salvando...' : 'Salvar'}
-                        </Button>
-                        {profile.custom_domain && (
-                          <Button
-                            type="button"
-                            onClick={checkDNSPropagation}
-                            disabled={checkingDNS}
-                            size="default"
-                            variant="outline"
-                            className="gap-2"
-                          >
-                            {checkingDNS ? (
-                              <>
-                                <RefreshCw className="h-4 w-4 animate-spin" />
-                                Verificando...
-                              </>
-                            ) : (
-                              <>
-                                <Search className="h-4 w-4" />
-                                Verificar DNS
-                              </>
-                            )}
-                          </Button>
-                        )}
-                      </div>
-                      
-                      {/* Status da verificação DNS */}
-                      {dnsStatus !== 'idle' && profile.custom_domain && (
-                        <div className={`mt-2 p-3 rounded-md border ${
-                          dnsStatus === 'success' 
-                            ? 'bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800' 
-                            : dnsStatus === 'error'
-                            ? 'bg-red-50 dark:bg-red-950 border-red-200 dark:border-red-800'
-                            : 'bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800'
-                        }`}>
-                          <div className="flex items-start gap-2">
-                            {dnsStatus === 'success' && <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400 mt-0.5" />}
-                            {dnsStatus === 'error' && <XCircle className="h-5 w-5 text-red-600 dark:text-red-400 mt-0.5" />}
-                            {dnsStatus === 'checking' && <RefreshCw className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5 animate-spin" />}
-                            <p className={`text-sm ${
-                              dnsStatus === 'success'
-                                ? 'text-green-800 dark:text-green-200'
-                                : dnsStatus === 'error'
-                                ? 'text-red-800 dark:text-red-200'
-                                : 'text-blue-800 dark:text-blue-200'
-                            }`}>
-                              {dnsMessage}
-                            </p>
-                          </div>
-                        </div>
-                      )}
-
-                      <p className="text-sm text-muted-foreground">
-                        Seu próprio domínio (requer configuração DNS). Ex: www.minhaimobiliaria.com.br
+                      <p className="text-sm text-blue-600 mt-2">
+                        💡 Para configurar um domínio personalizado, acesse a aba <strong>"Domínio"</strong>
                       </p>
-                      {profile.custom_domain && (
-                        <div className="mt-2 p-4 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-md space-y-3">
-                          <div>
-                            <p className="text-sm font-semibold text-blue-900 dark:text-blue-100 mb-2">
-                              ⚙️ Configuração DNS Necessária
-                            </p>
-                            <p className="text-xs text-blue-800 dark:text-blue-200 mb-2">
-                              Acesse o painel do seu provedor de DNS (Registro.br, GoDaddy, Hostgator, etc) e adicione os seguintes registros:
-                            </p>
-                          </div>
-
-                          {/* Registro CNAME para www */}
-                          <div className="bg-white dark:bg-gray-900 p-3 rounded border border-blue-300 dark:border-blue-700">
-                            <p className="text-xs font-semibold text-blue-900 dark:text-blue-100 mb-2">1. Registro CNAME (para www)</p>
-                            <div className="grid grid-cols-3 gap-2 text-xs font-mono">
-                              <div>
-                                <span className="text-gray-500 dark:text-gray-400">Tipo:</span>
-                                <div className="font-semibold text-blue-900 dark:text-blue-100">CNAME</div>
-                              </div>
-                              <div>
-                                <span className="text-gray-500 dark:text-gray-400">Nome/Host:</span>
-                                <div className="font-semibold text-blue-900 dark:text-blue-100">www</div>
-                              </div>
-                              <div>
-                                <span className="text-gray-500 dark:text-gray-400">Valor/Destino:</span>
-                                <div className="font-semibold text-blue-900 dark:text-blue-100 break-all">
-                                  {process.env.NEXT_PUBLIC_BASE_PUBLIC_DOMAIN || 'adminimobiliaria.site'}
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* Registro A para domínio raiz */}
-                          <div className="bg-white dark:bg-gray-900 p-3 rounded border border-blue-300 dark:border-blue-700">
-                            <p className="text-xs font-semibold text-blue-900 dark:text-blue-100 mb-2">2. Registro A (para domínio raiz)</p>
-                            <div className="grid grid-cols-3 gap-2 text-xs font-mono">
-                              <div>
-                                <span className="text-gray-500 dark:text-gray-400">Tipo:</span>
-                                <div className="font-semibold text-blue-900 dark:text-blue-100">A</div>
-                              </div>
-                              <div>
-                                <span className="text-gray-500 dark:text-gray-400">Nome/Host:</span>
-                                <div className="font-semibold text-blue-900 dark:text-blue-100">@ (ou vazio)</div>
-                              </div>
-                              <div>
-                                <span className="text-gray-500 dark:text-gray-400">Valor/IP:</span>
-                                <div className="font-semibold text-blue-900 dark:text-blue-100">162.159.140.98</div>
-                              </div>
-                            </div>
-                          </div>
-
-                          <div className="space-y-1">
-                            <p className="text-xs text-blue-700 dark:text-blue-300 font-medium">
-                              📌 Observações importantes:
-                            </p>
-                            <ul className="text-xs text-blue-700 dark:text-blue-300 space-y-1 list-disc list-inside">
-                              <li><strong>CNAME www</strong> → aponta www.seudominio.com para {process.env.NEXT_PUBLIC_BASE_PUBLIC_DOMAIN || 'adminimobiliaria.site'}</li>
-                              <li><strong>A record @</strong> → aponta seudominio.com (raiz) para o IP 162.159.140.98</li>
-                              <li>TTL recomendado: <strong>1 hora (3600 segundos)</strong></li>
-                              <li>Aguarde de 10 minutos a 48h para propagação DNS completa</li>
-                              <li>Use o botão <strong>"Verificar DNS"</strong> para testar se está funcionando</li>
-                            </ul>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="space-y-2">
-                      {/* Preview do URL público configurado e botão para abrir */}
-                      <div className="mt-3 flex items-center gap-3">
-                        <div className="text-sm text-muted-foreground flex-1">
-                          <strong>Site público:</strong>{' '}
-                          {profile.custom_domain && (
-                            <span>{profile.custom_domain}</span>
-                          )}
-                          {!profile.custom_domain && profile.website_slug && (
-                            <span>{`${profile.website_slug}.${(process.env.NEXT_PUBLIC_BASE_PUBLIC_DOMAIN || process.env.NEXT_PUBLIC_BASE_DOMAIN || 'adminimobiliaria.site')}`}</span>
-                          )}
-                          {!profile.custom_domain && !profile.website_slug && (
-                            <span className="text-destructive">Slug não configurado</span>
-                          )}
-                        </div>
-                        <div>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => {
-                              const baseDomain = process.env.NEXT_PUBLIC_BASE_PUBLIC_DOMAIN || process.env.NEXT_PUBLIC_BASE_DOMAIN || 'adminimobiliaria.site';
-                              let url = '';
-                              if (profile.custom_domain) {
-                                url = profile.custom_domain.startsWith('http') ? profile.custom_domain : `https://${profile.custom_domain}`;
-                              } else if (profile.website_slug) {
-                                url = `https://${profile.website_slug}.${baseDomain}`;
-                              }
-                              if (url) window.open(url, '_blank', 'noopener,noreferrer');
-                            }}
-                            disabled={!profile.custom_domain && !profile.website_slug}
-                          >
-                            <Globe className="h-4 w-4 mr-2" />
-                            Ver Site Público
-                          </Button>
-                        </div>
-                      </div>
                     </div>
 
                     <div className="space-y-2">

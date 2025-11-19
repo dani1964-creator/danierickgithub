@@ -15,13 +15,13 @@ export function getAppContext(): AppContext {
     return {
       type: 'saas-homepage',
       hostname: '',
-      baseDomain: process.env.NEXT_PUBLIC_BASE_PUBLIC_DOMAIN || 'adminimobiliaria.site',
+      baseDomain: process.env.NEXT_PUBLIC_BASE_DOMAIN || 'adminimobiliaria.site',
     };
   }
 
   const hostname = window.location.hostname;
   const pathname = window.location.pathname;
-  const baseDomain = process.env.NEXT_PUBLIC_BASE_PUBLIC_DOMAIN || 'adminimobiliaria.site';
+  const baseDomain = process.env.NEXT_PUBLIC_BASE_DOMAIN || 'adminimobiliaria.site';
 
   // 1. Super Admin (adminimobiliaria.site/admin)
   const isMainDomain = hostname === baseDomain || hostname === `www.${baseDomain}`;

@@ -37,8 +37,8 @@ export function getPublicUrl(brokerSlug: string, propertySlug: string, pathPrefi
     const cleanBroker = trim(brokerSlug || '');
 
     // Preferir variável de ambiente Next (exposta ao cliente) quando disponível
-    const base = (typeof process !== 'undefined' && process.env.NEXT_PUBLIC_BASE_PUBLIC_DOMAIN)
-      ? String(process.env.NEXT_PUBLIC_BASE_PUBLIC_DOMAIN)
+    const base = (typeof process !== 'undefined' && process.env.NEXT_PUBLIC_BASE_DOMAIN)
+      ? String(process.env.NEXT_PUBLIC_BASE_DOMAIN)
       : '';
 
     if (base) {

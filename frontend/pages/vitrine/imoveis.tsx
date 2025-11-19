@@ -16,7 +16,7 @@ export default function PublicProperties() {
     if (typeof window === 'undefined') return;
 
     const hostname = window.location.hostname;
-    const baseDomain = process.env.NEXT_PUBLIC_BASE_PUBLIC_DOMAIN || 'adminimobiliaria.site';
+    const baseDomain = process.env.NEXT_PUBLIC_BASE_DOMAIN || 'adminimobiliaria.site';
 
     if (hostname.endsWith(`.${baseDomain}`) && !hostname.includes('.painel.')) {
       const slug = hostname.split(`.${baseDomain}`)[0];

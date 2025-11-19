@@ -38,7 +38,7 @@ export async function middleware(request: NextRequest) {
     logger.debug(`Middleware: host=${hostname} path=${pathname}`);
   }
   
-  const baseDomain = process.env.NEXT_PUBLIC_BASE_PUBLIC_DOMAIN || 'adminimobiliaria.site';
+  const baseDomain = process.env.NEXT_PUBLIC_BASE_DOMAIN || 'adminimobiliaria.site';
   
   // Identificar tipo de acesso pelo hostname
   const isMainDomain = hostname === baseDomain || hostname === `www.${baseDomain}`;

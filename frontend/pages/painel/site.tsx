@@ -35,7 +35,7 @@ import { supabase } from '@/integrations/supabase/client';
  */
 export default function WebsiteConfiguration() {
   const { toast } = useToast();
-  const baseDomain = process.env.NEXT_PUBLIC_BASE_PUBLIC_DOMAIN || 'adminimobiliaria.site';
+  const baseDomain = process.env.NEXT_PUBLIC_BASE_DOMAIN || 'adminimobiliaria.site';
   const cnameTarget = process.env.NEXT_PUBLIC_CNAME_TARGET || 'adminimobiliaria.site';
   
   const [websiteSlug, setWebsiteSlug] = useState('');

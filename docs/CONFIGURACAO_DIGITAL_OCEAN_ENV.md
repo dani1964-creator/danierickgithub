@@ -17,7 +17,7 @@ Certifique-se de que **TODAS** essas variáveis estão configuradas:
 
 #### 🔓 Variáveis Públicas (podem ser expostas ao cliente)
 ```
-NEXT_PUBLIC_BASE_PUBLIC_DOMAIN=adminimobiliaria.site
+NEXT_PUBLIC_BASE_DOMAIN=adminimobiliaria.site
 NEXT_PUBLIC_APP_URL=https://adminimobiliaria.site
 NEXT_PUBLIC_CNAME_TARGET=whale-app-w84mh.ondigitalocean.app
 NEXT_PUBLIC_SUPABASE_URL=https://demcjskpwcxqohzlyjxb.supabase.co

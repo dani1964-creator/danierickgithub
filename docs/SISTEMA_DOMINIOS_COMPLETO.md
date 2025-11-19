@@ -340,7 +340,7 @@ CREATE INDEX idx_domain_verifications_broker_valid ON domain_verifications(broke
 ```env
 NEXT_PUBLIC_SUPABASE_URL=https://seu-projeto.supabase.co
 SUPABASE_SERVICE_ROLE_KEY=seu-service-key
-NEXT_PUBLIC_BASE_PUBLIC_DOMAIN=adminimobiliaria.site
+NEXT_PUBLIC_BASE_DOMAIN=adminimobiliaria.site
 ```
 
 ### Opcionais (para automação Digital Ocean)

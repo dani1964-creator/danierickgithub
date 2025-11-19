@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 
 export default function DiagnosticBanner() {
   const [hostname, setHostname] = useState('');
-  const baseDomain = process.env.NEXT_PUBLIC_BASE_PUBLIC_DOMAIN || 'adminimobiliaria.site';
+  const baseDomain = process.env.NEXT_PUBLIC_BASE_DOMAIN || 'adminimobiliaria.site';
 
   useEffect(() => {
     if (typeof window === 'undefined') return;

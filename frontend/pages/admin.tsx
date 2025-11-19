@@ -39,7 +39,7 @@ function SuperAdminPage() {
   const { toast } = useToast();
   // Safe origin for Helmet canonical when rendering on server
   const origin = typeof window !== 'undefined' ? window.location.origin : '';
-  const baseDomain = process.env.NEXT_PUBLIC_BASE_PUBLIC_DOMAIN || process.env.NEXT_PUBLIC_BASE_DOMAIN || 'adminimobiliaria.site';
+  const baseDomain = process.env.NEXT_PUBLIC_BASE_DOMAIN || process.env.NEXT_PUBLIC_BASE_DOMAIN || 'adminimobiliaria.site';
   
   // NOTE: Do NOT instantiate a Service Role client in the browser.
   // Server-side endpoints under /api/superadmin/* provide privileged operations.

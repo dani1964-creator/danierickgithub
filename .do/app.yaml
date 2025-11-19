@@ -23,7 +23,7 @@ services:
         scope: RUN_AND_BUILD_TIME
         type: SECRET
         value: EV[1:aqdcy1Zhm2OQqmUAwW31kbCGozTX6mcW:o5FsOpmOtQtSV4fD44RZ1jW/p9oTNmc3y0Y=]
-      - key: NEXT_PUBLIC_BASE_PUBLIC_DOMAIN
+      - key: NEXT_PUBLIC_BASE_DOMAIN
         scope: RUN_AND_BUILD_TIME
         value: adminimobiliaria.site
       - key: NEXT_PUBLIC_APP_URL

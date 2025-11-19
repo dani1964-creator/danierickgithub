@@ -152,7 +152,7 @@ Configure no **DigitalOcean App Platform** → **Settings** → **Environment Va
 
 ```bash
 # Domínio base do SaaS
-NEXT_PUBLIC_BASE_PUBLIC_DOMAIN=adminimobiliaria.site
+NEXT_PUBLIC_BASE_DOMAIN=adminimobiliaria.site
 
 # URL do app (para redirects e canonical URLs)
 NEXT_PUBLIC_APP_URL=https://adminimobiliaria.site

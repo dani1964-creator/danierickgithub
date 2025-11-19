@@ -20,7 +20,7 @@ const Index = () => {
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const hostname = window.location.hostname;
-      const baseDomain = process.env.NEXT_PUBLIC_BASE_PUBLIC_DOMAIN || 'adminimobiliaria.site';
+      const baseDomain = process.env.NEXT_PUBLIC_BASE_DOMAIN || 'adminimobiliaria.site';
       const isPainelSubdomain = hostname === `painel.${baseDomain}` || hostname.startsWith('painel.');
 
       // Painel: redireciona para /auth

@@ -41,7 +41,7 @@ export class BrokerResolver {
    * Resolve localmente usando queries diretas ao Supabase
    */
   private static async resolveViaLocalQuery(host: string): Promise<string | null> {
-  const baseDomain = (process.env.NEXT_PUBLIC_BASE_PUBLIC_DOMAIN || process.env.NEXT_PUBLIC_BASE_DOMAIN || '')?.toLowerCase() || 'adminimobiliaria.site';
+  const baseDomain = (process.env.NEXT_PUBLIC_BASE_DOMAIN || process.env.NEXT_PUBLIC_BASE_DOMAIN || '')?.toLowerCase() || 'adminimobiliaria.site';
     
     try {
       // Subdomínio *.adminimobiliaria.site

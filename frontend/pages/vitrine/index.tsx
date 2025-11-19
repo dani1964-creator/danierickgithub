@@ -47,7 +47,7 @@ export default function PublicHomepage({ initialTenant }: { initialTenant?: any 
     if (typeof window === 'undefined') return;
 
     const hostname = window.location.hostname;
-    const baseDomain = process.env.NEXT_PUBLIC_BASE_PUBLIC_DOMAIN || process.env.NEXT_PUBLIC_BASE_DOMAIN || 'adminimobiliaria.site';
+    const baseDomain = process.env.NEXT_PUBLIC_BASE_DOMAIN || process.env.NEXT_PUBLIC_BASE_DOMAIN || 'adminimobiliaria.site';
 
     // Detectar se é subdomínio ou domínio personalizado
     if (hostname.endsWith(`.${baseDomain}`) && !hostname.includes('.painel.')) {
@@ -166,7 +166,7 @@ export default function PublicHomepage({ initialTenant }: { initialTenant?: any 
 export const getServerSideProps: GetServerSideProps = async (ctx) => {
   try {
     const host = (ctx.req.headers.host || '').toLowerCase();
-    const baseDomain = (process.env.NEXT_PUBLIC_BASE_PUBLIC_DOMAIN || 'adminimobiliaria.site').toLowerCase();
+    const baseDomain = (process.env.NEXT_PUBLIC_BASE_DOMAIN || 'adminimobiliaria.site').toLowerCase();
 
     // Usar service role key NO SERVIDOR apenas (NUNCA embutir no cliente)
     const SUPABASE_URL = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;

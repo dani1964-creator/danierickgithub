@@ -175,7 +175,7 @@ const PropertyDetailPage = ({ initialQuery }: PropertyDetailPageProps = {}) => {
     // 2. Tentar extrair do hostname (subdomínio)
     if (typeof window !== 'undefined') {
       const hostname = window.location.hostname;
-      const baseDomain = process.env.NEXT_PUBLIC_BASE_PUBLIC_DOMAIN || 'adminimobiliaria.site';
+      const baseDomain = process.env.NEXT_PUBLIC_BASE_DOMAIN || 'adminimobiliaria.site';
       
       // Se for subdomínio, extrair slug
       if (hostname.endsWith(`.${baseDomain}`) && hostname !== baseDomain) {

@@ -25,7 +25,7 @@ cd frontend && npm start
 
 **Públicas (NEXT_PUBLIC_*):**
 ```bash
-NEXT_PUBLIC_BASE_PUBLIC_DOMAIN=adminimobiliaria.site
+NEXT_PUBLIC_BASE_DOMAIN=adminimobiliaria.site
 NEXT_PUBLIC_APP_URL=https://adminimobiliaria.site
 NEXT_PUBLIC_CNAME_TARGET=adminimobiliaria.site
 NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co

@@ -89,8 +89,8 @@ Acesse: https://cloud.digitalocean.com/networking/domains
 Deve aparecer:
 - ✅ Domínio `teste-dns-sistema.com`
 - ✅ Registros automáticos criados:
-  - CNAME `www` → `adminimobiliaria.site`
-  - CNAME `*` → `adminimobiliaria.site` (wildcard)
+  - CNAME `www` → `whale-app-w84mh.ondigitalocean.app`
+  - CNAME `*` → `whale-app-w84mh.ondigitalocean.app` (wildcard)
 
 ### ✅ 5. Verificar Zona no Banco de Dados
 

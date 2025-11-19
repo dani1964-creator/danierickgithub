@@ -119,8 +119,8 @@ O deploy automático irá:
 2. **Sistema Cria Zona Automática**
    - API `/api/domains/do-create-zone` cria zona no Digital Ocean
    - Adiciona registros automáticos:
-     - `www.minhaempresa.com.br` → CNAME → `adminimobiliaria.site`
-     - `*.minhaempresa.com.br` → CNAME → `adminimobiliaria.site` (wildcard)
+     - `www.minhaempresa.com.br` → CNAME → `whale-app-w84mh.ondigitalocean.app`
+     - `*.minhaempresa.com.br` → CNAME → `whale-app-w84mh.ondigitalocean.app` (wildcard)
    - Retorna nameservers do Digital Ocean
 
 3. **Cliente Configura Nameservers**

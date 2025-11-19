@@ -9,7 +9,7 @@ const supabase = createClient(
 
 const DO_ACCESS_TOKEN = process.env.DO_ACCESS_TOKEN;
 const APP_IP = process.env.NEXT_PUBLIC_APP_IP || '162.159.140.98';
-const BASE_DOMAIN = process.env.NEXT_PUBLIC_BASE_PUBLIC_DOMAIN || 'adminimobiliaria.site';
+const APP_PLATFORM_DOMAIN = 'whale-app-w84mh.ondigitalocean.app';
 
 /**
  * API para criar zona DNS completa no Digital Ocean
@@ -107,17 +107,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     console.log('Zone created successfully:', zoneData);
 
     // 2. ADICIONAR REGISTROS DNS AUTOMATICAMENTE
+    // Aponta para o domínio do App Platform (recomendação do Digital Ocean)
     const dnsRecords = [
       {
         type: 'CNAME',
         name: 'www',
-        data: `${BASE_DOMAIN}.`,
+        data: `${APP_PLATFORM_DOMAIN}.`,
         ttl: 3600
       },
       {
         type: 'CNAME',
         name: '*',
-        data: `${BASE_DOMAIN}.`,
+        data: `${APP_PLATFORM_DOMAIN}.`,
         ttl: 3600
       }
     ];

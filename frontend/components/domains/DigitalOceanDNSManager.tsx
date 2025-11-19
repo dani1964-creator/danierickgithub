@@ -35,8 +35,8 @@ export function DigitalOceanDNSManager({ brokerId }: Props) {
   const [records, setRecords] = useState<DNSRecord[]>([]);
   const [loading, setLoading] = useState(false);
   const [verifying, setVerifying] = useState(false);
-  const [loadingInitial, setLoadingInitial] = useState(true);
-  const [deleting, setDeleting] = useState(false);
+const [loadingInitial, setLoadingInitial] = useState(true);
+const [deleting, setDeleting] = useState(false);
   
   // Estado para adicionar novo registro
   const [showAddRecord, setShowAddRecord] = useState(false);

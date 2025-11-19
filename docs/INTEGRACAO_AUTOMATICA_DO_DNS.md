@@ -36,7 +36,7 @@ POST https://api.digitalocean.com/v2/domains/meudominio.com.br/records
 {
   "type": "CNAME",
   "name": "www",
-  "data": "adminimobiliaria.site."
+  "data": "whale-app-w84mh.ondigitalocean.app."
 }
 
 // 📝 ADICIONA REGISTRO WILDCARD (*)
@@ -44,7 +44,7 @@ POST https://api.digitalocean.com/v2/domains/meudominio.com.br/records
 {
   "type": "CNAME", 
   "name": "*",
-  "data": "adminimobiliaria.site."
+  "data": "whale-app-w84mh.ondigitalocean.app."
 }
 
 // ✅ Resultado: Registros aparecem dentro da zona no painel DO

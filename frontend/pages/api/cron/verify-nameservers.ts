@@ -68,6 +68,31 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         );
         const dnsData = await dnsResponse.json();
 
+        console.log(`[CRON] DNS Status para ${zone.domain}: ${dnsData.Status}`);
+
+        // Status 3 = NXDOMAIN (nameservers não configurados ainda)
+        if (dnsData.Status === 3) {
+          console.log(`[CRON] ⏳ Zona ${zone.domain} ainda sem nameservers (tentativa ${zone.verification_attempts + 1})`);
+          
+          const newAttempts = zone.verification_attempts + 1;
+          const newStatus = newAttempts >= 288 ? 'failed' : 'verifying';
+
+          await supabase
+            .from('dns_zones')
+            .update({
+              status: newStatus,
+              last_verification_at: new Date().toISOString(),
+              verification_attempts: newAttempts
+            })
+            .eq('id', zone.id);
+
+          if (newStatus === 'failed') {
+            failedCount++;
+            console.log(`[CRON] ❌ Zona ${zone.domain} marcada como falha (timeout 24h sem nameservers)`);
+          }
+          continue;
+        }
+
         // Verificar se nameservers apontam para Digital Ocean
         const hasDigitalOceanNS = dnsData.Answer?.some((answer: any) => 
           answer.data?.toLowerCase().includes('digitalocean.com')

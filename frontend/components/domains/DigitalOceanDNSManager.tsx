@@ -36,6 +36,7 @@ export function DigitalOceanDNSManager({ brokerId }: Props) {
   const [loading, setLoading] = useState(false);
   const [verifying, setVerifying] = useState(false);
   const [loadingInitial, setLoadingInitial] = useState(true);
+  const [deleting, setDeleting] = useState(false);
   
   // Estado para adicionar novo registro
   const [showAddRecord, setShowAddRecord] = useState(false);
@@ -215,6 +216,50 @@ export function DigitalOceanDNSManager({ brokerId }: Props) {
     }
   };
 
+  const handleDeleteZone = async () => {
+    if (!confirm('Tem certeza que deseja remover o domínio personalizado? Esta ação não pode ser desfeita.')) {
+      return;
+    }
+
+    setDeleting(true);
+    try {
+      const response = await fetch('/api/domains/do-delete-zone', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ brokerId })
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setZone(null);
+        setRecords([]);
+        setStep('input');
+        setDomain('');
+        
+        toast({
+          title: '✅ Domínio removido',
+          description: 'Seu domínio personalizado foi removido com sucesso.',
+        });
+      } else {
+        toast({
+          title: 'Erro ao remover domínio',
+          description: data.error || 'Tente novamente',
+          variant: 'destructive'
+        });
+      }
+    } catch (error) {
+      console.error(error);
+      toast({
+        title: 'Erro',
+        description: 'Falha ao remover domínio personalizado',
+        variant: 'destructive'
+      });
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Loading inicial */}
@@ -301,13 +346,24 @@ export function DigitalOceanDNSManager({ brokerId }: Props) {
               <span>Verificando automaticamente a cada 5 minutos...</span>
             </div>
 
-            <Button 
-              onClick={verifyNameservers} 
-              variant="outline"
-              disabled={verifying}
-            >
-              {verifying ? 'Verificando...' : 'Verificar Agora'}
-            </Button>
+            <div className="flex gap-2">
+              <Button 
+                onClick={verifyNameservers} 
+                variant="outline"
+                disabled={verifying}
+              >
+                {verifying ? 'Verificando...' : 'Verificar Agora'}
+              </Button>
+              
+              <Button 
+                onClick={handleDeleteZone} 
+                variant="destructive"
+                disabled={deleting}
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                {deleting ? 'Removendo...' : 'Remover Domínio'}
+              </Button>
+            </div>
           </CardContent>
         </Card>
       )}
@@ -318,9 +374,20 @@ export function DigitalOceanDNSManager({ brokerId }: Props) {
           {/* Status do Domínio */}
           <Card>
             <CardHeader>
-              <div className="flex items-center gap-2">
-                <CheckCircle className="h-5 w-5 text-green-500" />
-                <CardTitle>✅ Domínio Ativo</CardTitle>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <CheckCircle className="h-5 w-5 text-green-500" />
+                  <CardTitle>✅ Domínio Ativo</CardTitle>
+                </div>
+                <Button 
+                  onClick={handleDeleteZone} 
+                  variant="destructive"
+                  size="sm"
+                  disabled={deleting}
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  {deleting ? 'Removendo...' : 'Remover Domínio'}
+                </Button>
               </div>
               <CardDescription>
                 Seu domínio {zone.domain} está funcionando!

@@ -37,16 +37,45 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(404).json({ error: 'Zone not found' });
     }
 
+    console.log(`[VERIFY] Verificando nameservers para: ${domain}`);
+
     // Verificar nameservers via Google DNS API
     const nsResponse = await fetch(
       `https://dns.google/resolve?name=${domain}&type=NS`
     );
     const nsData = await nsResponse.json();
 
+    console.log(`[VERIFY] Resposta DNS:`, JSON.stringify(nsData, null, 2));
+
+    // Status 3 = NXDOMAIN (nameservers não configurados ou propagação pendente)
+    if (nsData.Status === 3) {
+      console.log(`[VERIFY] ❌ Domínio ${domain} ainda não tem nameservers configurados`);
+      
+      await supabase
+        .from('dns_zones')
+        .update({
+          last_verification_at: new Date().toISOString(),
+          verification_attempts: zone.verification_attempts + 1
+        })
+        .eq('id', zone.id);
+
+      return res.status(200).json({
+        success: false,
+        domain,
+        status: 'verifying',
+        isActive: false,
+        nameserversDetected: [],
+        dnsStatus: nsData.Status,
+        message: '❌ Nameservers ainda não configurados no registrador. Configure os nameservers fornecidos e aguarde a propagação (pode levar até 48h).'
+      });
+    }
+
     // Verificar se algum nameserver é do Digital Ocean
     const hasDigitalOceanNS = nsData.Answer?.some((answer: any) => 
-      answer.data?.includes('digitalocean.com')
+      answer.data?.toLowerCase().includes('digitalocean.com')
     );
+
+    console.log(`[VERIFY] Digital Ocean NS detectado: ${hasDigitalOceanNS}`);
 
     // Atualizar status
     const newStatus = hasDigitalOceanNS ? 'active' : 'verifying';

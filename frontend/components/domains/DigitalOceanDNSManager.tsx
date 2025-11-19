@@ -44,22 +44,6 @@ export function DigitalOceanDNSManager({ brokerId }: Props) {
     priority: 10
   });
 
-  // Verificação automática a cada 5 minutos
-  useEffect(() => {
-    if (zone && zone.status === 'verifying') {
-      const interval = setInterval(() => {
-        verifyNameservers();
-      }, 300000); // 5 minutos
-
-      return () => clearInterval(interval);
-    }
-  }, [zone]);
-
-  // Carregar zona existente
-  useEffect(() => {
-    loadExistingZone();
-  }, [brokerId]);
-
   const loadExistingZone = async () => {
     // Buscar zona existente do broker
     const response = await fetch(`/api/domains/do-list-records?brokerId=${brokerId}`);
@@ -72,6 +56,24 @@ export function DigitalOceanDNSManager({ brokerId }: Props) {
       }
     }
   };
+
+  // Carregar zona existente
+  useEffect(() => {
+    loadExistingZone();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [brokerId]);
+
+  // Verificação automática a cada 5 minutos
+  useEffect(() => {
+    if (zone && zone.status === 'verifying') {
+      const interval = setInterval(() => {
+        verifyNameservers();
+      }, 300000); // 5 minutos
+
+      return () => clearInterval(interval);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [zone]);
 
   const handleCreateZone = async () => {
     setLoading(true);

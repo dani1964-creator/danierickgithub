@@ -12,7 +12,7 @@ const supabase = createClient(
  * 
  * Configuração no Digital Ocean App Platform:
  * 1. Criar Cron Job
- * 2. Schedule: */5 * * * * (a cada 5 minutos)
+ * 2. Schedule: a cada 5 minutos
  * 3. Command: curl -X POST https://seuapp.ondigitalocean.app/api/cron/verify-nameservers
  * 
  * Ou usar serviço externo como cron-job.org

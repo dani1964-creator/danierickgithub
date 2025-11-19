@@ -20,6 +20,7 @@ import BackgroundImageUpload from '@/components/settings/BackgroundImageUpload';
 import SocialLinksManager from '@/components/social/SocialLinksManager';
 import BackgroundStyleSelector from '@/components/backgrounds/BackgroundStyleSelector';
 import FaviconUpload from '@/components/settings/FaviconUpload';
+import { DigitalOceanDNSManager } from '@/components/domains/DigitalOceanDNSManager';
 
 type WebsiteProfile = Partial<BrokerProfile> & {
   tracking_scripts?: Json;
@@ -397,14 +398,21 @@ const WebsiteSettings = () => {
                 Páginas
               </Button>
               <Button
+                variant={activeTab === 'domain' ? 'default' : 'outline'}
+                onClick={() => setActiveTab('domain')}
+                className="text-sm"
+              >
+                Domínio
+              </Button>
+            </div>
+            <div className="grid grid-cols-2 gap-2 w-full">
+              <Button
                 variant={activeTab === 'social' ? 'default' : 'outline'}
                 onClick={() => setActiveTab('social')}
                 className="text-sm"
               >
                 Redes Sociais
               </Button>
-            </div>
-            <div className="grid grid-cols-2 gap-2 w-full">
               <Button
                 variant={activeTab === 'tracking' ? 'default' : 'outline'}
                 onClick={() => setActiveTab('tracking')}
@@ -412,6 +420,8 @@ const WebsiteSettings = () => {
               >
                 Rastreamento
               </Button>
+            </div>
+            <div className="grid grid-cols-1 gap-2 w-full">
               <Button
                 variant={activeTab === 'seo' ? 'default' : 'outline'}
                 onClick={() => setActiveTab('seo')}
@@ -425,6 +435,7 @@ const WebsiteSettings = () => {
             <TabsTrigger value="general">Geral</TabsTrigger>
             <TabsTrigger value="visual">Identidade Visual</TabsTrigger>
             <TabsTrigger value="pages">Páginas</TabsTrigger>
+            <TabsTrigger value="domain">Domínio</TabsTrigger>
             <TabsTrigger value="social">Redes Sociais</TabsTrigger>
             <TabsTrigger value="tracking">Rastreamento</TabsTrigger>
             <TabsTrigger value="seo">SEO & Meta</TabsTrigger>
@@ -1203,6 +1214,23 @@ const WebsiteSettings = () => {
                     <li>• As páginas são linkadas automaticamente no rodapé do site</li>
                   </ul>
                 </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="domain" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Globe className="h-5 w-5" />
+                  Domínio Personalizado
+                </CardTitle>
+                <CardDescription>
+                  Configure seu próprio domínio com gerenciamento DNS completo
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <DigitalOceanDNSManager brokerId={user?.id || ''} />
               </CardContent>
             </Card>
           </TabsContent>

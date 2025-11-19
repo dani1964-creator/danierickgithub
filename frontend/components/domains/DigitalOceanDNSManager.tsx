@@ -35,6 +35,7 @@ export function DigitalOceanDNSManager({ brokerId }: Props) {
   const [records, setRecords] = useState<DNSRecord[]>([]);
   const [loading, setLoading] = useState(false);
   const [verifying, setVerifying] = useState(false);
+  const [loadingInitial, setLoadingInitial] = useState(true);
   
   // Estado para adicionar novo registro
   const [showAddRecord, setShowAddRecord] = useState(false);
@@ -46,15 +47,29 @@ export function DigitalOceanDNSManager({ brokerId }: Props) {
   });
 
   const loadExistingZone = async () => {
-    // Buscar zona existente do broker
-    const response = await fetch(`/api/domains/do-list-records?brokerId=${brokerId}`);
-    if (response.ok) {
-      const data = await response.json();
-      if (data.zone) {
-        setZone(data.zone);
-        setRecords(data.records || []);
-        setStep(data.zone.status === 'active' ? 'active' : 'waiting');
+    setLoadingInitial(true);
+    try {
+      const response = await fetch(`/api/domains/do-list-records?brokerId=${brokerId}`);
+      if (response.ok) {
+        const data = await response.json();
+        if (data.zone) {
+          setZone(data.zone);
+          setRecords(data.records || []);
+          setStep(data.zone.status === 'active' ? 'active' : 'waiting');
+        } else {
+          // Não há zona configurada ainda
+          setStep('input');
+        }
       }
+    } catch (error) {
+      console.error('Error loading zone:', error);
+      toast({
+        title: 'Erro ao carregar domínio',
+        description: 'Não foi possível carregar as configurações do domínio.',
+        variant: 'destructive'
+      });
+    } finally {
+      setLoadingInitial(false);
     }
   };
 
@@ -202,8 +217,16 @@ export function DigitalOceanDNSManager({ brokerId }: Props) {
 
   return (
     <div className="space-y-6">
+      {/* Loading inicial */}
+      {loadingInitial && (
+        <div className="text-center p-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Carregando configurações do domínio...</p>
+        </div>
+      )}
+
       {/* PASSO 1: ADICIONAR DOMÍNIO */}
-      {step === 'input' && (
+      {!loadingInitial && step === 'input' && (
         <Card>
           <CardHeader>
             <CardTitle>Adicionar Domínio Personalizado</CardTitle>
@@ -233,7 +256,7 @@ export function DigitalOceanDNSManager({ brokerId }: Props) {
       )}
 
       {/* PASSO 2: AGUARDANDO NAMESERVERS */}
-      {step === 'waiting' && zone && (
+      {!loadingInitial && step === 'waiting' && zone && (
         <Card>
           <CardHeader>
             <div className="flex items-center gap-2">
@@ -290,7 +313,7 @@ export function DigitalOceanDNSManager({ brokerId }: Props) {
       )}
 
       {/* PASSO 3: DOMÍNIO ATIVO + GERENCIAR DNS */}
-      {step === 'active' && zone && (
+      {!loadingInitial && step === 'active' && zone && (
         <div className="space-y-6">
           {/* Status do Domínio */}
           <Card>

@@ -38,14 +38,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const { data: zone, error: zoneError } = await query.single();
 
     if (zoneError || !zone) {
-      return res.status(404).json({ error: 'Zone not found' });
+      // Retornar vazio ao invés de erro quando não há zona
+      return res.status(200).json({
+        success: true,
+        zone: null,
+        records: [],
+        count: 0
+      });
     }
 
-    // Buscar registros
+    // Buscar registros usando o ID da zona encontrada
     const { data: records, error: recordsError } = await supabase
       .from('dns_records')
       .select('*')
-      .eq('zone_id', zoneId)
+      .eq('zone_id', zone.id)
       .order('created_at', { ascending: false });
 
     if (recordsError) {

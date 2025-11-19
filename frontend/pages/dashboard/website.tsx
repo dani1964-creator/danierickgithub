@@ -989,7 +989,13 @@ const WebsiteSettings = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <DigitalOceanDNSManager brokerId={profile?.id || ''} />
+                {profile?.id ? (
+                  <DigitalOceanDNSManager brokerId={profile.id} />
+                ) : (
+                  <div className="text-center p-8 text-muted-foreground">
+                    Carregando informações do broker...
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>

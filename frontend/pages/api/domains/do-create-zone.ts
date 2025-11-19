@@ -63,12 +63,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Verificar se domínio já existe
     const { data: existingZone } = await supabase
       .from('dns_zones')
-      .select('id')
+      .select('*')
       .eq('domain', normalizedDomain)
       .single();
 
     if (existingZone) {
-      return res.status(409).json({ error: 'Domain already exists' });
+      // Retornar zona existente ao invés de erro
+      return res.status(200).json({ 
+        success: true,
+        zoneId: existingZone.id,
+        domain: existingZone.domain,
+        status: existingZone.status,
+        nameservers: existingZone.nameservers,
+        message: 'Domain already configured'
+      });
     }
 
     // 1. CRIAR ZONA NO DIGITAL OCEAN

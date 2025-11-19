@@ -10,6 +10,7 @@ const supabase = createClient(
  * API para listar registros DNS de uma zona
  * 
  * GET /api/domains/do-list-records?zoneId=uuid
+ * GET /api/domains/do-list-records?brokerId=uuid
  * 
  * Retorna todos os registros DNS customizados pelo cliente
  */
@@ -19,18 +20,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    const { zoneId } = req.query;
+    const { zoneId, brokerId } = req.query;
 
-    if (!zoneId || typeof zoneId !== 'string') {
-      return res.status(400).json({ error: 'Zone ID is required' });
+    if (!zoneId && !brokerId) {
+      return res.status(400).json({ error: 'Zone ID or Broker ID is required' });
     }
 
-    // Buscar zona
-    const { data: zone, error: zoneError } = await supabase
-      .from('dns_zones')
-      .select('*')
-      .eq('id', zoneId)
-      .single();
+    // Buscar zona por ID ou broker_id
+    let query = supabase.from('dns_zones').select('*');
+    
+    if (zoneId && typeof zoneId === 'string') {
+      query = query.eq('id', zoneId);
+    } else if (brokerId && typeof brokerId === 'string') {
+      query = query.eq('broker_id', brokerId);
+    }
+
+    const { data: zone, error: zoneError } = await query.single();
 
     if (zoneError || !zone) {
       return res.status(404).json({ error: 'Zone not found' });

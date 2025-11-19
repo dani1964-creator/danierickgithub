@@ -34,6 +34,7 @@ export function DigitalOceanDNSManager({ brokerId }: Props) {
   const [zone, setZone] = useState<DNSZone | null>(null);
   const [records, setRecords] = useState<DNSRecord[]>([]);
   const [loading, setLoading] = useState(false);
+  const [verifying, setVerifying] = useState(false);
   
   // Estado para adicionar novo registro
   const [showAddRecord, setShowAddRecord] = useState(false);
@@ -126,22 +127,39 @@ export function DigitalOceanDNSManager({ brokerId }: Props) {
   const verifyNameservers = async () => {
     if (!zone) return;
 
-    const response = await fetch('/api/domains/do-verify-nameservers', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ domain: zone.domain })
-    });
-
-    const data = await response.json();
-
-    if (data.isActive) {
-      setZone({ ...zone, status: 'active', activated_at: new Date().toISOString() });
-      setStep('active');
-      
-      toast({
-        title: '🎉 Domínio ativo!',
-        description: 'Seu domínio personalizado está funcionando!',
+    setVerifying(true);
+    try {
+      const response = await fetch('/api/domains/do-verify-nameservers', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ domain: zone.domain })
       });
+
+      const data = await response.json();
+
+      if (data.isActive) {
+        setZone({ ...zone, status: 'active', activated_at: new Date().toISOString() });
+        setStep('active');
+        
+        toast({
+          title: '🎉 Domínio ativo!',
+          description: 'Seu domínio personalizado está funcionando!',
+        });
+      } else {
+        toast({
+          title: 'Ainda não propagado',
+          description: 'Os nameservers ainda não foram configurados. Aguarde alguns minutos.',
+          variant: 'default'
+        });
+      }
+    } catch (error) {
+      toast({
+        title: 'Erro ao verificar',
+        description: 'Não foi possível verificar os nameservers. Tente novamente.',
+        variant: 'destructive'
+      });
+    } finally {
+      setVerifying(false);
     }
   };
 
@@ -260,8 +278,12 @@ export function DigitalOceanDNSManager({ brokerId }: Props) {
               <span>Verificando automaticamente a cada 5 minutos...</span>
             </div>
 
-            <Button onClick={verifyNameservers} variant="outline">
-              Verificar Agora
+            <Button 
+              onClick={verifyNameservers} 
+              variant="outline"
+              disabled={verifying}
+            >
+              {verifying ? 'Verificando...' : 'Verificar Agora'}
             </Button>
           </CardContent>
         </Card>

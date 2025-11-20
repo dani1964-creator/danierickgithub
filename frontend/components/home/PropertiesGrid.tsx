@@ -113,7 +113,7 @@ const PropertiesGrid = ({
         color3={brokerProfile?.sections_background_color_3 || '#ffffff'}
         className="py-16"
       >
-        <div className="ds-container">
+        <div className="content-container">
         <SectionHeader
           title="Todos os Imóveis"
           subtitle="Explore nossa seleção completa de propriedades"

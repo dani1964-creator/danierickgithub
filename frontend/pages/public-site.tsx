@@ -237,7 +237,7 @@ const PublicSite = () => {
   } = usePropertyFilters(properties);
 
   // DEBUG: Log para verificar se propriedades estão sendo carregadas
-  React.useEffect(() => {
+  useEffect(() => {
     logger.info('📊 Properties state updated:', {
       total: properties.length,
       featured: featuredProperties.length,

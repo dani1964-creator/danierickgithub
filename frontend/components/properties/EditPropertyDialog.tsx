@@ -306,7 +306,7 @@ const EditPropertyDialog = ({ property, open, onOpenChange, onPropertyUpdated }:
     'Academia', 'Salão de festas', 'Varanda', 'Área gourmet', 'Jardim'
   ];
 
-  const handleInputChange = (field: string, value: string | boolean) => {
+  const handleInputChange = (field: string, value: string | boolean | string[]) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 

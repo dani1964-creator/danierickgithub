@@ -236,6 +236,17 @@ const PublicSite = () => {
     hasActiveFilters
   } = usePropertyFilters(properties);
 
+  // DEBUG: Log para verificar se propriedades estão sendo carregadas
+  React.useEffect(() => {
+    logger.info('📊 Properties state updated:', {
+      total: properties.length,
+      featured: featuredProperties.length,
+      regular: regularProperties.length,
+      useDynamicCategories,
+      categoriesCount: categoriesWithProperties.length
+    });
+  }, [properties, featuredProperties, regularProperties, useDynamicCategories, categoriesWithProperties]);
+
   // Carrega tipos globais ativos para popular o filtro público
   const { groups: typeGroups } = usePropertyTypes();
   const rankGroup = (label: string) => {
@@ -308,9 +319,10 @@ const PublicSite = () => {
       });
       setProperties((propertiesData || []) as unknown as Property[]);
       
-      // Tentar carregar categorias dinâmicas
+      // Tentar carregar categorias dinâmicas (apenas se tabelas existirem)
       if (brokerData?.id) {
         try {
+          // @ts-ignore - RPC will exist after migration
           const { data: categoriesData, error: categoriesError } = await supabase
             .rpc('get_homepage_categories_with_properties', {
               p_broker_id: brokerData.id,
@@ -331,13 +343,16 @@ const PublicSite = () => {
             })));
             setUseDynamicCategories(true);
           } else {
-            logger.debug('No dynamic categories found, using legacy sections');
+            logger.warn('⚠️ No dynamic categories found or RPC not available, using legacy sections');
             setUseDynamicCategories(false);
           }
         } catch (error) {
-          logger.error('Error loading categories:', error);
+          logger.warn('⚠️ Categories system not migrated yet, using legacy sections:', error);
           setUseDynamicCategories(false);
         }
+      } else {
+        logger.debug('No broker ID, using legacy sections');
+        setUseDynamicCategories(false);
       }
       
       const { data: socialLinksData, error: socialError } = await supabase

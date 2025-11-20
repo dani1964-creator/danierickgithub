@@ -254,10 +254,12 @@ const LeadModal = ({
             </Button>
             <Button
               type="submit"
-              className="flex-1 text-white hover:opacity-90 transition-all"
+              className="flex-1 text-white font-medium hover:opacity-90 transition-all disabled:opacity-70"
               style={{ 
-                backgroundColor: primaryColor,
-                borderColor: primaryColor
+                backgroundColor: primaryColor || '#000000',
+                borderColor: primaryColor || '#000000',
+                border: '1px solid',
+                outline: 'none'
               }}
               disabled={loading}
             >

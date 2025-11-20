@@ -2,10 +2,12 @@
 import { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import dynamic from 'next/dynamic';
-import { Search, Trash2, Eye, Filter, RefreshCw, ChevronLeft, ChevronRight, Building, Star, AlertCircle, Edit, Power } from 'lucide-react';
+import { Search, Trash2, Eye, Filter, RefreshCw, ChevronLeft, ChevronRight, Building, Star, AlertCircle, Edit, Power, Tags, Plus } from 'lucide-react';
 import { logger } from '@/lib/logger';
 import { useAuth } from '@/shared/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import CategoryManager from '@/components/dashboard/CategoryManager';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Input } from '@/components/ui/input';
@@ -54,6 +56,7 @@ const Properties = () => {
   
   // ✅ ESTADOS PARA FILTROS E PAGINAÇÃO
   const [brokerId, setBrokerId] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState('properties');
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [propertyTypeFilter, setPropertyTypeFilter] = useState('all');
@@ -297,7 +300,8 @@ const Properties = () => {
       rented: { label: 'Alugado', variant: 'outline' as const },
     };
     
-    return statusMap[status as keyof typeof statusMap] || { label: 'Ativo', variant: 'default' as const };
+    const statusInfo = statusMap[status as keyof typeof statusMap] || { label: 'Ativo', variant: 'default' as const };
+    return <Badge variant={statusInfo.variant}>{statusInfo.label}</Badge>;
   };
 
   const formatPrice = (price: number) => {
@@ -371,456 +375,335 @@ const Properties = () => {
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 bg-card/50 backdrop-blur-sm rounded-xl p-4 sm:p-6 shadow-lg border border-border/50">
             <div className="flex-1 min-w-0">
               <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-                Imóveis
+                Gestão de Imóveis
               </h1>
               <p className="text-muted-foreground mt-1 text-sm sm:text-base lg:text-lg break-words">
-                Gerencie seus imóveis cadastrados
-                <span className="block sm:inline sm:ml-1">({totalCount || properties.length} imóveis - Página {currentPage} de {totalPages})</span>
+                Gerencie seus imóveis e organize por categorias
+                <span className="block sm:inline sm:ml-1">({totalCount || properties.length} imóveis)</span>
               </p>
             </div>
-            <div className="flex-shrink-0">
-              <AddPropertyDialog onPropertyAdded={refreshProperties} />
-            </div>
           </div>
 
-        {/* Search, Filters and View Toggle */}
-        <div className="bg-card/50 backdrop-blur-sm rounded-xl p-4 sm:p-6 shadow-lg border border-border/50">
-          <div className="flex flex-col gap-3 sm:gap-4">
-            <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 flex-1 min-w-0">
-              <div className="relative flex-1 min-w-0">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                <Input
-                  placeholder="Buscar por título, endereço, bairro, cidade ou código..."
-                  value={searchTerm}
-                  onChange={(e) => handleSearchChange(e.target.value)}
-                  className="pl-10 text-sm bg-background/80 backdrop-blur-sm border-border/50 w-full"
-                  maxLength={100}
-                />
-              </div>
-              
-              <div className="flex items-center gap-2 flex-shrink-0">
-                <Filter className="h-4 w-4 text-muted-foreground" />
-                <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="w-full sm:w-32 bg-background/80 backdrop-blur-sm border-border/50">
-                    <SelectValue placeholder="Status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todos</SelectItem>
-                    <SelectItem value="active">Ativo</SelectItem>
-                    <SelectItem value="sold">Vendido</SelectItem>
-                    <SelectItem value="rented">Alugado</SelectItem>
-                    <SelectItem value="inactive">Inativo</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            
-            <div className="flex justify-center sm:justify-end">
-              <PropertyViewToggle view={viewMode} onViewChange={setViewMode} />
-            </div>
-          </div>
-        </div>
+          {/* Tabs Container */}
+          <div className="bg-card/50 backdrop-blur-sm rounded-xl shadow-lg border border-border/50 overflow-hidden">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+              <TabsList className="grid w-full grid-cols-2 bg-muted/20 p-1 h-auto rounded-none border-b">
+                <TabsTrigger 
+                  value="properties" 
+                  className="data-[state=active]:bg-background data-[state=active]:shadow-sm py-3 font-medium text-sm flex items-center gap-2"
+                >
+                  <Building className="h-4 w-4" />
+                  Meus Imóveis
+                  <Badge variant="secondary" className="text-xs">
+                    {totalCount || properties.length}
+                  </Badge>
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="categories" 
+                  className="data-[state=active]:bg-background data-[state=active]:shadow-sm py-3 font-medium text-sm flex items-center gap-2"
+                >
+                  <Tags className="h-4 w-4" />
+                  Categorias
+                  <Badge variant="outline" className="text-xs">
+                    Organizar
+                  </Badge>
+                </TabsTrigger>
+              </TabsList>
 
-        {/* Properties Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
-          <Card className="bg-card/50 backdrop-blur-sm border-border/50 shadow-lg hover:shadow-xl transition-all duration-300">
-            <CardContent className="p-4 sm:p-6">
-              <div className="text-2xl sm:text-3xl font-bold text-primary">{properties.length}</div>
-              <p className="text-xs sm:text-sm text-muted-foreground mt-1">Total de Imóveis</p>
-            </CardContent>
-          </Card>
-          <Card className="bg-card/50 backdrop-blur-sm border-border/50 shadow-lg hover:shadow-xl transition-all duration-300">
-            <CardContent className="p-4 sm:p-6">
-              <div className="text-2xl sm:text-3xl font-bold text-emerald-500">
-                {properties.filter(p => p.is_active).length}
-              </div>
-              <p className="text-xs sm:text-sm text-muted-foreground mt-1">Ativos</p>
-            </CardContent>
-          </Card>
-          <Card className="bg-card/50 backdrop-blur-sm border-border/50 shadow-lg hover:shadow-xl transition-all duration-300">
-            <CardContent className="p-4 sm:p-6">
-              <div className="text-2xl sm:text-3xl font-bold text-amber-500">
-                {properties.filter(p => p.is_featured).length}
-              </div>
-              <p className="text-xs sm:text-sm text-muted-foreground mt-1">Em Destaque</p>
-            </CardContent>
-          </Card>
-          <Card className="bg-card/50 backdrop-blur-sm border-border/50 shadow-lg hover:shadow-xl transition-all duration-300">
-            <CardContent className="p-4 sm:p-6">
-              <div className="text-2xl sm:text-3xl font-bold text-blue-500">
-                {properties.reduce((acc, p) => acc + p.views_count, 0)}
-              </div>
-              <p className="text-xs sm:text-sm text-muted-foreground mt-1">Visualizações</p>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Properties Grid */}
-        {filteredProperties.length === 0 ? (
-          <Card className="bg-card/50 backdrop-blur-sm border-border/50 shadow-lg">
-            <CardContent className="flex flex-col items-center justify-center p-12">
-              <div className="text-center">
-                <h3 className="text-lg font-semibold mb-2">
-                  {searchTerm ? 'Nenhum imóvel encontrado' : 'Nenhum imóvel cadastrado'}
-                </h3>
-                <p className="text-muted-foreground mb-4">
-                  {searchTerm 
-                    ? 'Tente ajustar os termos de busca.'
-                    : 'Comece adicionando seu primeiro imóvel ao sistema.'
-                  }
-                </p>
-                {!searchTerm && (
-                  <AddPropertyDialog onPropertyAdded={refreshProperties} />
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        ) : viewMode === 'grid' ? (
-          // Grid View
-          <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {filteredProperties.map((property) => (
-              <Card key={property.id} className="overflow-hidden bg-card/50 backdrop-blur-sm border-border/50 shadow-lg hover:shadow-xl transition-all duration-300 group">
-                <div className="relative aspect-video overflow-hidden">
-                  {property.main_image_url ? (
-                    <Image
-                      src={property.main_image_url}
-                      alt={property.title}
-                      fill
-                      className="object-cover group-hover:scale-105 transition-transform duration-300 will-change-transform"
-                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, (max-width: 1280px) 33vw, 25vw"
-                    />
-                  ) : (
-                    <div className="flex flex-col items-center justify-center h-full text-muted-foreground bg-gradient-to-br from-muted to-muted/50">
-                      <Building className="h-12 w-12 mb-2 opacity-50" />
-                      <span className="text-xs">Sem imagem</span>
+              {/* Aba de Imóveis */}
+              <TabsContent value="properties" className="p-0 m-0">
+                <div className="p-4 sm:p-6 space-y-6">
+                  {/* Barra de ações - Adicionar Imóvel */}
+                  <div className="flex justify-between items-center">
+                    <div className="flex items-center gap-2">
+                      <Building className="h-5 w-5 text-muted-foreground" />
+                      <span className="font-medium">Lista de Imóveis</span>
                     </div>
-                  )}
-                  
-                  {/* Badges de Status */}
-                  <div className="absolute top-2 left-2 right-2 flex flex-wrap gap-2">
-                    {!property.is_active && (
-                      <Badge className="bg-slate-900/90 text-white border-slate-700 backdrop-blur-sm">
-                        <Power className="h-3 w-3 mr-1" /> Inativo
-                      </Badge>
-                    )}
-                    {property.is_featured && (
-                      <Badge className="bg-gradient-to-r from-amber-500 to-amber-600 text-white shadow-lg backdrop-blur-sm border-0">
-                        <Star className="h-3 w-3 mr-1" /> Destaque
-                      </Badge>
-                    )}
-                    {property.status === 'sold' && (
-                      <Badge className="bg-green-600/90 text-white backdrop-blur-sm">
-                        ✓ Vendido
-                      </Badge>
-                    )}
-                    {property.status === 'rented' && (
-                      <Badge className="bg-blue-600/90 text-white backdrop-blur-sm">
-                        ✓ Alugado
-                      </Badge>
-                    )}
+                    <AddPropertyDialog onPropertyAdded={refreshProperties} />
                   </div>
 
-                  {/* Código do imóvel no canto */}
-                  {property.property_code && (
-                    <Badge variant="outline" className="absolute bottom-2 right-2 text-xs bg-black/60 text-white border-white/20 backdrop-blur-sm">
-                      #{property.property_code}
-                    </Badge>
-                  )}
-                </div>
-                
-                <CardHeader className="pb-2 space-y-2">
-                  <CardTitle className="text-base line-clamp-2 leading-tight">
-                    {property.title}
-                  </CardTitle>
-                  
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-2xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-                      {formatPrice(property.price)}
-                    </span>
-                    <Badge variant="secondary" className="text-[10px] px-2 py-0.5">
-                      {property.transaction_type === 'sale' ? 'Venda' : 'Aluguel'}
-                    </Badge>
-                  </div>
-                </CardHeader>
-
-                <CardContent className="pt-0 space-y-3">
-                  <p className="text-xs text-muted-foreground line-clamp-1 flex items-center gap-1">
-                    <span className="text-primary">📍</span>
-                    {property.address}
-                  </p>
-                  
-                  {/* Info Grid */}
-                  <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
-                    {property.bedrooms ? (
-                      <div className="flex items-center gap-1">
-                        <span>🛏️</span> {property.bedrooms} {property.bedrooms === 1 ? 'quarto' : 'quartos'}
+                  {/* Search, Filters and View Toggle */}
+                  <div className="bg-muted/30 rounded-lg p-4 space-y-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 flex-1 min-w-0">
+                      <div className="relative flex-1 min-w-0">
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                        <Input
+                          placeholder="Buscar por título, endereço, bairro, cidade ou código..."
+                          value={searchTerm}
+                          onChange={(e) => handleSearchChange(e.target.value)}
+                          className="pl-10 text-sm bg-background/80 backdrop-blur-sm border-border/50 w-full"
+                          maxLength={100}
+                        />
                       </div>
-                    ) : null}
-                    {property.bathrooms ? (
-                      <div className="flex items-center gap-1">
-                        <span>🚿</span> {property.bathrooms} {property.bathrooms === 1 ? 'banheiro' : 'banheiros'}
+                      <div className="flex gap-2 flex-shrink-0">
+                        <Select value={statusFilter} onValueChange={setStatusFilter}>
+                          <SelectTrigger className="w-[130px] bg-background/80 backdrop-blur-sm border-border/50">
+                            <SelectValue placeholder="Status" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">Todos Status</SelectItem>
+                            <SelectItem value="active">Ativo</SelectItem>
+                            <SelectItem value="inactive">Inativo</SelectItem>
+                            <SelectItem value="sold">Vendido</SelectItem>
+                            <SelectItem value="rented">Alugado</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <Select value={propertyTypeFilter} onValueChange={setPropertyTypeFilter}>
+                          <SelectTrigger className="w-[140px] bg-background/80 backdrop-blur-sm border-border/50">
+                            <SelectValue placeholder="Tipo" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">Todos Tipos</SelectItem>
+                            <SelectItem value="house">Casa</SelectItem>
+                            <SelectItem value="apartment">Apartamento</SelectItem>
+                            <SelectItem value="land">Terreno</SelectItem>
+                            <SelectItem value="commercial">Comercial</SelectItem>
+                            <SelectItem value="farm">Rural</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <PropertyViewToggle view={viewMode} onViewChange={setViewMode} />
                       </div>
-                    ) : null}
-                    {property.area_m2 ? (
-                      <div className="flex items-center gap-1">
-                        <span>📐</span> {property.area_m2}m²
-                      </div>
-                    ) : null}
-                    {property.parking_spaces ? (
-                      <div className="flex items-center gap-1">
-                        <span>🚗</span> {property.parking_spaces} {property.parking_spaces === 1 ? 'vaga' : 'vagas'}
-                      </div>
-                    ) : null}
-                  </div>
-
-                  {/* Visualizações */}
-                  <div className="flex items-center gap-1 text-xs text-muted-foreground pt-2 border-t">
-                    <Eye className="h-3 w-3" />
-                    <span>{property.views_count} visualizações</span>
-                  </div>
-
-                  {/* Ações Rápidas */}
-                  <div className="space-y-2 pt-2 border-t">
-                    {/* Toggle Ativo */}
-                    <div className="flex items-center justify-between">
-                      <label htmlFor={`active-${property.id}`} className="text-xs font-medium cursor-pointer flex items-center gap-2">
-                        <Power className="h-3 w-3" />
-                        Status Ativo
-                      </label>
-                      <Switch
-                        id={`active-${property.id}`}
-                        checked={property.is_active}
-                        onCheckedChange={() => handleToggleActive(property.id, property.is_active)}
-                      />
-                    </div>
-
-                    {/* Toggle Destaque */}
-                    <div className="flex items-center justify-between">
-                      <label htmlFor={`featured-${property.id}`} className="text-xs font-medium cursor-pointer flex items-center gap-2">
-                        <Star className="h-3 w-3" />
-                        Destaque
-                      </label>
-                      <Switch
-                        id={`featured-${property.id}`}
-                        checked={property.is_featured}
-                        onCheckedChange={() => handleToggleFeatured(property.id, property.is_featured)}
-                      />
                     </div>
                   </div>
 
-                  {/* Botões de Ação */}
-                  <div className="flex items-center gap-2 pt-2">
-                    <Button 
-                      size="sm" 
-                      variant="outline"
-                      onClick={() => handleDeleteProperty(property.id)}
-                      className="w-12 sm:flex-1 hover:bg-destructive/10 hover:text-destructive hover:border-destructive/20"
-                    >
-                      <Trash2 className="h-3 w-3" />
-                    </Button>
-                    <EditPropertyButton property={property} onPropertyUpdated={refreshProperties} />
+                  {/* Stats Cards */}
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+                    <Card className="bg-background/50">
+                      <CardContent className="p-4">
+                        <div className="text-2xl font-bold text-primary">{properties.length}</div>
+                        <p className="text-xs text-muted-foreground mt-1">Total</p>
+                      </CardContent>
+                    </Card>
+                    <Card className="bg-background/50">
+                      <CardContent className="p-4">
+                        <div className="text-2xl font-bold text-emerald-500">
+                          {properties.filter(p => p.is_active).length}
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-1">Ativos</p>
+                      </CardContent>
+                    </Card>
+                    <Card className="bg-background/50">
+                      <CardContent className="p-4">
+                        <div className="text-2xl font-bold text-amber-500">
+                          {properties.filter(p => p.is_featured).length}
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-1">Destaque</p>
+                      </CardContent>
+                    </Card>
+                    <Card className="bg-background/50">
+                      <CardContent className="p-4">
+                        <div className="text-2xl font-bold text-blue-500">
+                          {properties.reduce((acc, p) => acc + p.views_count, 0)}
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-1">Views</p>
+                      </CardContent>
+                    </Card>
                   </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        ) : (
-          // List/Detailed View
-          <div className="space-y-4">
-            {filteredProperties.map((property) => (
-              <Card key={property.id} className="overflow-hidden bg-card/50 backdrop-blur-sm border-border/50 shadow-lg hover:shadow-xl transition-all duration-300 group">
-                <div className="flex flex-col lg:flex-row">
-                  <div className="relative w-full h-48 lg:w-72 lg:h-48 flex-shrink-0 overflow-hidden">
-                    {property.main_image_url ? (
-                      <Image
-                        src={property.main_image_url}
-                        alt={property.title}
-                        fill
-                        className="object-cover group-hover:scale-105 transition-transform duration-300 will-change-transform"
-                        sizes="(max-width: 1024px) 100vw, 288px"
-                      />
-                    ) : (
-                      <div className="flex items-center justify-center h-full text-muted-foreground bg-muted">
-                        📷 Sem imagem
-                      </div>
-                    )}
-                    {property.is_featured && (
-                      <Badge className="absolute top-3 right-3 bg-gradient-to-r from-amber-500 to-amber-600 text-white shadow-lg" variant="default">
-                        ⭐ Destaque
-                      </Badge>
-                    )}
-                    {property.status && property.status !== 'active' && (
-                      <Badge className="absolute top-3 left-3 shadow-lg" variant={getStatusBadge(property.status).variant}>
-                        {getStatusBadge(property.status).label}
-                      </Badge>
-                    )}
-                  </div>
-                  
-                  <div className="flex-1 p-6">
-                    <div className="flex flex-col lg:flex-row lg:items-start justify-between mb-4">
-                      <div className="flex-1">
-                        <div className="flex items-start justify-between mb-3">
-                          <h3 className="text-xl lg:text-2xl font-bold line-clamp-2 flex-1 pr-4">
-                            {property.title}
-                          </h3>
-                          {property.property_code && (
-                            <Badge variant="outline" className="text-xs bg-primary/10 text-primary border-primary/20 flex-shrink-0">
-                              {property.property_code}
-                            </Badge>
+
+                  {/* Lista de Imóveis */}
+                  {properties.length === 0 ? (
+                    <Card className="border-dashed">
+                      <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+                        <Building className="h-12 w-12 text-muted-foreground/50 mb-4" />
+                        <h3 className="text-lg font-medium text-muted-foreground mb-2">
+                          Nenhum imóvel cadastrado
+                        </h3>
+                        <p className="text-sm text-muted-foreground mb-4 max-w-md">
+                          Comece adicionando seu primeiro imóvel ao sistema.
+                        </p>
+                        <AddPropertyDialog onPropertyAdded={refreshProperties} />
+                      </CardContent>
+                    </Card>
+                  ) : viewMode === 'grid' ? (
+                    // Grid View
+                    <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+                         style={{ minHeight: '400px' }}>
+                      {properties.map((property) => (
+                        <Card key={property.id} className="overflow-hidden hover:shadow-lg transition-all duration-300 group">
+                          {/* Imagem */}
+                          {property.main_image_url && (
+                            <div className="relative aspect-video overflow-hidden">
+                              <Image
+                                src={property.main_image_url}
+                                alt={property.title}
+                                fill
+                                className="object-cover group-hover:scale-105 transition-transform duration-300"
+                                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+                              />
+                              
+                              {/* Badges */}
+                              <div className="absolute top-2 left-2 flex gap-1">
+                                {property.is_featured && (
+                                  <Badge className="bg-amber-500 text-white text-xs">
+                                    <Star className="h-3 w-3 mr-1 fill-current" />
+                                    Destaque
+                                  </Badge>
+                                )}
+                                {getStatusBadge(property.status)}
+                              </div>
+                              
+                              {property.property_code && (
+                                <div className="absolute top-2 right-2">
+                                  <Badge variant="secondary" className="text-xs">
+                                    #{property.property_code}
+                                  </Badge>
+                                </div>
+                              )}
+                            </div>
                           )}
-                        </div>
-                        
-                        <div className="flex flex-col lg:flex-row lg:items-center gap-3 mb-4">
-                          <span className="text-2xl lg:text-3xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-                            {formatPrice(property.price)}
-                          </span>
-                          <Badge variant="outline" className="w-fit bg-muted/50">
-                            {property.transaction_type === 'sale' ? '🏠 Venda' : '🏠 Aluguel'}
-                          </Badge>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="space-y-3 mb-6">
-                      <p className="text-sm text-muted-foreground flex items-center gap-2">
-                        <span>📍</span>
-                        <span>{property.address}</span>
-                      </p>
-                      
-                      {(property.neighborhood || property.city) && (
-                        <p className="text-sm text-muted-foreground flex items-center gap-2">
-                          <span>🏙️</span>
-                          <span>{[property.neighborhood, property.city, property.uf].filter(Boolean).join(', ')}</span>
-                        </p>
-                      )}
-                      
-                      {property.description && (
-                        <p className="text-sm text-muted-foreground line-clamp-2 flex items-start gap-2">
-                          <span className="flex-shrink-0">📝</span>
-                          <span>{property.description}</span>
-                        </p>
-                      )}
-                    </div>
-                    
-                    <div className="grid grid-cols-4 gap-2 sm:gap-3 md:flex md:items-center text-xs sm:text-sm text-muted-foreground mb-6 bg-muted/20 rounded-lg p-4">
-                      {property.bedrooms && (
-                        <span className="flex items-center gap-2">🛏️ {property.bedrooms} quartos</span>
-                      )}
-                      {property.bathrooms && (
-                        <span className="flex items-center gap-2">🚿 {property.bathrooms} banheiros</span>
-                      )}
-                      {property.area_m2 && (
-                        <span className="flex items-center gap-2">📐 {property.area_m2}m²</span>
-                      )}
-                      {property.parking_spaces && (
-                        <span className="flex items-center gap-2">🚗 {property.parking_spaces} vagas</span>
-                      )}
-                    </div>
 
-                    <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-                      <div className="flex items-center gap-6">
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <Eye className="h-4 w-4" />
-                          <span>{property.views_count} visualizações</span>
-                        </div>
-                        
-                        {/* Toggles inline para lista */}
-                        <div className="flex items-center gap-4">
-                          <div className="flex items-center gap-2">
-                            <Switch
-                              id={`list-active-${property.id}`}
-                              checked={property.is_active}
-                              onCheckedChange={() => handleToggleActive(property.id, property.is_active)}
-                            />
-                            <label htmlFor={`list-active-${property.id}`} className="text-xs font-medium cursor-pointer flex items-center gap-1">
-                              <Power className="h-3 w-3" />
-                              Ativo
-                            </label>
-                          </div>
-                          
-                          <div className="flex items-center gap-2">
-                            <Switch
-                              id={`list-featured-${property.id}`}
-                              checked={property.is_featured}
-                              onCheckedChange={() => handleToggleFeatured(property.id, property.is_featured)}
-                            />
-                            <label htmlFor={`list-featured-${property.id}`} className="text-xs font-medium cursor-pointer flex items-center gap-1">
-                              <Star className="h-3 w-3" />
-                              Destaque
-                            </label>
-                          </div>
-                        </div>
+                          <CardHeader className="pb-2">
+                            <CardTitle className="text-sm font-semibold line-clamp-1 group-hover:text-primary transition-colors">
+                              {property.title}
+                            </CardTitle>
+                            
+                            <div className="flex items-baseline gap-2">
+                              <span className="text-lg font-bold text-primary">
+                                {formatPrice(property.price)}
+                              </span>
+                              <Badge variant="secondary" className="text-xs px-2 py-0.5">
+                                {property.transaction_type === 'sale' ? 'Venda' : 'Aluguel'}
+                              </Badge>
+                            </div>
+                          </CardHeader>
+
+                          <CardContent className="pt-0 space-y-3">
+                            <p className="text-xs text-muted-foreground line-clamp-1 flex items-center gap-1">
+                              <span className="text-primary">📍</span>
+                              {property.address}
+                            </p>
+                            
+                            {/* Info Grid */}
+                            <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
+                              {property.bedrooms ? (
+                                <div className="flex items-center gap-1">
+                                  <span>🛏️</span> {property.bedrooms}
+                                </div>
+                              ) : null}
+                              {property.bathrooms ? (
+                                <div className="flex items-center gap-1">
+                                  <span>🚿</span> {property.bathrooms}
+                                </div>
+                              ) : null}
+                              {property.area_m2 ? (
+                                <div className="flex items-center gap-1">
+                                  <span>📐</span> {property.area_m2}m²
+                                </div>
+                              ) : null}
+                              {property.parking_spaces ? (
+                                <div className="flex items-center gap-1">
+                                  <span>🚗</span> {property.parking_spaces}
+                                </div>
+                              ) : null}
+                            </div>
+
+                            {/* Views */}
+                            <div className="flex items-center gap-1 text-xs text-muted-foreground pt-2 border-t">
+                              <Eye className="h-3 w-3" />
+                              <span>{property.views_count} visualizações</span>
+                            </div>
+
+                            {/* Actions */}
+                            <div className="flex gap-1 pt-2 border-t">
+                              <EditPropertyButton 
+                                property={property} 
+                                onPropertyUpdated={refreshProperties}
+                              />
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleToggleFeatured(property.id, property.is_featured)}
+                                className="h-8 px-2"
+                                title={property.is_featured ? 'Remover destaque' : 'Adicionar destaque'}
+                              >
+                                <Star className={`h-3 w-3 ${property.is_featured ? 'text-amber-500 fill-current' : ''}`} />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleToggleActive(property.id, property.is_active)}
+                                className="h-8 px-2"
+                                title={property.is_active ? 'Desativar' : 'Ativar'}
+                              >
+                                <Power className={`h-3 w-3 ${property.is_active ? 'text-emerald-500' : 'text-muted-foreground'}`} />
+                              </Button>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  ) : (
+                    // List View - implementar se necessário
+                    <div className="text-center text-muted-foreground py-8">
+                      Vista em lista - Em desenvolvimento
+                    </div>
+                  )}
+
+                  {/* Paginação */}
+                  {totalPages && totalPages > 1 && (
+                    <div className="flex items-center justify-between bg-muted/30 rounded-lg p-4">
+                      <div className="text-sm text-muted-foreground">
+                        Página {currentPage} de {totalPages} ({totalCount} imóveis)
                       </div>
                       
-                       <div className="flex items-center gap-2">
-                         <EditPropertyButton property={property} onPropertyUpdated={refreshProperties} />
+                      <div className="flex items-center gap-2">
                         <Button 
-                          size="sm" 
-                          variant="outline"
-                          onClick={() => handleDeleteProperty(property.id)}
-                          className="hover:bg-destructive/10 hover:text-destructive hover:border-destructive/20"
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                          disabled={currentPage <= 1 || loading}
+                          className="h-8"
                         >
-                          <Trash2 className="h-4 w-4" />
+                          <ChevronLeft className="h-3 w-3" />
+                        </Button>
+                        
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                          disabled={currentPage >= totalPages || loading}
+                          className="h-8"
+                        >
+                          <ChevronRight className="h-3 w-3" />
+                        </Button>
+                        
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={fetchProperties}
+                          disabled={loading}
+                          className="h-8"
+                        >
+                          <RefreshCw className={`h-3 w-3 ${loading ? 'animate-spin' : ''}`} />
                         </Button>
                       </div>
                     </div>
-                  </div>
+                  )}
                 </div>
-              </Card>
-            ))}
+              </TabsContent>
+
+              {/* Aba de Categorias */}
+              <TabsContent value="categories" className="p-0 m-0">
+                <div className="p-4 sm:p-6">
+                  {brokerId ? (
+                    <CategoryManager brokerId={brokerId} />
+                  ) : (
+                    <div className="flex items-center justify-center py-12">
+                      <div className="text-center">
+                        <Tags className="h-12 w-12 text-muted-foreground/50 mb-4 mx-auto" />
+                        <p className="text-muted-foreground">Carregando...</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </TabsContent>
+            </Tabs>
           </div>
-        )}
-          </div>
-          {/* ✅ PAGINAÇÃO OTIMIZADA */}
-          {totalPages && totalPages > 1 && (
-            <div className="flex items-center justify-between bg-card/50 backdrop-blur-sm rounded-xl p-4 shadow-lg border border-border/50">
-              <div className="text-sm text-muted-foreground">
-                Mostrando {((currentPage - 1) * 12) + 1} - {Math.min(currentPage * 12, totalCount || 0)} de {totalCount || 0} imóveis
-              </div>
-              
-              <div className="flex items-center gap-2">
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={loadPrevPage}
-                  disabled={!hasPrevPage || loading}
-                  className="h-8"
-                >
-                  <ChevronLeft className="h-3 w-3 mr-1" />
-                  Anterior
-                </Button>
-                
-                <span className="text-sm px-3 py-1 bg-primary/10 rounded">
-                  Página {currentPage} de {totalPages}
-                </span>
-                
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={loadNextPage}
-                  disabled={!hasNextPage || loading}
-                  className="h-8"
-                >
-                  Próxima
-                  <ChevronRight className="h-3 w-3 ml-1" />
-                </Button>
-                
-                <Button 
-                  variant="ghost" 
-                  size="sm"
-                  onClick={refreshProperties}
-                  disabled={loading}
-                  className="h-8"
-                >
-                  <RefreshCw className={`h-3 w-3 ${loading ? 'animate-spin' : ''}`} />
-                </Button>
-              </div>
-            </div>
-          )}
         </div>
-      </DashboardLayout>
-    );
-  };
+      </div>
+    </DashboardLayout>
+  );
+};
 
 const DynamicProperties = dynamic(() => Promise.resolve(Properties), { ssr: false });
 export default DynamicProperties;

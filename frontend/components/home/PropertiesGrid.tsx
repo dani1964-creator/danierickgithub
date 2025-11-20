@@ -120,8 +120,35 @@ const PropertiesGrid = ({
           className="mb-8"
         />
 
+        {/* Mobile: Carousel com peek (mostra laterais) */}
+        <div className="block sm:hidden overflow-x-auto scrollbar-hide snap-x snap-mandatory">
+          <div className="flex gap-4 px-6">
+            {visibleProperties.map((property) => (
+              <div 
+                key={property.id}
+                className="flex-shrink-0 snap-center"
+                style={{ 
+                  width: 'calc(100vw - 80px)'
+                }}
+              >
+                <PropertyCard 
+                  id={`property-${property.id}`}
+                  property={property} 
+                  brokerProfile={brokerProfile} 
+                  onContactLead={onContactLead}
+                  onShare={onShare}
+                  onFavorite={onFavorite}
+                  isFavorited={isFavorited}
+                  onImageClick={onImageClick}
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Tablet e Desktop: Grid normal */}
         <div 
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+          className="hidden sm:grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
           style={{
             gap: 'var(--space-6)',
             marginBottom: 'var(--space-12)'

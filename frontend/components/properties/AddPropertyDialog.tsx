@@ -53,6 +53,16 @@ const AddPropertyDialog = ({ onPropertyAdded }: AddPropertyDialogProps) => {
           .order('name');
 
         setRealtors(realtorsData || []);
+        
+        // Carregar categorias ativas
+        const { data: categoriesData } = await supabase
+          .from('property_categories')
+          .select('id, name, color')
+          .eq('broker_id', brokerData.id)
+          .eq('is_active', true)
+          .order('display_order');
+        
+        setAvailableCategories(categoriesData || []);
       }
     } catch (error) {
       logger.error('Error fetching realtors:', error);
@@ -70,6 +80,7 @@ const AddPropertyDialog = ({ onPropertyAdded }: AddPropertyDialogProps) => {
   const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [currentImageUrl, setCurrentImageUrl] = useState('');
   const [realtors, setRealtors] = useState<Realtor[]>([]);
+  const [availableCategories, setAvailableCategories] = useState<Array<{id: string, name: string, color: string | null}>>([]);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -85,6 +96,7 @@ const AddPropertyDialog = ({ onPropertyAdded }: AddPropertyDialogProps) => {
     area_m2: '',
     parking_spaces: '',
     is_featured: false,
+    categories: [] as string[],
     features: [] as string[],
     property_code: '',
     realtor_id: '',
@@ -289,11 +301,31 @@ const AddPropertyDialog = ({ onPropertyAdded }: AddPropertyDialogProps) => {
     const mappedId = valueToId.get(formData.property_type);
     if (mappedId) insertPayload.property_type_id = mappedId;
 
-      const { error } = await supabase
+      const { data: newProperty, error } = await supabase
         .from('properties')
-        .insert(insertPayload);
+        .insert(insertPayload)
+        .select('id')
+        .single();
 
       if (error) throw error;
+
+      // Associar imóvel às categorias selecionadas
+      if (formData.categories.length > 0 && newProperty) {
+        const categoryAssignments = formData.categories.map(categoryId => ({
+          property_id: newProperty.id,
+          category_id: categoryId,
+          broker_id: brokerId,
+        }));
+
+        const { error: categoryError } = await supabase
+          .from('property_category_assignments')
+          .insert(categoryAssignments);
+
+        if (categoryError) {
+          logger.error('Error assigning categories:', categoryError);
+          // Não falhar a operação inteira, apenas logar erro
+        }
+      }
 
       toast({
         title: "Imóvel adicionado",
@@ -316,6 +348,7 @@ const AddPropertyDialog = ({ onPropertyAdded }: AddPropertyDialogProps) => {
         area_m2: '',
         parking_spaces: '',
         is_featured: false,
+        categories: [],
         features: [],
         property_code: '',
         realtor_id: '',
@@ -710,6 +743,46 @@ const AddPropertyDialog = ({ onPropertyAdded }: AddPropertyDialogProps) => {
             />
             <Label htmlFor="is_featured">Imóvel em destaque</Label>
           </div>
+
+          {/* Categorias */}
+          {availableCategories.length > 0 && (
+            <div className="space-y-3">
+              <Label>Categorias do imóvel</Label>
+              <p className="text-xs text-muted-foreground">
+                Selecione as categorias onde este imóvel aparecerá no site público
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {availableCategories.map((category) => {
+                  const isSelected = formData.categories.includes(category.id);
+                  return (
+                    <button
+                      key={category.id}
+                      type="button"
+                      onClick={() => {
+                        const newCategories = isSelected
+                          ? formData.categories.filter(id => id !== category.id)
+                          : [...formData.categories, category.id];
+                        handleInputChange('categories', newCategories);
+                      }}
+                      className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
+                        isSelected
+                          ? 'text-white scale-105 shadow-md'
+                          : 'bg-muted hover:bg-muted/80 text-muted-foreground'
+                      }`}
+                      style={isSelected ? { backgroundColor: category.color || '#2563eb' } : {}}
+                    >
+                      {category.name}
+                    </button>
+                  );
+                })}
+              </div>
+              {formData.categories.length === 0 && (
+                <p className="text-xs text-amber-600">
+                  ⚠️ Nenhuma categoria selecionada. O imóvel não aparecerá em seções específicas.
+                </p>
+              )}
+            </div>
+          )}
         </TabsContent>
 
         {/* TAB 3: VENDAS & MARKETING */}

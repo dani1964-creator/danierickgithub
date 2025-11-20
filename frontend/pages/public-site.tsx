@@ -27,6 +27,9 @@ import { Moon, Sun } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 // Lazy loading de componentes pesados para melhor performance
+const CategorySection = dynamic(() => import('@/components/home/CategorySection'), {
+  loading: () => <div className="animate-pulse h-96 bg-gray-200 rounded-lg"></div>,
+});
 const FeaturedProperties = dynamic(() => import('@/components/home/FeaturedProperties'), {
   loading: () => <div className="animate-pulse h-96 bg-gray-200 rounded-lg"></div>,
 });
@@ -66,6 +69,20 @@ const PublicSite = () => {
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxTitle, setLightboxTitle] = useState('');
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
+  
+  // Estado para categorias dinâmicas
+  interface CategoryWithProperties {
+    category_id: string;
+    category_name: string;
+    category_slug: string;
+    category_description: string | null;
+    category_color: string | null;
+    category_icon: string | null;
+    category_display_order: number;
+    properties: Property[];
+  }
+  const [categoriesWithProperties, setCategoriesWithProperties] = useState<CategoryWithProperties[]>([]);
+  const [useDynamicCategories, setUseDynamicCategories] = useState(false);
 
   // Estado de dark mode sincronizado com PropertyDetailPage
   const [isDarkMode, setIsDarkMode] = useState(() => {
@@ -290,6 +307,39 @@ const PublicSite = () => {
         } : null
       });
       setProperties((propertiesData || []) as unknown as Property[]);
+      
+      // Tentar carregar categorias dinâmicas
+      if (brokerData?.id) {
+        try {
+          const { data: categoriesData, error: categoriesError } = await supabase
+            .rpc('get_homepage_categories_with_properties', {
+              p_broker_id: brokerData.id,
+              p_properties_per_category: 12
+            });
+          
+          if (!categoriesError && categoriesData && categoriesData.length > 0) {
+            logger.debug('✅ Loaded dynamic categories:', categoriesData.length);
+            setCategoriesWithProperties(categoriesData.map((cat: any) => ({
+              category_id: cat.category_id,
+              category_name: cat.category_name,
+              category_slug: cat.category_slug,
+              category_description: cat.category_description,
+              category_color: cat.category_color,
+              category_icon: cat.category_icon,
+              category_display_order: cat.category_display_order,
+              properties: cat.properties || []
+            })));
+            setUseDynamicCategories(true);
+          } else {
+            logger.debug('No dynamic categories found, using legacy sections');
+            setUseDynamicCategories(false);
+          }
+        } catch (error) {
+          logger.error('Error loading categories:', error);
+          setUseDynamicCategories(false);
+        }
+      }
+      
       const { data: socialLinksData, error: socialError } = await supabase
         .from('social_links')
         .select('*')
@@ -587,36 +637,74 @@ const PublicSite = () => {
         </div>
       </div>
 
-      {featuredProperties.length > 0 && (
-        <FeaturedProperties
-          properties={featuredProperties}
-          brokerProfile={brokerProfile}
-          onContactLead={handleContactLead}
-          onShare={handleShare}
-          onFavorite={handleFavorite}
-          isFavorited={isFavorited}
-          onImageClick={handleImageClick}
-          isDarkMode={isDarkMode}
-        />
-      )}
+      {/* Renderização Dinâmica de Categorias */}
+      {useDynamicCategories && categoriesWithProperties.length > 0 ? (
+        // Sistema NOVO: Categorias personalizáveis
+        categoriesWithProperties.map((category, index) => (
+          <div key={category.category_id}>
+            <CategorySection
+              category={{
+                id: category.category_id,
+                name: category.category_name,
+                slug: category.category_slug,
+                description: category.category_description,
+                color: category.category_color,
+                icon: category.category_icon,
+                display_order: category.category_display_order,
+                is_active: true,
+                show_on_homepage: true
+              }}
+              properties={category.properties}
+              brokerProfile={brokerProfile}
+              onContactLead={handleContactLead}
+              onShare={handleShare}
+              onFavorite={handleFavorite}
+              isFavorited={isFavorited}
+              onImageClick={handleImageClick}
+              isDarkMode={isDarkMode}
+            />
+            {index < categoriesWithProperties.length - 1 && (
+              <div className="content-container py-8">
+                <Separator className="bg-black/20" />
+              </div>
+            )}
+          </div>
+        ))
+      ) : (
+        // Sistema LEGADO: FeaturedProperties + PropertiesGrid
+        <>
+          {featuredProperties.length > 0 && (
+            <FeaturedProperties
+              properties={featuredProperties}
+              brokerProfile={brokerProfile}
+              onContactLead={handleContactLead}
+              onShare={handleShare}
+              onFavorite={handleFavorite}
+              isFavorited={isFavorited}
+              onImageClick={handleImageClick}
+              isDarkMode={isDarkMode}
+            />
+          )}
 
-      {featuredProperties.length > 0 && regularProperties.length > 0 && (
-        <div className="content-container py-8">
-          <Separator className="bg-black/20" />
-        </div>
-      )}
+          {featuredProperties.length > 0 && regularProperties.length > 0 && (
+            <div className="content-container py-8">
+              <Separator className="bg-black/20" />
+            </div>
+          )}
 
-      {regularProperties.length > 0 && (
-        <PropertiesGrid
-          properties={regularProperties}
-          brokerProfile={brokerProfile}
-          onContactLead={handleContactLead}
-          onShare={handleShare}
-          onFavorite={handleFavorite}
-          isFavorited={isFavorited}
-          onImageClick={handleImageClick}
-          isDarkMode={isDarkMode}
-        />
+          {regularProperties.length > 0 && (
+            <PropertiesGrid
+              properties={regularProperties}
+              brokerProfile={brokerProfile}
+              onContactLead={handleContactLead}
+              onShare={handleShare}
+              onFavorite={handleFavorite}
+              isFavorited={isFavorited}
+              onImageClick={handleImageClick}
+              isDarkMode={isDarkMode}
+            />
+          )}
+        </>
       )}
 
       <WhatsAppFloat 

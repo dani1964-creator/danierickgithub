@@ -100,6 +100,8 @@ const EditPropertyDialog = ({ property, open, onOpenChange, onPropertyUpdated }:
   const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [currentImageUrl, setCurrentImageUrl] = useState('');
   const [realtors, setRealtors] = useState<Realtor[]>([]);
+  const [availableCategories, setAvailableCategories] = useState<Array<{id: string, name: string, color: string | null}>>([]);
+  const [loadingCategories, setLoadingCategories] = useState(true);
   const [formData, setFormData] = useState({
     title: property.title,
     description: property.description || '',
@@ -116,6 +118,7 @@ const EditPropertyDialog = ({ property, open, onOpenChange, onPropertyUpdated }:
     parking_spaces: property.parking_spaces?.toString() || '',
     is_featured: property.is_featured,
     status: property.status || 'active',
+    categories: [] as string[],
     features: property.features || [],
     property_code: property.property_code || '',
   realtor_id: property.realtor_id || '',
@@ -176,6 +179,26 @@ const EditPropertyDialog = ({ property, open, onOpenChange, onPropertyUpdated }:
           .order('name');
 
         setRealtors(realtorsData || []);
+        
+        // Carregar categorias ativas
+        const { data: categoriesData } = await supabase
+          .from('property_categories')
+          .select('id, name, color')
+          .eq('broker_id', brokerData.id)
+          .eq('is_active', true)
+          .order('display_order');
+        
+        setAvailableCategories(categoriesData || []);
+        
+        // Carregar categorias atuais do imóvel
+        const { data: currentCategoriesData } = await supabase
+          .from('property_category_assignments')
+          .select('category_id')
+          .eq('property_id', property.id);
+        
+        const categoryIds = currentCategoriesData?.map(c => c.category_id) || [];
+        setFormData(prev => ({ ...prev, categories: categoryIds }));
+        setLoadingCategories(false);
       }
     } catch (error) {
       logger.error('Error fetching realtors:', error);
@@ -436,6 +459,40 @@ const EditPropertyDialog = ({ property, open, onOpenChange, onPropertyUpdated }:
         .eq('id', property.id);
 
       if (error) throw error;
+
+      // Atualizar categorias
+      // 1. Obter broker_id
+      const { data: brokerData } = await supabase
+        .from('brokers')
+        .select('id')
+        .eq('user_id', user?.id)
+        .single();
+
+      if (brokerData) {
+        // 2. Deletar associações antigas
+        await supabase
+          .from('property_category_assignments')
+          .delete()
+          .eq('property_id', property.id);
+
+        // 3. Criar novas associações
+        if (formData.categories.length > 0) {
+          const categoryAssignments = formData.categories.map(categoryId => ({
+            property_id: property.id,
+            category_id: categoryId,
+            broker_id: brokerData.id,
+          }));
+
+          const { error: categoryError } = await supabase
+            .from('property_category_assignments')
+            .insert(categoryAssignments);
+
+          if (categoryError) {
+            logger.error('Error updating categories:', categoryError);
+            // Não falhar a operação inteira, apenas logar erro
+          }
+        }
+      }
 
       toast({
         title: "Imóvel atualizado",
@@ -1288,6 +1345,53 @@ const EditPropertyDialog = ({ property, open, onOpenChange, onPropertyUpdated }:
             />
             <Label htmlFor="is_featured">Imóvel em destaque</Label>
           </div>
+
+          {/* Categorias */}
+          {availableCategories.length > 0 && (
+            <div className="space-y-3">
+              <Label>Categorias do imóvel</Label>
+              <p className="text-xs text-muted-foreground">
+                Selecione as categorias onde este imóvel aparecerá no site público
+              </p>
+              {loadingCategories ? (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+                  Carregando categorias...
+                </div>
+              ) : (
+                <div className="flex flex-wrap gap-2">
+                  {availableCategories.map((category) => {
+                    const isSelected = formData.categories.includes(category.id);
+                    return (
+                      <button
+                        key={category.id}
+                        type="button"
+                        onClick={() => {
+                          const newCategories = isSelected
+                            ? formData.categories.filter(id => id !== category.id)
+                            : [...formData.categories, category.id];
+                          handleInputChange('categories', newCategories);
+                        }}
+                        className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
+                          isSelected
+                            ? 'text-white scale-105 shadow-md'
+                            : 'bg-muted hover:bg-muted/80 text-muted-foreground'
+                        }`}
+                        style={isSelected ? { backgroundColor: category.color || '#2563eb' } : {}}
+                      >
+                        {category.name}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+              {formData.categories.length === 0 && !loadingCategories && (
+                <p className="text-xs text-amber-600">
+                  ⚠️ Nenhuma categoria selecionada. O imóvel não aparecerá em seções específicas.
+                </p>
+              )}
+            </div>
+          )}
 
           {/* Submit Buttons */}
           <div className="flex justify-end space-x-2">

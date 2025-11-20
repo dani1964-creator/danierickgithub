@@ -180,7 +180,7 @@ const EditPropertyDialog = ({ property, open, onOpenChange, onPropertyUpdated }:
     } catch (error) {
       logger.error('Error fetching realtors:', error);
     }
-  }, [user?.id, property.id]);
+  }, [user?.id]);
 
   useEffect(() => {
     if (user) {

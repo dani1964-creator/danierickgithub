@@ -231,6 +231,7 @@ const EditPropertyDialog = ({ property, open, onOpenChange, onPropertyUpdated }:
         parking_spaces: property.parking_spaces?.toString() || '',
         is_featured: property.is_featured,
         status: property.status || 'active',
+        categories: [],
         features: property.features || [],
         property_code: property.property_code || '',
   realtor_id: property.realtor_id || '',

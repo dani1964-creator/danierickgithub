@@ -1261,6 +1261,66 @@ export type Database = {
         Args: { p_property_id: string }
         Returns: Json
       }
+      get_broker_categories_with_counts: {
+        Args: { p_broker_id: string }
+        Returns: {
+          id: string
+          name: string
+          slug: string
+          description: string | null
+          color: string | null
+          icon: string | null
+          display_order: number
+          is_active: boolean
+          show_on_homepage: boolean
+          properties_count: number
+          created_at: string
+          updated_at: string
+        }[]
+      }
+      get_category_properties: {
+        Args: { 
+          p_broker_id: string
+          p_category_slug: string
+          p_limit?: number
+        }
+        Returns: {
+          id: string
+          title: string
+          slug: string
+          price: number
+          main_image_url: string
+          images: string[]
+          property_type: string
+          transaction_type: string
+          bedrooms: number
+          bathrooms: number
+          area_m2: number
+          city: string
+          uf: string
+          neighborhood: string
+          views_count: number
+          is_featured: boolean
+          property_code: string
+          address: string
+        }[]
+      }
+      get_homepage_categories_with_properties: {
+        Args: { 
+          p_broker_id: string
+          p_properties_per_category?: number
+        }
+        Returns: {
+          category_id: string
+          category_name: string
+          category_slug: string
+          category_description: string | null
+          category_color: string | null
+          category_icon: string | null
+          category_display_order: number
+          properties: Json
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never

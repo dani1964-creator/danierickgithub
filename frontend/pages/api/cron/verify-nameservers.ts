@@ -116,6 +116,30 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             console.error(`[CRON] Erro ao atualizar zona ${zone.domain}:`, updateError);
           } else {
             verifiedCount++;
+            
+            // Adicionar domínio ao App Platform para provisionar SSL automaticamente
+            try {
+              console.log(`[CRON] 🔒 Adicionando ${zone.domain} ao App Platform para SSL...`);
+              
+              const addDomainResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'https://whale-app-w84mh.ondigitalocean.app'}/api/domains/do-add-to-app`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ domain: zone.domain }),
+              });
+
+              if (addDomainResponse.ok) {
+                const result = await addDomainResponse.json();
+                console.log(`[CRON] ✅ Domínio ${zone.domain} adicionado ao App Platform:`, result.message);
+              } else {
+                const error = await addDomainResponse.json();
+                console.error(`[CRON] ⚠️ Erro ao adicionar domínio ao App Platform:`, error);
+              }
+            } catch (appError) {
+              console.error(`[CRON] ⚠️ Falha ao adicionar ${zone.domain} ao App Platform:`, appError);
+              // Não falhar a verificação se apenas o SSL falhar
+            }
           }
         } else {
           // Nameservers ainda não propagaram

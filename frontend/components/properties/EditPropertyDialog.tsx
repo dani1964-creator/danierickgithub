@@ -16,6 +16,7 @@ import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { getErrorMessage } from '@/lib/utils';
+import CategorySelector from '@/components/properties/CategorySelector';
 
 interface Realtor {
   id: string;
@@ -1277,6 +1278,18 @@ const EditPropertyDialog = ({ property, open, onOpenChange, onPropertyUpdated }:
                 </div>
               </div>
             )}
+          </div>
+
+          {/* Categorias do Imóvel */}
+          <div className="space-y-3">
+            <Label className="text-sm font-medium">Categorias do imóvel</Label>
+            <p className="text-xs text-muted-foreground">
+              Selecione as categorias onde este imóvel aparecerá no site público
+            </p>
+            <CategorySelector 
+              propertyId={property.id}
+              onCategoriesChange={() => onPropertyUpdated()}
+            />
           </div>
 
           {/* Submit Buttons */}

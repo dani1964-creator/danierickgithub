@@ -627,6 +627,15 @@ const Properties = () => {
                               >
                                 <Power className={`h-3 w-3 ${property.is_active ? 'text-emerald-500' : 'text-muted-foreground'}`} />
                               </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleDeleteProperty(property.id)}
+                                className="h-8 px-2 text-destructive hover:text-destructive"
+                                title="Excluir imóvel"
+                              >
+                                <Trash2 className="h-3 w-3" />
+                              </Button>
                             </div>
                           </CardContent>
                         </Card>

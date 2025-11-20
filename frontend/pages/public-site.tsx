@@ -1,6 +1,6 @@
 import type { BrokerProfile, BrokerContact } from '@/shared/types/broker';
 import type { Property } from '@/shared/types/tenant';
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/router';
 import Head from 'next/head';

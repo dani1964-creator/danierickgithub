@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/router';
-import DashboardLayout from '@/components/layouts/DashboardLayout';
+import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -82,11 +82,7 @@ export default function CategoriasPage() {
     show_on_homepage: true,
   });
 
-  useEffect(() => {
-    loadBrokerAndCategories();
-  }, []);
-
-  const loadBrokerAndCategories = async () => {
+  const loadBrokerAndCategories = useCallback(async () => {
     try {
       setLoading(true);
 
@@ -110,9 +106,13 @@ export default function CategoriasPage() {
 
       setBrokerId(brokerData.id);
 
-      // Carregar categorias com contagem
+      // Carregar categorias
+      // @ts-ignore - Tabela property_categories ainda não existe nos tipos gerados
       const { data: categoriesData, error: categoriesError } = await supabase
-        .rpc('get_broker_categories_with_counts', { p_broker_id: brokerData.id });
+        .from('property_categories')
+        .select('*')
+        .eq('broker_id', brokerData.id)
+        .order('display_order', { ascending: true }) as { data: PropertyCategory[] | null; error: any };
 
       if (categoriesError) {
         logger.error('Error loading categories:', categoriesError);
@@ -120,14 +120,34 @@ export default function CategoriasPage() {
         return;
       }
 
-      setCategories(categoriesData || []);
+      // Para cada categoria, contar os imóveis associados via property_category_assignments
+      const categoriesWithCounts = await Promise.all(
+        (categoriesData || []).map(async (category) => {
+          // @ts-ignore - Tabela property_category_assignments ainda não existe nos tipos gerados
+          const { count } = await supabase
+            .from('property_category_assignments')
+            .select('*', { count: 'exact', head: true })
+            .eq('category_id', category.id);
+          
+          return {
+            ...category,
+            properties_count: count || 0,
+          };
+        })
+      );
+
+      setCategories(categoriesWithCounts);
     } catch (error) {
       logger.error('Error in loadBrokerAndCategories:', error);
       notifications.showError('Erro', 'Erro ao carregar dados');
     } finally {
       setLoading(false);
     }
-  };
+  }, [router, notifications]);
+
+  useEffect(() => {
+    loadBrokerAndCategories();
+  }, [loadBrokerAndCategories]);
 
   const generateSlug = (name: string) => {
     return name
@@ -150,6 +170,7 @@ export default function CategoriasPage() {
         ? Math.max(...categories.map(c => c.display_order)) 
         : -1;
 
+      // @ts-ignore - Tabela property_categories ainda não existe nos tipos gerados
       const { error } = await supabase
         .from('property_categories')
         .insert({
@@ -190,6 +211,7 @@ export default function CategoriasPage() {
     }
 
     try {
+      // @ts-ignore - Tabela property_categories ainda não existe nos tipos gerados
       const { error } = await supabase
         .from('property_categories')
         .update({
@@ -219,6 +241,7 @@ export default function CategoriasPage() {
     }
 
     try {
+      // @ts-ignore - Tabela property_categories ainda não existe nos tipos gerados
       const { error } = await supabase
         .from('property_categories')
         .delete()
@@ -257,6 +280,7 @@ export default function CategoriasPage() {
       }));
 
       for (const update of updates) {
+        // @ts-ignore - Tabela property_categories ainda não existe nos tipos gerados
         await supabase
           .from('property_categories')
           .update({ display_order: update.display_order })
@@ -557,9 +581,13 @@ export default function CategoriasPage() {
 
                                 <div className="flex items-center gap-2">
                                   {category.is_active ? (
-                                    <Eye className="h-4 w-4 text-green-600" title="Ativa" />
+                                    <div title="Ativa">
+                                      <Eye className="h-4 w-4 text-green-600" />
+                                    </div>
                                   ) : (
-                                    <EyeOff className="h-4 w-4 text-muted-foreground" title="Inativa" />
+                                    <div title="Inativa">
+                                      <EyeOff className="h-4 w-4 text-muted-foreground" />
+                                    </div>
                                   )}
                                   <Button
                                     variant="ghost"

@@ -188,7 +188,7 @@ const EditPropertyDialog = ({ property, open, onOpenChange, onPropertyUpdated }:
           .eq('is_active', true)
           .order('display_order');
         
-        setAvailableCategories(categoriesData || []);
+        setAvailableCategories((categoriesData as any) || []);
         
         // Carregar categorias atuais do imóvel
         const { data: currentCategoriesData } = await supabase
@@ -196,14 +196,14 @@ const EditPropertyDialog = ({ property, open, onOpenChange, onPropertyUpdated }:
           .select('category_id')
           .eq('property_id', property.id);
         
-        const categoryIds = currentCategoriesData?.map(c => c.category_id) || [];
+        const categoryIds = (currentCategoriesData as any)?.map((c: any) => c.category_id) || [];
         setFormData(prev => ({ ...prev, categories: categoryIds }));
         setLoadingCategories(false);
       }
     } catch (error) {
       logger.error('Error fetching realtors:', error);
     }
-  }, [user?.id]);
+  }, [user?.id, property.id]);
 
   useEffect(() => {
     if (user) {

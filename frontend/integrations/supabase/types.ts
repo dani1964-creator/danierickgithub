@@ -555,7 +555,108 @@ export type Database = {
           },
         ]
       }
-      ,
+      property_categories: {
+        Row: {
+          id: string
+          broker_id: string
+          name: string
+          slug: string
+          description: string | null
+          color: string | null
+          icon: string | null
+          display_order: number
+          is_active: boolean
+          show_on_homepage: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          broker_id: string
+          name: string
+          slug: string
+          description?: string | null
+          color?: string | null
+          icon?: string | null
+          display_order?: number
+          is_active?: boolean
+          show_on_homepage?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          broker_id?: string
+          name?: string
+          slug?: string
+          description?: string | null
+          color?: string | null
+          icon?: string | null
+          display_order?: number
+          is_active?: boolean
+          show_on_homepage?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "property_categories_broker_id_fkey"
+            columns: ["broker_id"]
+            isOneToOne: false
+            referencedRelation: "brokers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      property_category_assignments: {
+        Row: {
+          id: string
+          property_id: string
+          category_id: string
+          broker_id: string
+          assigned_at: string
+          assigned_by: string | null
+        }
+        Insert: {
+          id?: string
+          property_id: string
+          category_id: string
+          broker_id: string
+          assigned_at?: string
+          assigned_by?: string | null
+        }
+        Update: {
+          id?: string
+          property_id?: string
+          category_id?: string
+          broker_id?: string
+          assigned_at?: string
+          assigned_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "property_category_assignments_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "property_category_assignments_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "property_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "property_category_assignments_broker_id_fkey"
+            columns: ["broker_id"]
+            isOneToOne: false
+            referencedRelation: "brokers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       property_types: {
         Row: {
           id: string

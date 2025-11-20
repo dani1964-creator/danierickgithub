@@ -55,14 +55,14 @@ const AddPropertyDialog = ({ onPropertyAdded }: AddPropertyDialogProps) => {
         setRealtors(realtorsData || []);
         
         // Carregar categorias ativas
-        const { data: categoriesData } = await supabase
+        const { data: categoriesData } = await (supabase as any)
           .from('property_categories')
           .select('id, name, color')
           .eq('broker_id', brokerData.id)
           .eq('is_active', true)
           .order('display_order');
         
-        setAvailableCategories(categoriesData || []);
+        setAvailableCategories((categoriesData as any) || []);
       }
     } catch (error) {
       logger.error('Error fetching realtors:', error);
@@ -128,7 +128,7 @@ const AddPropertyDialog = ({ onPropertyAdded }: AddPropertyDialogProps) => {
     'Academia', 'Salão de festas', 'Varanda', 'Área gourmet', 'Jardim'
   ];
 
-  const handleInputChange = (field: string, value: string | boolean) => {
+  const handleInputChange = (field: string, value: string | boolean | string[]) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
@@ -317,7 +317,7 @@ const AddPropertyDialog = ({ onPropertyAdded }: AddPropertyDialogProps) => {
           broker_id: brokerId,
         }));
 
-        const { error: categoryError } = await supabase
+        const { error: categoryError } = await (supabase as any)
           .from('property_category_assignments')
           .insert(categoryAssignments);
 

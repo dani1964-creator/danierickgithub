@@ -329,21 +329,29 @@ const PublicSite = () => {
               p_properties_per_category: 12
             });
           
-          if (!categoriesError && categoriesData && categoriesData.length > 0) {
-            logger.debug('✅ Loaded dynamic categories:', categoriesData.length);
-            setCategoriesWithProperties(categoriesData.map((cat: any) => ({
-              category_id: cat.category_id,
-              category_name: cat.category_name,
-              category_slug: cat.category_slug,
-              category_description: cat.category_description,
-              category_color: cat.category_color,
-              category_icon: cat.category_icon,
-              category_display_order: cat.category_display_order,
-              properties: cat.properties || []
-            })));
-            setUseDynamicCategories(true);
+          if (!categoriesError && categoriesData) {
+            // A RPC corrigida retorna TABLE (array de objetos)
+            const categoriesArray = Array.isArray(categoriesData) ? categoriesData : [];
+            
+            if (categoriesArray && categoriesArray.length > 0) {
+              logger.debug('✅ Loaded dynamic categories:', categoriesArray.length);
+              setCategoriesWithProperties(categoriesArray.map((cat: any) => ({
+                category_id: cat.category_id,
+                category_name: cat.category_name,
+                category_slug: cat.category_slug,
+                category_description: cat.category_description,
+                category_color: cat.category_color || '#2563eb', // fallback color
+                category_icon: cat.category_icon || 'Star', // fallback icon
+                category_display_order: cat.category_display_order || 0,
+                properties: cat.properties || []
+              })));
+              setUseDynamicCategories(true);
+            } else {
+              logger.warn('⚠️ No dynamic categories found, using legacy sections');
+              setUseDynamicCategories(false);
+            }
           } else {
-            logger.warn('⚠️ No dynamic categories found or RPC not available, using legacy sections');
+            logger.warn('⚠️ RPC error or no data:', categoriesError?.message);
             setUseDynamicCategories(false);
           }
         } catch (error) {

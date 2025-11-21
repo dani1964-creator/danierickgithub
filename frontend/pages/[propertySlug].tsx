@@ -96,14 +96,17 @@ export const getServerSideProps: GetServerSideProps<PropertyPageProps> = async (
       return { props: { initialQuery } };
     }
 
-    // Buscar imóvel
-    const { data: property } = await supabase
-      .from('properties')
-      .select('id, title, description, price, bedrooms, bathrooms, area_m2, neighborhood, city, uf, main_image_url, slug')
-      .eq('broker_id', broker.id)
-      .eq('slug', propertySlug)
-      .eq('is_published', true)
+    // Buscar imóvel usando nova função RPC
+    const { data: propertyData } = await supabase
+      .rpc('get_property_by_slug', {
+        p_property_slug: propertySlug,
+        p_broker_slug: brokerSlug,
+        p_custom_domain: customDomain
+      })
       .single();
+
+    // Extrair dados do imóvel da resposta RPC
+    const property = propertyData?.property_data;
 
     if (!property) {
       return { props: { initialQuery } };

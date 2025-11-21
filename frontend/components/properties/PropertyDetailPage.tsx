@@ -246,83 +246,48 @@ const PropertyDetailPage = ({ initialQuery }: PropertyDetailPageProps = {}) => {
         setLoading(false); // render imediato
       }
 
-      // Executa consultas em paralelo para reduzir TTFB
-      logger.debug('Calling RPC functions with params:', { 
-        broker_slug: effectiveSlug, 
-        property_slug: effectivePropertySlug 
+      // Buscar propriedade usando nova função RPC otimizada
+      const currentHost = typeof window !== 'undefined' ? window.location.host : '';
+      const isCustomDomainHost = currentHost && !currentHost.includes('adminimobiliaria.site');
+      const customDomain = isCustomDomainHost ? currentHost : undefined;
+      
+      logger.debug('Calling get_property_by_slug with params:', { 
+        p_property_slug: effectivePropertySlug,
+        p_broker_slug: effectiveSlug,
+        p_custom_domain: customDomain
       });
       
-      const [propertyResult, brokerResult] = await Promise.all([
-        supabase.rpc('get_public_property_detail_with_realtor', {
-          broker_slug: effectiveSlug,
-          property_slug: effectivePropertySlug
-        }),
-        supabase.rpc('get_public_broker_branding', { 
-          broker_website_slug: effectiveSlug 
+      const { data: propertyResult, error: propertyError } = await supabase
+        .rpc('get_property_by_slug', {
+          p_property_slug: effectivePropertySlug,
+          p_broker_slug: effectiveSlug,
+          p_custom_domain: customDomain
         })
-      ]);
-      
-  logger.debug('Property RPC result:', propertyResult);
-  logger.debug('Broker RPC result:', brokerResult);
+        .single();
 
-      const { data: propertyDataArray, error: propertyError } = propertyResult;
-      const { data: brokerDataArray, error: brokerError } = brokerResult;
-
-  logger.debug('Property data from RPC:', propertyDataArray);
-  logger.debug('Broker data from RPC:', brokerDataArray);
+      logger.debug('Property result from new RPC:', propertyResult);
 
       if (propertyError) {
-  logger.error('Property RPC error:', propertyError);
-        // Fallback: tentar consulta direta se RPC falhar
-  logger.info('Attempting fallback query for property...');
-        
-        const fallbackProperty = await supabase
-          .from('properties')
-          .select(`
-            *,
-            brokers!inner(
-              business_name,
-              display_name,
-              website_slug
-            )
-          `)
-          .eq('slug', effectivePropertySlug)
-          .eq('brokers.website_slug', effectiveSlug)
-          .eq('is_active', true)
-          .single();
-          
-        if (fallbackProperty.error) {
-          logger.error('Fallback property query failed:', fallbackProperty.error);
-          throw new Error(`Erro ao carregar propriedade: ${fallbackProperty.error.message}`);
-        }
-        
-  logger.debug('Fallback property data:', fallbackProperty.data);
+        logger.error('Property RPC error:', propertyError);
+        throw new Error(`Erro ao carregar propriedade: ${propertyError.message}`);
       }
 
-      if (brokerError) {
-        logger.error('Broker RPC error:', brokerError);
-        throw new Error(`Erro ao carregar dados do corretor: ${brokerError.message}`);
-      }
-
-      if (!propertyDataArray || propertyDataArray.length === 0) {
-        logger.error('No property data returned from RPC');
+      if (!propertyResult) {
+        logger.error('No property data returned');
         throw new Error('Propriedade não encontrada');
       }
 
-      const propertyData = propertyDataArray[0];
-  logger.debug('Property data:', propertyData);
+      // Extrair dados da nova estrutura RPC
+      const propertyData = propertyResult.property_data;
+      const brokerData = propertyResult.broker_data;
 
-  logger.debug('Broker data array:', brokerDataArray);
-      const brokerData = brokerDataArray?.[0];
-  logger.debug('Broker data:', brokerData);
-
-      if (brokerError) {
-        logger.error('Broker error:', brokerError);
-        throw brokerError;
-      }
-
-      if (!brokerData) {
-        throw new Error('Corretor não encontrado');
+      // Incrementar visualizações da propriedade
+      try {
+        await supabase.rpc('increment_property_views', {
+          p_property_id: propertyData.id
+        });
+      } catch (viewError) {
+        logger.warn('Error incrementing property views:', viewError);
       }
 
       // Fetch similar properties (não bloqueia render principal)

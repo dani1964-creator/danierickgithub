@@ -278,8 +278,27 @@ const PropertyDetailPage = ({ initialQuery }: PropertyDetailPageProps = {}) => {
       }
 
       // Extrair dados da nova estrutura RPC
-      const propertyData = propertyResult.property_data;
-      const brokerData = propertyResult.broker_data;
+      const propertyData = propertyResult?.property_data;
+      const brokerData = propertyResult?.broker_data;
+
+      // ✅ VALIDAÇÃO: Verificar se os dados foram retornados
+      if (!propertyData || !brokerData) {
+        console.error('❌ RPC retornou dados vazios:', {
+          propertyResult,
+          effectivePropertySlug,
+          effectiveSlug,
+          customDomain
+        });
+        setError('Imóvel não encontrado ou não disponível');
+        setLoading(false);
+        return;
+      }
+
+      // ✅ VALIDAÇÃO: Garantir que property_type existe
+      if (!propertyData.property_type) {
+        console.warn('⚠️ property_type ausente, usando fallback', propertyData);
+        propertyData.property_type = 'apartment'; // fallback
+      }
 
       // Incrementar visualizações da propriedade
       try {
@@ -295,8 +314,8 @@ const PropertyDetailPage = ({ initialQuery }: PropertyDetailPageProps = {}) => {
         .from('properties')
         .select('*, slug')
         .eq('is_active', true)
-        .eq('property_type', propertyData.property_type)
-        .eq('transaction_type', propertyData.transaction_type)
+        .eq('property_type', propertyData.property_type || 'apartment') // ✅ Fallback
+        .eq('transaction_type', propertyData.transaction_type || 'sale') // ✅ Fallback
         .eq('broker_id', brokerData.id)
         .neq('id', propertyData.id)
         .limit(6);
@@ -1712,7 +1731,7 @@ const PropertyDetailPage = ({ initialQuery }: PropertyDetailPageProps = {}) => {
                   {/* Badges */}
                   <div className="property-detail-badges mt-4">
                     <span className="property-detail-badge property-detail-badge--type">
-                      {property.property_type}
+                      {property.property_type || 'Tipo não informado'}
                     </span>
                     <span className="property-detail-badge property-detail-badge--transaction">
                       {property.transaction_type === 'sale' ? 'Venda' : 'Aluguel'}

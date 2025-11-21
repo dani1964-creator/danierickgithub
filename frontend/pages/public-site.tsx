@@ -328,7 +328,8 @@ const PublicSite = () => {
             ? { custom_domain_param: currentHostname }
             : { broker_slug_param: effectiveSlug };
           
-          const { data: categoriesData, error: categoriesError } = await supabase
+          // Nova função RPC será criada com os scripts SQL
+          const { data: categoriesData, error: categoriesError } = await (supabase as any)
             .rpc('get_homepage_categories_with_properties', rpcParams);
           
           if (!categoriesError && categoriesData) {

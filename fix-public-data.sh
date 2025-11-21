@@ -1,16 +1,16 @@
 #!/bin/bash
 
 # ==========================================
-# SCRIPT DE MANUTENÇÃO COMPLETA
-# Executa auditoria e correção dos dados públicos
+# SCRIPT DE CORREÇÃO COMPLETA - DADOS PÚBLICOS
+# Executa migração consolidada para resolver problemas de inconsistência
 # ==========================================
 
-echo "🔍 Iniciando auditoria completa dos dados públicos..."
+echo "🔍 Iniciando correção completa dos dados públicos..."
 
-# Verificar se o Supabase está configurado
-if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_SERVICE_ROLE_KEY" ]; then
-    echo "❌ SUPABASE_URL ou SUPABASE_SERVICE_ROLE_KEY não configurados"
-    echo "Configure as variáveis de ambiente antes de executar este script"
+# Verificar se estamos no diretório correto
+if [ ! -f "MIGRACAO_FINAL_DADOS_PUBLICOS.sql" ]; then
+    echo "❌ Arquivo MIGRACAO_FINAL_DADOS_PUBLICOS.sql não encontrado"
+    echo "Execute este script na raiz do projeto"
     exit 1
 fi
 
@@ -22,42 +22,76 @@ execute_sql() {
     echo "📋 $description"
     echo "   Arquivo: $file"
     
-    # Usar psql se disponível, ou curl como fallback
+    # Verificar se psql está disponível
     if command -v psql >/dev/null 2>&1; then
-        psql "$DATABASE_URL" -f "$file"
+        if [ -n "$DATABASE_URL" ]; then
+            echo "   Executando via psql..."
+            psql "$DATABASE_URL" -f "$file"
+            if [ $? -eq 0 ]; then
+                echo "✅ SQL executado com sucesso"
+            else
+                echo "❌ Erro ao executar SQL"
+                exit 1
+            fi
+        else
+            echo "❌ DATABASE_URL não configurada"
+            echo "   Configure a variável de ambiente DATABASE_URL"
+            exit 1
+        fi
     else
-        echo "⚠️  psql não disponível, execute manualmente o arquivo SQL: $file"
-        echo "   Ou configure a conexão com o banco de dados"
+        echo "⚠️  psql não disponível"
+        echo ""
+        echo "🔧 Para executar manualmente:"
+        echo "   1. Acesse o Supabase SQL Editor"
+        echo "   2. Cole o conteúdo do arquivo: $file"
+        echo "   3. Execute o script"
+        echo ""
+        echo "💡 Ou instale psql e configure DATABASE_URL"
+        return 1
     fi
-    
-    echo "✅ Concluído: $description"
-    echo ""
 }
 
-# Executar scripts na ordem correta
-echo "🚀 Executando scripts de auditoria e correção..."
+# Build do frontend primeiro para verificar se não há erros
+echo "🏗️  Verificando build do frontend..."
+cd frontend
+if npm run build > build.log 2>&1; then
+    echo "✅ Build do frontend bem-sucedido"
+    cd ..
+else
+    echo "❌ Erro no build do frontend"
+    echo "   Verifique o arquivo frontend/build.log para detalhes"
+    cd ..
+    exit 1
+fi
 
-# 1. Auditoria principal
-execute_sql "AUDITORIA_DADOS_PUBLICOS.sql" "Auditoria principal e estrutura de dados"
+# Executar migração consolidada
+execute_sql "MIGRACAO_FINAL_DADOS_PUBLICOS.sql" "Migração consolidada - correção de dados públicos"
 
-# 2. Correções específicas
-execute_sql "CORRECAO_DADOS_PUBLICOS.sql" "Correções de inconsistências e normalização"
-
-echo "🎯 Manutenção completa finalizada!"
-echo ""
-echo "📊 Próximos passos:"
-echo "1. Verifique os relatórios gerados pelos scripts SQL"
-echo "2. Teste o site público para confirmar que as informações aparecem consistentemente"
-echo "3. Monitore logs para identificar outros problemas"
-echo ""
-echo "🔧 Para build e deploy:"
-echo "   cd frontend && npm run build"
-echo "   (Verifique se não há erros de TypeScript)"
-echo ""
-echo "📝 Observações importantes:"
-echo "- Todas as propriedades públicas agora têm dados obrigatórios preenchidos"
-echo "- Políticas RLS foram atualizadas para garantir acesso consistente"
-echo "- Funções RPC foram corrigidas para retornar dados completos"
-echo "- Cache do frontend foi atualizado para usar as novas funções"
-echo ""
-echo "✨ O site público agora deve mostrar informações consistentes!"
+# Verificar se foi bem-sucedido
+if [ $? -eq 0 ]; then
+    echo ""
+    echo "🎯 Correção completa finalizada com sucesso!"
+    echo ""
+    echo "📊 O que foi corrigido:"
+    echo "✅ Colunas obrigatórias adicionadas (is_public, is_active, views_count, etc.)"
+    echo "✅ Dados normalizados (bairros vazios preenchidos, contadores zerados)"
+    echo "✅ Políticas RLS atualizadas para acesso consistente"
+    echo "✅ Funções RPC corrigidas para retornar dados completos"
+    echo "✅ Índices de performance criados"
+    echo ""
+    echo "🔍 Para verificar:"
+    echo "1. Acesse o site público"
+    echo "2. Faça refresh várias vezes"
+    echo "3. Confirme que informações permanecem consistentes"
+    echo "4. Verifique que bairro e visualizações sempre aparecem"
+    echo ""
+    echo "🚀 Deploy recomendado:"
+    echo "   cd frontend && npm run build && npm run start"
+    echo ""
+    echo "✨ Problema de dados sumindo após refresh RESOLVIDO!"
+else
+    echo ""
+    echo "❌ Erro na execução da migração"
+    echo "   Verifique os logs acima para detalhes"
+    exit 1
+fi

@@ -323,9 +323,10 @@ const PublicSite = () => {
       if (brokerData?.id) {
         try {
           // Usar a nova função RPC corrigida com parâmetros adequados
-          const rpcParams = customDomain 
-            ? { custom_domain_param: customDomain }
-            : { broker_slug_param: brokerSlug };
+          const currentHostname = typeof window !== 'undefined' ? window.location.hostname : '';
+          const rpcParams = isCustomDomain() 
+            ? { custom_domain_param: currentHostname }
+            : { broker_slug_param: effectiveSlug };
           
           const { data: categoriesData, error: categoriesError } = await supabase
             .rpc('get_homepage_categories_with_properties', rpcParams);

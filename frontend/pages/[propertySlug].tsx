@@ -97,7 +97,7 @@ export const getServerSideProps: GetServerSideProps<PropertyPageProps> = async (
     }
 
     // Buscar imóvel usando nova função RPC
-    const { data: propertyData } = await supabase
+    const { data: propertyData } = await (supabase as any)
       .rpc('get_property_by_slug', {
         p_property_slug: propertySlug,
         p_broker_slug: brokerSlug,
@@ -106,7 +106,7 @@ export const getServerSideProps: GetServerSideProps<PropertyPageProps> = async (
       .single();
 
     // Extrair dados do imóvel da resposta RPC
-    const property = propertyData?.property_data;
+    const property = (propertyData as any)?.property_data;
 
     if (!property) {
       return { props: { initialQuery } };

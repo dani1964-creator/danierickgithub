@@ -257,7 +257,7 @@ const PropertyDetailPage = ({ initialQuery }: PropertyDetailPageProps = {}) => {
         p_custom_domain: customDomain
       });
       
-      const { data: propertyResult, error: propertyError } = await supabase
+      const { data: propertyResult, error: propertyError } = await (supabase as any)
         .rpc('get_property_by_slug', {
           p_property_slug: effectivePropertySlug,
           p_broker_slug: effectiveSlug,
@@ -283,7 +283,7 @@ const PropertyDetailPage = ({ initialQuery }: PropertyDetailPageProps = {}) => {
 
       // Incrementar visualizações da propriedade
       try {
-        await supabase.rpc('increment_property_views', {
+        await (supabase as any).rpc('increment_property_views', {
           p_property_id: propertyData.id
         });
       } catch (viewError) {

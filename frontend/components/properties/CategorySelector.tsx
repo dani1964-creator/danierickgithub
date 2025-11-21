@@ -7,10 +7,23 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
-import { Plus, X, Star, Home, TrendingUp, MapPin, DollarSign, Award, Sparkles, Tags, Check } from 'lucide-react';
+import { Plus, X, Star, Home, TrendingUp, MapPin, DollarSign, Award, Sparkles, Tags, Check, Building, TreePine, Briefcase, Waves, Shield } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/shared/hooks/useAuth';
 import { logger } from '@/lib/logger';
+
+// Categorias predefinidas
+const CATEGORIAS_PREDEFINIDAS = [
+  { nome: 'Apartamentos', icone: Building, cor: '#3B82F6' },
+  { nome: 'Casas', icone: Home, cor: '#10B981' },
+  { nome: 'Terrenos', icone: TreePine, cor: '#8B5CF6' },
+  { nome: 'Comercial', icone: Briefcase, cor: '#F59E0B' },
+  { nome: 'Lançamentos', icone: Sparkles, cor: '#EF4444' },
+  { nome: 'Luxo & Alto Padrão', icone: Award, cor: '#F59E0B' },
+  { nome: 'Ótimos Negócios', icone: DollarSign, cor: '#10B981' },
+  { nome: 'Beira-Mar', icone: Waves, cor: '#06B6D4' },
+  { nome: 'Condomínio Fechado', icone: Shield, cor: '#6366F1' }
+];
 
 interface PropertyCategory {
   id: string;
@@ -57,6 +70,7 @@ export default function CategorySelector({ propertyId, onCategoriesChange }: Cat
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [isCreatingNew, setIsCreatingNew] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [isCustomCategory, setIsCustomCategory] = useState(false);
 
   const [newCategory, setNewCategory] = useState({
     name: '',
@@ -187,6 +201,7 @@ export default function CategorySelector({ propertyId, onCategoriesChange }: Cat
         show_on_homepage: true,
       });
       setIsCreatingNew(false);
+      setIsCustomCategory(false);
       loadCategoriesAndAssignments();
       onCategoriesChange?.();
     } catch (error: any) {
@@ -331,7 +346,17 @@ export default function CategorySelector({ propertyId, onCategoriesChange }: Cat
                 type="button"
                 variant="ghost"
                 size="sm"
-                onClick={() => setIsCreatingNew(false)}
+                onClick={() => {
+                  setIsCreatingNew(false);
+                  setIsCustomCategory(false);
+                  setNewCategory({
+                    name: '',
+                    description: '',
+                    color: COLOR_OPTIONS[0],
+                    icon: 'Star',
+                    show_on_homepage: true,
+                  });
+                }}
               >
                 <X className="h-4 w-4" />
               </Button>
@@ -340,11 +365,68 @@ export default function CategorySelector({ propertyId, onCategoriesChange }: Cat
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label className="text-sm font-medium">Nome *</label>
-                <Input
-                  placeholder="Ex: Imóveis em Destaque"
-                  value={newCategory.name}
-                  onChange={(e) => setNewCategory(prev => ({ ...prev, name: e.target.value }))}
-                />
+                {!isCustomCategory ? (
+                  <Select 
+                    value={newCategory.name} 
+                    onValueChange={(value) => {
+                      if (value === 'custom') {
+                        setIsCustomCategory(true);
+                        setNewCategory(prev => ({ ...prev, name: '' }));
+                      } else {
+                        // Encontrar categoria predefinida e definir ícone/cor automaticamente
+                        const categoriaPredefinida = CATEGORIAS_PREDEFINIDAS.find(cat => cat.nome === value);
+                        setNewCategory(prev => ({ 
+                          ...prev, 
+                          name: value,
+                          icon: categoriaPredefinida?.icone?.name || 'Star',
+                          color: categoriaPredefinida?.cor || COLOR_OPTIONS[0]
+                        }));
+                      }
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione uma categoria..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {CATEGORIAS_PREDEFINIDAS.map((categoria) => {
+                        const IconComponent = categoria.icone;
+                        return (
+                          <SelectItem key={categoria.nome} value={categoria.nome}>
+                            <div className="flex items-center gap-2">
+                              <IconComponent className="h-4 w-4" style={{ color: categoria.cor }} />
+                              <span>{categoria.nome}</span>
+                            </div>
+                          </SelectItem>
+                        );
+                      })}
+                      <SelectItem value="custom">
+                        <div className="flex items-center gap-2">
+                          <Plus className="h-4 w-4" />
+                          <span>Criar nova categoria</span>
+                        </div>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <div className="space-y-2">
+                    <Input
+                      placeholder="Nome da categoria personalizada..."
+                      value={newCategory.name}
+                      onChange={(e) => setNewCategory(prev => ({ ...prev, name: e.target.value }))}
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setIsCustomCategory(false);
+                        setNewCategory(prev => ({ ...prev, name: '' }));
+                      }}
+                    >
+                      ← Voltar para categorias predefinidas
+                    </Button>
+                  </div>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -424,7 +506,17 @@ export default function CategorySelector({ propertyId, onCategoriesChange }: Cat
                 type="button"
                 variant="outline"
                 size="sm"
-                onClick={() => setIsCreatingNew(false)}
+                onClick={() => {
+                  setIsCreatingNew(false);
+                  setIsCustomCategory(false);
+                  setNewCategory({
+                    name: '',
+                    description: '',
+                    color: COLOR_OPTIONS[0],
+                    icon: 'Star',
+                    show_on_homepage: true,
+                  });
+                }}
               >
                 Cancelar
               </Button>

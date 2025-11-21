@@ -322,38 +322,28 @@ const PublicSite = () => {
       // Tentar carregar categorias dinâmicas (apenas se tabelas existirem)
       if (brokerData?.id) {
         try {
-          // Usar a nova função RPC corrigida com parâmetros adequados
-          const currentHostname = typeof window !== 'undefined' ? window.location.hostname : '';
-          const rpcParams = isCustomDomain() 
-            ? { custom_domain_param: currentHostname }
-            : { broker_slug_param: effectiveSlug };
-          
-          // Nova função RPC será criada com os scripts SQL
-          const { data: categoriesData, error: categoriesError } = await (supabase as any)
-            .rpc('get_homepage_categories_with_properties', rpcParams);
+          // USAR MÉTODO QUE FUNCIONAVA - RPC existente com broker_id
+          const { data: categoriesData, error: categoriesError } = await supabase
+            .rpc('get_homepage_categories_with_properties', {
+              p_broker_id: brokerData.id,
+              p_properties_per_category: 12
+            });
           
           if (!categoriesError && categoriesData) {
-            // A RPC corrigida retorna TABLE (array de objetos) com dados consistentes
+            // A RPC existente retorna TABLE (array de objetos)
             const categoriesArray = Array.isArray(categoriesData) ? categoriesData : [];
             
             if (categoriesArray && categoriesArray.length > 0) {
-              logger.debug('✅ Loaded dynamic categories with consistent data:', categoriesArray.length);
+              logger.debug('✅ Loaded dynamic categories:', categoriesArray.length);
               setCategoriesWithProperties(categoriesArray.map((cat: any) => ({
                 category_id: cat.category_id,
                 category_name: cat.category_name,
-                category_slug: cat.category_slug || cat.category_name.toLowerCase().replace(/\s+/g, '-'),
+                category_slug: cat.category_slug,
                 category_description: cat.category_description,
                 category_color: cat.category_color || '#2563eb',
                 category_icon: cat.category_icon || 'Star',
                 category_display_order: cat.category_display_order || 0,
-                // Garantir que propriedades sempre tenham dados completos
-                properties: (cat.properties || []).map((prop: any) => ({
-                  ...prop,
-                  neighborhood: prop.neighborhood || 'Bairro não informado',
-                  views_count: prop.views_count || 0,
-                  status: prop.status || 'available',
-                  images: prop.images || []
-                }))
+                properties: cat.properties || []
               })));
               setUseDynamicCategories(true);
             } else {

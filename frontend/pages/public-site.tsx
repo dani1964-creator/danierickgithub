@@ -322,28 +322,36 @@ const PublicSite = () => {
       // Tentar carregar categorias dinâmicas (apenas se tabelas existirem)
       if (brokerData?.id) {
         try {
-          // @ts-ignore - RPC will exist after migration
+          // Usar a nova função RPC corrigida com parâmetros adequados
+          const rpcParams = customDomain 
+            ? { custom_domain_param: customDomain }
+            : { broker_slug_param: brokerSlug };
+          
           const { data: categoriesData, error: categoriesError } = await supabase
-            .rpc('get_homepage_categories_with_properties', {
-              p_broker_id: brokerData.id,
-              p_properties_per_category: 12
-            });
+            .rpc('get_homepage_categories_with_properties', rpcParams);
           
           if (!categoriesError && categoriesData) {
-            // A RPC corrigida retorna TABLE (array de objetos)
+            // A RPC corrigida retorna TABLE (array de objetos) com dados consistentes
             const categoriesArray = Array.isArray(categoriesData) ? categoriesData : [];
             
             if (categoriesArray && categoriesArray.length > 0) {
-              logger.debug('✅ Loaded dynamic categories:', categoriesArray.length);
+              logger.debug('✅ Loaded dynamic categories with consistent data:', categoriesArray.length);
               setCategoriesWithProperties(categoriesArray.map((cat: any) => ({
                 category_id: cat.category_id,
                 category_name: cat.category_name,
-                category_slug: cat.category_slug,
+                category_slug: cat.category_slug || cat.category_name.toLowerCase().replace(/\s+/g, '-'),
                 category_description: cat.category_description,
-                category_color: cat.category_color || '#2563eb', // fallback color
-                category_icon: cat.category_icon || 'Star', // fallback icon
+                category_color: cat.category_color || '#2563eb',
+                category_icon: cat.category_icon || 'Star',
                 category_display_order: cat.category_display_order || 0,
-                properties: cat.properties || []
+                // Garantir que propriedades sempre tenham dados completos
+                properties: (cat.properties || []).map((prop: any) => ({
+                  ...prop,
+                  neighborhood: prop.neighborhood || 'Bairro não informado',
+                  views_count: prop.views_count || 0,
+                  status: prop.status || 'available',
+                  images: prop.images || []
+                }))
               })));
               setUseDynamicCategories(true);
             } else {

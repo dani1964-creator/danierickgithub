@@ -54,13 +54,14 @@ export default function FavoritesPage() {
   };
 
   const handlePropertyClick = (slug: string, brokerSlug: string) => {
-    // Em subdomínios (ex: rfimobiliaria.adminimobiliaria.site), não incluir brokerSlug na URL
-    // Em domínios customizados, incluir brokerSlug
+    // Para domínios customizados: URL limpa sem broker slug
+    // Para subdomínios (*.adminimobiliaria.site): URL com broker slug
     if (isCustomDomain()) {
-      router.push(`/${brokerSlug}/${slug}`);
-    } else {
-      // Subdomínio - URL limpa sem broker slug
+      // Domínio customizado: URL limpa /slug
       router.push(`/${slug}`);
+    } else {
+      // Subdomínio: URL com broker slug /broker/slug  
+      router.push(`/${brokerSlug}/${slug}`);
     }
   };
 

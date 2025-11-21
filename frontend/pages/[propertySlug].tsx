@@ -125,6 +125,9 @@ export const getServerSideProps: GetServerSideProps<PropertyPageProps> = async (
     const baseUrl = customDomain 
       ? `${protocol}://${customDomain}`
       : `${protocol}://${host}`;
+    
+    // Para domínio customizado, a URL deve ser direta: https://imobideps.com/slug
+    // Para subdomínio, a URL é: https://rfimobiliaria.adminimobiliaria.site/slug  
     const propertyUrl = `${baseUrl}/${property.slug}`;
 
     // Selecionar melhor imagem (prioridade: imóvel > broker)

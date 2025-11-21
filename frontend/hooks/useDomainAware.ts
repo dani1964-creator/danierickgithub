@@ -66,47 +66,52 @@ export function useDomainAware() {
   ) => {
     try {
       if (slug) {
-        // Para slug explícito, resolver broker_id primeiro
-        const { data: brokerData, error: brokerError } = await supabase
-          .from('brokers')
-          .select('id')
-          .eq('website_slug', slug)
-          .eq('is_active', true)
-          .maybeSingle();
-
-        if (brokerError || !brokerData) {
-          logger.error('Error fetching broker by slug:', brokerError);
-          return [];
-        }
-
-        // Query direta com broker_id conhecido
-        const { data, error } = await supabase
-          .from('properties')
-          .select('*')
-          .eq('broker_id', brokerData.id)
-          .eq('is_active', true)
-          .order('created_at', { ascending: false })
-          .range(offset, offset + limit - 1);
+        // Para slug explícito, usar a nova função RPC que garante dados consistentes
+        const { data, error } = await (supabase as any).rpc('get_public_properties', {
+          broker_slug_param: slug,
+          limit_param: limit,
+          offset_param: offset
+        });
 
         if (error) {
           logger.error('Error fetching properties by slug:', error);
           return [];
         }
-        return data || [];
+        
+        // Garantir que todos os dados estão completos
+        return (data || []).map((property: any) => ({
+          ...property,
+          neighborhood: property.neighborhood || 'Bairro não informado',
+          views_count: property.views_count || 0,
+          status: property.status || 'available',
+          images: property.images || [],
+          show_views_count: property.show_views_count !== false,
+          show_neighborhood: property.show_neighborhood !== false
+        }));
       } else {
-        // Para host atual, usar PublicQueryHelper (implementa Edge Function + fallback)
-        const result = await (await import('@/lib/publicQueries')).PublicQueryHelper.getPublicProperties({
-          limit,
-          offset,
-          orderBy: 'created_at',
-          ascending: false
+        // Para domínio personalizado, usar a função RPC adequada
+        const customDomain = window.location.hostname;
+        const { data, error } = await (supabase as any).rpc('get_public_properties', {
+          custom_domain_param: customDomain,
+          limit_param: limit,
+          offset_param: offset
         });
 
-        if (result.error) {
-          logger.error('Error fetching properties by host:', result.error);
+        if (error) {
+          logger.error('Error fetching properties by custom domain:', error);
           return [];
         }
-        return result.data || [];
+        
+        // Garantir que todos os dados estão completos
+        return (data || []).map((property: any) => ({
+          ...property,
+          neighborhood: property.neighborhood || 'Bairro não informado',
+          views_count: property.views_count || 0,
+          status: property.status || 'available',
+          images: property.images || [],
+          show_views_count: property.show_views_count !== false,
+          show_neighborhood: property.show_neighborhood !== false
+        }));
       }
     } catch (error) {
       logger.error('Error in getPropertiesByDomainOrSlug:', error);

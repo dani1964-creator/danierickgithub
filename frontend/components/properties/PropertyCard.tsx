@@ -90,12 +90,15 @@ const PropertyCard = ({
     // Dispara prefetch e navega em seguida
     prefetchDetail();
     const propertySlug = property.slug;
-    // Em subdomínios (*.adminimobiliaria.site), o slug está no host, não na URL
-    // Apenas em domínios customizados precisamos incluir o broker slug na URL
+    
+    // Para domínios customizados: URL limpa sem broker slug
+    // Para subdomínios (*.adminimobiliaria.site): URL com broker slug
     if (isCustomDomain()) {
-      router.push(`/${brokerProfile?.website_slug || slug || ''}/${propertySlug}`);
-    } else {
+      // Domínio customizado: URL limpa /slug
       router.push(`/${propertySlug}`);
+    } else {
+      // Subdomínio: URL com broker slug /broker/slug
+      router.push(`/${brokerProfile?.website_slug || slug || ''}/${propertySlug}`);
     }
   };
 
